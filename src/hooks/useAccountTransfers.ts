@@ -1,0 +1,156 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+
+export interface AccountTransfer {
+  id: string;
+  user_id: string;
+  from_account_id: string;
+  to_account_id: string;
+  amount: number;
+  from_currency: string;
+  to_currency: string;
+  exchange_rate: number;
+  converted_amount?: number;
+  description?: string;
+  transfer_date: string;
+  status: 'pending' | 'completed' | 'cancelled';
+  reference_number?: string;
+  created_at: string;
+}
+
+export function useAccountTransfers() {
+  const [transfers, setTransfers] = useState<AccountTransfer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  // Fetch transfers
+  const fetchTransfers = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('account_transfers')
+        .select(`
+          *,
+          from_account:accounts!from_account_id(name, currency),
+          to_account:accounts!to_account_id(name, currency)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTransfers((data || []) as AccountTransfer[]);
+    } catch (error) {
+      console.error('Error fetching transfers:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถโหลดข้อมูลการโอนได้",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create transfer
+  const createTransfer = async (transfer: Omit<AccountTransfer, 'id' | 'user_id' | 'created_at'>) => {
+    if (!user) return;
+    
+    try {
+      const convertedAmount = transfer.amount * transfer.exchange_rate;
+      
+      const { error } = await supabase
+        .from('account_transfers')
+        .insert({
+          ...transfer,
+          converted_amount: convertedAmount,
+          user_id: user.id,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "โอนเงินสำเร็จ",
+        description: "โอนเงินระหว่างบัญชีเรียบร้อยแล้ว",
+      });
+
+      await fetchTransfers();
+    } catch (error) {
+      console.error('Error creating transfer:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถโอนเงินได้",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Update transfer
+  const updateTransfer = async (id: string, updates: Partial<AccountTransfer>) => {
+    try {
+      const { error } = await supabase
+        .from('account_transfers')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "อัปเดตสำเร็จ",
+        description: "แก้ไขการโอนเรียบร้อยแล้ว",
+      });
+
+      await fetchTransfers();
+    } catch (error) {
+      console.error('Error updating transfer:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถแก้ไขการโอนได้",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Cancel transfer
+  const cancelTransfer = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('account_transfers')
+        .update({ status: 'cancelled' })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "ยกเลิกสำเร็จ",
+        description: "ยกเลิกการโอนเรียบร้อยแล้ว",
+      });
+
+      await fetchTransfers();
+    } catch (error) {
+      console.error('Error cancelling transfer:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถยกเลิกการโอนได้",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchTransfers();
+    }
+  }, [user]);
+
+  return {
+    transfers,
+    loading,
+    createTransfer,
+    updateTransfer,
+    cancelTransfer,
+    refetch: fetchTransfers,
+  };
+}
