@@ -24,6 +24,7 @@ import { BusinessReports } from "./screens/BusinessReports";
 import { KeywordsManagement } from "./screens/KeywordsManagement";
 import { AIExpenseAnalyzer } from "./screens/AIExpenseAnalyzer";
 import { PinSettings } from "./screens/PinSettings";
+import { FinancialInsights } from "./screens/FinancialInsights";
 import { BottomNavigation } from "./ui/BottomNavigation";
 import { Toaster } from "./ui/toaster";
 import { AuthGuard } from "./AuthGuard";
@@ -205,6 +206,7 @@ function AppContent() {
           <Route path="/ai-expense-analyzer" element={<AIExpenseAnalyzer onBack={() => window.history.back()} />} />
           <Route path="/pin-settings" element={<PinSettings onBack={() => window.history.back()} />} />
           <Route path="/transaction-filter" element={<TransactionFilter onBack={() => window.history.back()} />} />
+          <Route path="/financial-insights" element={<FinancialInsights />} />
         </Routes>
         <BottomNavigation />
         <Toaster />

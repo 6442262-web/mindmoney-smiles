@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Download, FileText, FileSpreadsheet, CalendarIcon, Filter, X, Palette } from "lucide-react";
+import { ArrowLeft, Download, FileText, FileSpreadsheet, CalendarIcon, Filter, X, Palette, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction, RecurringTransaction } from "../MoneyMindApp";
 import { useCategories } from "@/hooks/useCategories";
@@ -354,13 +354,21 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
 
   return (
     <div className="pb-20 px-4 pt-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Link to="/">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-5 w-5" />
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <Link to="/">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <h1 className="text-2xl font-bold">สรุปรายงาน</h1>
+        </div>
+        <Link to="/financial-insights">
+          <Button variant="outline" size="sm">
+            <TrendingUp className="h-4 w-4 mr-2" />
+            วิเคราะห์
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">สรุปรายงาน</h1>
       </div>
 
       {/* Filter Section */}
