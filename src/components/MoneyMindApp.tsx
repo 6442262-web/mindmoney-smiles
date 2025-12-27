@@ -27,6 +27,7 @@ import { PinSettings } from "./screens/PinSettings";
 import { BottomNavigation } from "./ui/BottomNavigation";
 import { Toaster } from "./ui/toaster";
 import { AuthGuard } from "./AuthGuard";
+import { GuestWarningBanner } from "./GuestWarningBanner";
 
 export type TransactionType = "income" | "expense";
 export type PriorityLevel = 1 | 2 | 3 | 4 | 5;
@@ -102,6 +103,7 @@ function AppContent() {
   return (
     <AuthGuard>
       <div className="min-h-screen bg-background">
+        <GuestWarningBanner />
         <Routes>
           <Route 
             path="/" 
