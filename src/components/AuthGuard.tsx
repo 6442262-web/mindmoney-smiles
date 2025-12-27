@@ -18,13 +18,14 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children }: AuthGuardProps) {
-  const { user, loading, signIn, signUp } = useAuth();
+  const { user, loading, signIn, signUp, signInAsGuest } = useAuth();
   const { t } = useLanguage();
   const [email, setEmail] = useState(() => localStorage.getItem('remembered_email') || '');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [rememberMe, setRememberMe] = useState(() => localStorage.getItem('remember_me') === 'true');
   const [authLoading, setAuthLoading] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   if (loading) {
@@ -164,6 +165,31 @@ export function AuthGuard({ children }: AuthGuardProps) {
                 </Button>
               </TabsContent>
             </Tabs>
+
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                  {t('auth.or') || 'หรือ'}
+                </span>
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={async () => {
+                setGuestLoading(true);
+                await signInAsGuest();
+                setGuestLoading(false);
+              }}
+              disabled={guestLoading}
+            >
+              {guestLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t('auth.guestLogin') || 'เข้าใช้งานแบบ Guest'}
+            </Button>
           </div>
         </Card>
       </div>

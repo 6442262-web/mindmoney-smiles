@@ -150,6 +150,26 @@ export function useAuth() {
     return { error: null };
   };
 
+  const signInAsGuest = async () => {
+    const { data, error } = await supabase.auth.signInAnonymously();
+
+    if (error) {
+      toast({
+        title: "เข้าสู่ระบบไม่สำเร็จ",
+        description: error.message,
+        variant: "destructive",
+      });
+      return { data: null, error };
+    }
+
+    toast({
+      title: "เข้าสู่ระบบสำเร็จ",
+      description: "ยินดีต้อนรับ Guest",
+    });
+
+    return { data, error: null };
+  };
+
   return {
     user,
     session,
@@ -157,6 +177,7 @@ export function useAuth() {
     signIn,
     signUp,
     signOut,
+    signInAsGuest,
     resetPassword,
     updatePassword,
   };
