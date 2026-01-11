@@ -69,6 +69,36 @@ export function useRecurringExecutions(recurringId?: string) {
     }
   };
 
+  // Delete execution record
+  const deleteExecution = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('recurring_executions')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting execution:', error);
+        toast({
+          title: "เกิดข้อผิดพลาด",
+          description: "ไม่สามารถลบประวัติได้",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      setExecutions(prev => prev.filter(e => e.id !== id));
+      toast({
+        title: "สำเร็จ",
+        description: "ลบประวัติเรียบร้อยแล้ว",
+      });
+      return true;
+    } catch (error) {
+      console.error('Error in deleteExecution:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       setLoading(true);
@@ -83,6 +113,7 @@ export function useRecurringExecutions(recurringId?: string) {
     executions,
     loading,
     createExecution,
+    deleteExecution,
     refreshExecutions: loadExecutions,
   };
 }

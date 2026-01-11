@@ -94,9 +94,9 @@ export default function RecurringExecutionHistory({ recurringTransactionId }: Re
                 <div className="flex items-start justify-between">
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
-                      {getStatusIcon(execution.status)}
-                      <Badge variant={getStatusVariant(execution.status)}>
-                        {getStatusLabel(execution.status)}
+                      {getStatusIcon(execution.status || 'success')}
+                      <Badge variant={getStatusVariant(execution.status || 'success')}>
+                        {getStatusLabel(execution.status || 'success')}
                       </Badge>
                     </div>
                     
@@ -104,14 +104,9 @@ export default function RecurringExecutionHistory({ recurringTransactionId }: Re
                       <Calendar className="w-4 h-4" />
                       {format(new Date(execution.execution_date), 'dd MMM yyyy', { locale: th })}
                     </div>
-                    
-                    <div className="flex items-center gap-2 font-semibold">
-                      <DollarSign className="w-4 h-4" />
-                      ฿{execution.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-                    </div>
 
-                    {execution.notes && (
-                      <p className="text-sm text-muted-foreground">{execution.notes}</p>
+                    {execution.error_message && (
+                      <p className="text-sm text-destructive">{execution.error_message}</p>
                     )}
                   </div>
 
