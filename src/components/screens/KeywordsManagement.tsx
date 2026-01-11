@@ -104,19 +104,20 @@ export function KeywordsManagement() {
     if (searchTerm) {
       filtered = filtered.filter(k => 
         k.keyword.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        k.category.toLowerCase().includes(searchTerm.toLowerCase())
+        (k.category_name || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     if (selectedCategory && selectedCategory !== 'all') {
-      filtered = filtered.filter(k => k.category === selectedCategory);
+      filtered = filtered.filter(k => k.category_name === selectedCategory);
     }
 
     return filtered.reduce((acc, keyword) => {
-      if (!acc[keyword.category]) {
-        acc[keyword.category] = [];
+      const cat = keyword.category_name || 'uncategorized';
+      if (!acc[cat]) {
+        acc[cat] = [];
       }
-      acc[keyword.category].push(keyword);
+      acc[cat].push(keyword);
       return acc;
     }, {} as { [category: string]: Keyword[] });
   };

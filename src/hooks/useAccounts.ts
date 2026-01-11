@@ -6,10 +6,14 @@ export interface Account {
   id: string;
   user_id: string;
   name: string;
-  color: string;
-  description?: string;
-  budget_limit: number;
-  is_default: boolean;
+  type?: string;
+  balance?: number;
+  currency?: string;
+  icon?: string | null;
+  color?: string | null;
+  is_default?: boolean;
+  is_active?: boolean;
+  budget_limit?: number | null;
   created_at: string;
   updated_at: string;
 }

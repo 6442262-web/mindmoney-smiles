@@ -5,11 +5,11 @@ import { useToast } from '@/hooks/use-toast';
 export interface BackupLog {
   id: string;
   user_id: string;
-  backup_type: 'auto' | 'manual' | 'export';
-  status: 'success' | 'failed' | 'in_progress';
-  file_size?: number;
-  file_url?: string;
-  error_message?: string;
+  backup_type: string;
+  file_name?: string | null;
+  file_size?: number | null;
+  status?: string | null;
+  error_message?: string | null;
   created_at: string;
 }
 

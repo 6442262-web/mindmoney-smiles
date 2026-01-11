@@ -5,14 +5,19 @@ import { useToast } from '@/hooks/use-toast';
 export interface Transaction {
   id: string;
   user_id: string;
-  account_id: string;
-  type: 'income' | 'expense';
+  account_id?: string | null;
+  category_id?: string | null;
+  type: string;
   amount: number;
-  category: string;
-  description?: string;
+  description?: string | null;
+  note?: string | null;
   date: string;
-  priority?: number;
-  is_recurring?: boolean;
+  is_business?: boolean;
+  project_id?: string | null;
+  recurring_id?: string | null;
+  tax_amount?: number | null;
+  currency?: string | null;
+  exchange_rate?: number | null;
   created_at: string;
   updated_at: string;
 }

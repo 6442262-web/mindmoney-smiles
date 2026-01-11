@@ -93,8 +93,8 @@ export function CategoryManagement() {
     setEditingCategory(category);
     setFormData({
       name: category.name,
-      type: category.type,
-      color: category.color,
+      type: category.type as 'expense' | 'income',
+      color: category.color || '#4CAF50',
       icon: category.icon || 'tag'
     });
     setIsDialogOpen(true);

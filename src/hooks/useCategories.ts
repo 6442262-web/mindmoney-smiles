@@ -6,10 +6,12 @@ export interface Category {
   id: string;
   user_id: string;
   name: string;
-  type: 'income' | 'expense';
-  color: string;
-  icon?: string;
-  is_default: boolean;
+  type: string;
+  color?: string | null;
+  icon?: string | null;
+  parent_id?: string | null;
+  is_active?: boolean;
+  is_default?: boolean;
   created_at: string;
   updated_at: string;
 }

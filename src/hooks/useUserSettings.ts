@@ -5,22 +5,16 @@ import { useToast } from '@/hooks/use-toast';
 export interface UserSettings {
   id?: string;
   user_id: string;
-  display_name?: string;
-  phone_number?: string;
-  language: string;
-  pin_enabled: boolean;
+  language?: string | null;
+  currency?: string | null;
+  theme?: string | null;
   pin_hash?: string | null;
-  touch_id_enabled: boolean;
-  primary_currency: string;
-  secondary_currency: string;
-  budget_alerts_enabled: boolean;
-  email_notifications_enabled: boolean;
-  sms_notifications_enabled: boolean;
-  auto_backup_enabled: boolean;
-  two_factor_enabled: boolean;
-  dark_mode_enabled: boolean;
-  date_of_birth?: string | null;
-  avatar_url?: string | null;
+  pin_enabled?: boolean | null;
+  date_format?: string | null;
+  notifications_enabled?: boolean | null;
+  auto_backup?: boolean | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export function useUserSettings() {
@@ -47,23 +41,16 @@ export function useUserSettings() {
       if (data) {
         setSettings(data);
       } else {
-        // Create default settings
-        const defaultSettings = {
+        const defaultSettings: UserSettings = {
           user_id: user.id,
-          display_name: user.user_metadata?.full_name || '',
-          phone_number: user.phone || '',
           language: 'th',
+          currency: 'THB',
+          theme: 'light',
           pin_enabled: false,
           pin_hash: null,
-          touch_id_enabled: false,
-          primary_currency: 'THB',
-          secondary_currency: 'USD',
-          budget_alerts_enabled: true,
-          email_notifications_enabled: false,
-          sms_notifications_enabled: false,
-          auto_backup_enabled: true,
-          two_factor_enabled: false,
-          dark_mode_enabled: false,
+          date_format: 'dd/MM/yyyy',
+          notifications_enabled: true,
+          auto_backup: false,
         };
 
         const { data: newSettings, error: insertError } = await supabase
@@ -108,9 +95,9 @@ export function useUserSettings() {
           description: "การตั้งค่าได้รับการอัพเดทแล้ว",
         });
 
-        // Apply dark mode immediately
-        if ('dark_mode_enabled' in updates) {
-          document.documentElement.classList.toggle('dark', updates.dark_mode_enabled);
+        // Apply theme immediately
+        if ('theme' in updates) {
+          document.documentElement.classList.toggle('dark', updates.theme === 'dark');
         }
       }
     } catch (error) {
@@ -128,12 +115,12 @@ export function useUserSettings() {
     init();
   }, []);
 
-  // Apply dark mode on load
+  // Apply theme on load
   useEffect(() => {
-    if (settings?.dark_mode_enabled) {
+    if (settings?.theme === 'dark') {
       document.documentElement.classList.add('dark');
     }
-  }, [settings?.dark_mode_enabled]);
+  }, [settings?.theme]);
 
   return {
     settings,

@@ -18,7 +18,7 @@ interface CategoryInsight {
   previousAmount: number;
   change: number;
   changePercent: number;
-  type: "income" | "expense";
+  type: string;
 }
 
 export function FinancialInsights() {
@@ -70,16 +70,18 @@ export function FinancialInsights() {
     const previousExpense = previousTransactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
 
     // Calculate by category
-    const categoryMap = new Map<string, { current: number; previous: number; type: "income" | "expense" }>();
+    const categoryMap = new Map<string, { current: number; previous: number; type: string }>();
 
     currentTransactions.forEach(t => {
-      const existing = categoryMap.get(t.category) || { current: 0, previous: 0, type: t.type };
-      categoryMap.set(t.category, { ...existing, current: existing.current + t.amount, type: t.type });
+      const cat = t.category_id || 'uncategorized';
+      const existing = categoryMap.get(cat) || { current: 0, previous: 0, type: t.type };
+      categoryMap.set(cat, { ...existing, current: existing.current + t.amount, type: t.type });
     });
 
     previousTransactions.forEach(t => {
-      const existing = categoryMap.get(t.category) || { current: 0, previous: 0, type: t.type };
-      categoryMap.set(t.category, { ...existing, previous: existing.previous + t.amount, type: t.type });
+      const cat = t.category_id || 'uncategorized';
+      const existing = categoryMap.get(cat) || { current: 0, previous: 0, type: t.type };
+      categoryMap.set(cat, { ...existing, previous: existing.previous + t.amount, type: t.type });
     });
 
     const categoryInsights: CategoryInsight[] = Array.from(categoryMap.entries()).map(([category, data]) => {

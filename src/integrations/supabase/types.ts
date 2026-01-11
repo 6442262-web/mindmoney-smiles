@@ -23,9 +23,11 @@ export type Database = {
           exchange_rate: number | null
           fee: number | null
           from_account_id: string
+          from_currency: string | null
           id: string
           status: string | null
           to_account_id: string
+          to_currency: string | null
           transfer_date: string
           user_id: string
         }
@@ -37,9 +39,11 @@ export type Database = {
           exchange_rate?: number | null
           fee?: number | null
           from_account_id: string
+          from_currency?: string | null
           id?: string
           status?: string | null
           to_account_id: string
+          to_currency?: string | null
           transfer_date?: string
           user_id: string
         }
@@ -51,9 +55,11 @@ export type Database = {
           exchange_rate?: number | null
           fee?: number | null
           from_account_id?: string
+          from_currency?: string | null
           id?: string
           status?: string | null
           to_account_id?: string
+          to_currency?: string | null
           transfer_date?: string
           user_id?: string
         }
@@ -77,6 +83,7 @@ export type Database = {
       accounts: {
         Row: {
           balance: number | null
+          budget_limit: number | null
           color: string | null
           created_at: string
           currency: string | null
@@ -91,6 +98,7 @@ export type Database = {
         }
         Insert: {
           balance?: number | null
+          budget_limit?: number | null
           color?: string | null
           created_at?: string
           currency?: string | null
@@ -105,6 +113,7 @@ export type Database = {
         }
         Update: {
           balance?: number | null
+          budget_limit?: number | null
           color?: string | null
           created_at?: string
           currency?: string | null
@@ -159,6 +168,7 @@ export type Database = {
           icon: string | null
           id: string
           is_active: boolean | null
+          is_default: boolean | null
           name: string
           parent_id: string | null
           type: string
@@ -171,6 +181,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean | null
+          is_default?: boolean | null
           name: string
           parent_id?: string | null
           type?: string
@@ -183,6 +194,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean | null
+          is_default?: boolean | null
           name?: string
           parent_id?: string | null
           type?: string
@@ -202,6 +214,7 @@ export type Database = {
       keywords: {
         Row: {
           category_id: string | null
+          category_name: string | null
           created_at: string
           id: string
           keyword: string
@@ -211,6 +224,7 @@ export type Database = {
         }
         Insert: {
           category_id?: string | null
+          category_name?: string | null
           created_at?: string
           id?: string
           keyword: string
@@ -220,6 +234,7 @@ export type Database = {
         }
         Update: {
           category_id?: string | null
+          category_name?: string | null
           created_at?: string
           id?: string
           keyword?: string
@@ -339,6 +354,7 @@ export type Database = {
           id: string
           is_read: boolean | null
           message: string | null
+          related_id: string | null
           title: string
           type: string | null
           user_id: string
@@ -349,6 +365,7 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           message?: string | null
+          related_id?: string | null
           title: string
           type?: string | null
           user_id: string
@@ -359,6 +376,7 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           message?: string | null
+          related_id?: string | null
           title?: string
           type?: string | null
           user_id?: string
@@ -458,6 +476,8 @@ export type Database = {
           amount: number
           category_id: string | null
           created_at: string
+          day_of_month: number | null
+          day_of_week: number | null
           description: string | null
           end_date: string | null
           frequency: string
@@ -475,6 +495,8 @@ export type Database = {
           amount: number
           category_id?: string | null
           created_at?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
           description?: string | null
           end_date?: string | null
           frequency?: string
@@ -492,6 +514,8 @@ export type Database = {
           amount?: number
           category_id?: string | null
           created_at?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
           description?: string | null
           end_date?: string | null
           frequency?: string
@@ -527,13 +551,16 @@ export type Database = {
           amount: number
           category_id: string | null
           created_at: string
+          currency: string | null
           date: string
           description: string | null
+          exchange_rate: number | null
           id: string
           is_business: boolean | null
           note: string | null
           project_id: string | null
           recurring_id: string | null
+          tax_amount: number | null
           type: string
           updated_at: string
           user_id: string
@@ -543,13 +570,16 @@ export type Database = {
           amount: number
           category_id?: string | null
           created_at?: string
+          currency?: string | null
           date?: string
           description?: string | null
+          exchange_rate?: number | null
           id?: string
           is_business?: boolean | null
           note?: string | null
           project_id?: string | null
           recurring_id?: string | null
+          tax_amount?: number | null
           type?: string
           updated_at?: string
           user_id: string
@@ -559,13 +589,16 @@ export type Database = {
           amount?: number
           category_id?: string | null
           created_at?: string
+          currency?: string | null
           date?: string
           description?: string | null
+          exchange_rate?: number | null
           id?: string
           is_business?: boolean | null
           note?: string | null
           project_id?: string | null
           recurring_id?: string | null
+          tax_amount?: number | null
           type?: string
           updated_at?: string
           user_id?: string
@@ -603,10 +636,13 @@ export type Database = {
       }
       user_settings: {
         Row: {
+          auto_backup: boolean | null
           created_at: string
           currency: string | null
+          date_format: string | null
           id: string
           language: string | null
+          notifications_enabled: boolean | null
           pin_enabled: boolean | null
           pin_hash: string | null
           theme: string | null
@@ -614,10 +650,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          auto_backup?: boolean | null
           created_at?: string
           currency?: string | null
+          date_format?: string | null
           id?: string
           language?: string | null
+          notifications_enabled?: boolean | null
           pin_enabled?: boolean | null
           pin_hash?: string | null
           theme?: string | null
@@ -625,10 +664,13 @@ export type Database = {
           user_id: string
         }
         Update: {
+          auto_backup?: boolean | null
           created_at?: string
           currency?: string | null
+          date_format?: string | null
           id?: string
           language?: string | null
+          notifications_enabled?: boolean | null
           pin_enabled?: boolean | null
           pin_hash?: string | null
           theme?: string | null
