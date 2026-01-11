@@ -20,17 +20,13 @@ import {
   Info,
   ChevronRight,
   Settings as SettingsIcon,
-  Mail,
-  Phone,
   Lock,
   Globe,
   Smartphone,
   Banknote,
-  FileText,
   Cloud,
   Key,
   Brain,
-  Trash2,
   Loader2,
   LogOut
 } from 'lucide-react';
@@ -44,25 +40,6 @@ export function Settings() {
   const { loading: backupLoading, createBackup, exportData } = useBackup();
   const { signOut } = useAuth();
   const { t } = useLanguage();
-  const [displayNameDialog, setDisplayNameDialog] = useState(false);
-  const [phoneDialog, setPhoneDialog] = useState(false);
-  const [currencyDialog, setCurrencyDialog] = useState(false);
-  const [tempDisplayName, setTempDisplayName] = useState('');
-  const [tempPhone, setTempPhone] = useState('');
-
-  const handleDisplayNameUpdate = () => {
-    if (tempDisplayName.trim()) {
-      updateSettings({ display_name: tempDisplayName.trim() });
-      setDisplayNameDialog(false);
-    }
-  };
-
-  const handlePhoneUpdate = () => {
-    if (tempPhone.trim()) {
-      updateSettings({ phone_number: tempPhone.trim() });
-      setPhoneDialog(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -102,98 +79,6 @@ export function Settings() {
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </Link>
 
-            <Dialog open={displayNameDialog} onOpenChange={setDisplayNameDialog}>
-              <DialogTrigger asChild>
-                <div 
-                  className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() => {
-                    setTempDisplayName(settings?.display_name || '');
-                    setDisplayNameDialog(true);
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">แก้ไขชื่อแสดง</span>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>แก้ไขชื่อแสดง</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="displayName">ชื่อแสดง</Label>
-                    <Input
-                      id="displayName"
-                      value={tempDisplayName}
-                      onChange={(e) => setTempDisplayName(e.target.value)}
-                      placeholder="กรุณาใส่ชื่อแสดง"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button onClick={handleDisplayNameUpdate} className="flex-1">
-                      บันทึก
-                    </Button>
-                    <Button variant="outline" onClick={() => setDisplayNameDialog(false)} className="flex-1">
-                      ยกเลิก
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog open={phoneDialog} onOpenChange={setPhoneDialog}>
-              <DialogTrigger asChild>
-                <div 
-                  className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() => {
-                    setTempPhone(settings?.phone_number || '');
-                    setPhoneDialog(true);
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">เปลี่ยนเบอร์โทร</span>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>เปลี่ยนเบอร์โทร</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="phone">เบอร์โทร</Label>
-                    <Input
-                      id="phone"
-                      value={tempPhone}
-                      onChange={(e) => setTempPhone(e.target.value)}
-                      placeholder="กรุณาใส่เบอร์โทร"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button onClick={handlePhoneUpdate} className="flex-1">
-                      บันทึก
-                    </Button>
-                    <Button variant="outline" onClick={() => setPhoneDialog(false)} className="flex-1">
-                      ยกเลิก
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Lock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">เปลี่ยนรหัสผ่าน</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-
             <Link to="/pin-settings">
               <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-3">
@@ -226,7 +111,7 @@ export function Settings() {
               <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Bell className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">ตั้งค่าการแจ้งเตือน</span>
+                  <span className="text-sm">ดูการแจ้งเตือน</span>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
@@ -234,34 +119,12 @@ export function Settings() {
 
             <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
               <div className="flex items-center gap-3">
-                <Banknote className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">เตือนเมื่อใช้เงินเกินงบ</span>
+                <Bell className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">เปิดใช้งานการแจ้งเตือน</span>
               </div>
               <Switch 
-                checked={settings?.budget_alerts_enabled || false}
-                onCheckedChange={(checked) => updateSettings({ budget_alerts_enabled: checked })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">แจ้งเตือนผ่านอีเมล</span>
-              </div>
-              <Switch 
-                checked={settings?.email_notifications_enabled || false}
-                onCheckedChange={(checked) => updateSettings({ email_notifications_enabled: checked })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">แจ้งเตือนผ่าน SMS</span>
-              </div>
-              <Switch 
-                checked={settings?.sms_notifications_enabled || false}
-                onCheckedChange={(checked) => updateSettings({ sms_notifications_enabled: checked })}
+                checked={settings?.notifications_enabled || false}
+                onCheckedChange={(checked) => updateSettings({ notifications_enabled: checked })}
               />
             </div>
           </div>
@@ -285,58 +148,26 @@ export function Settings() {
               </div>
             </Link>
 
-            <Dialog open={currencyDialog} onOpenChange={setCurrencyDialog}>
-              <DialogTrigger asChild>
-                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <Banknote className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">ตั้งค่าสกุลเงิน</span>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>ตั้งค่าสกุลเงิน</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label>สกุลเงินหลัก</Label>
-                    <Select 
-                      value={settings?.primary_currency || 'THB'} 
-                      onValueChange={(value) => updateSettings({ primary_currency: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="เลือกสกุลเงินหลัก" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="THB">บาท (THB)</SelectItem>
-                        <SelectItem value="USD">ดอลลาร์ (USD)</SelectItem>
-                        <SelectItem value="EUR">ยูโร (EUR)</SelectItem>
-                        <SelectItem value="JPY">เยน (JPY)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>สกุลเงินสำรอง</Label>
-                    <Select 
-                      value={settings?.secondary_currency || 'USD'} 
-                      onValueChange={(value) => updateSettings({ secondary_currency: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="เลือกสกุลเงินสำรอง" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="THB">บาท (THB)</SelectItem>
-                        <SelectItem value="USD">ดอลลาร์ (USD)</SelectItem>
-                        <SelectItem value="EUR">ยูโร (EUR)</SelectItem>
-                        <SelectItem value="JPY">เยน (JPY)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Banknote className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">สกุลเงิน: {settings?.currency || 'THB'}</span>
+              </div>
+              <Select 
+                value={settings?.currency || 'THB'} 
+                onValueChange={(value) => updateSettings({ currency: value })}
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="THB">THB</SelectItem>
+                  <SelectItem value="USD">USD</SelectItem>
+                  <SelectItem value="EUR">EUR</SelectItem>
+                  <SelectItem value="JPY">JPY</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </Card>
 
@@ -358,13 +189,6 @@ export function Settings() {
               </div>
             </Link>
 
-            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">แยกหมวดหมู่ตามบัญชี</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
             <Link to="/keywords">
               <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-3">
@@ -395,158 +219,132 @@ export function Settings() {
           </div>
           
           <div className="space-y-3">
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => createBackup()}
+              disabled={backupLoading}
+            >
+              <Cloud className="h-4 w-4 mr-2" />
+              {backupLoading ? 'กำลังสำรองข้อมูล...' : 'สำรองข้อมูลไปยังคลาวด์'}
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={exportData}
+              disabled={backupLoading}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              ส่งออกข้อมูลเป็น JSON
+            </Button>
+
             <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
               <div className="flex items-center gap-3">
                 <Cloud className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">สำรองข้อมูลอัตโนมัติ</span>
               </div>
               <Switch 
-                checked={settings?.auto_backup_enabled || false}
-                onCheckedChange={(checked) => updateSettings({ auto_backup_enabled: checked })}
+                checked={settings?.auto_backup || false}
+                onCheckedChange={(checked) => updateSettings({ auto_backup: checked })}
               />
-            </div>
-
-            <div 
-              className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-              onClick={() => createBackup('manual')}
-            >
-              <div className="flex items-center gap-3">
-                <Download className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">สำรองข้อมูลด้วยตนเอง</span>
-              </div>
-              {backupLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              )}
-            </div>
-
-            <div 
-              className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-              onClick={exportData}
-            >
-              <div className="flex items-center gap-3">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">ส่งออกข้อมูล JSON</span>
-              </div>
-              {backupLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              )}
             </div>
           </div>
         </Card>
 
-        {/* Security & Privacy Section */}
+        {/* Security Section */}
         <Card className="p-4">
           <div className="flex items-center gap-3 mb-4">
             <Shield className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">ความปลอดภัยและความเป็นส่วนตัว</h2>
+            <h2 className="text-lg font-semibold">ความปลอดภัย</h2>
+          </div>
+          
+          <div className="space-y-3">
+            <Link to="/pin-settings">
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">เปิดใช้งาน PIN</span>
+                </div>
+                <Switch 
+                  checked={settings?.pin_enabled || false}
+                  disabled
+                />
+              </div>
+            </Link>
+          </div>
+        </Card>
+
+        {/* Theme Section */}
+        <Card className="p-4">
+          <div className="flex items-center gap-3 mb-4">
+            <SettingsIcon className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">การแสดงผล</h2>
           </div>
           
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
               <div className="flex items-center gap-3">
-                <Key className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">ยืนยันตัวตน 2 ขั้นตอน (2FA)</span>
+                <span className="text-sm">ธีม</span>
               </div>
-              <Switch 
-                checked={settings?.two_factor_enabled || false}
-                onCheckedChange={(checked) => updateSettings({ two_factor_enabled: checked })}
-              />
+              <Select 
+                value={settings?.theme || 'light'} 
+                onValueChange={(value) => updateSettings({ theme: value })}
+              >
+                <SelectTrigger className="w-28">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="light">สว่าง</SelectItem>
+                  <SelectItem value="dark">มืด</SelectItem>
+                  <SelectItem value="system">ตามระบบ</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
               <div className="flex items-center gap-3">
-                <Shield className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">จัดการสิทธิ์การเข้าถึง</span>
+                <span className="text-sm">รูปแบบวันที่</span>
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Trash2 className="h-4 w-4 text-red-500" />
-                <span className="text-sm text-red-700">ลบบัญชีผู้ใช้</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-red-500" />
+              <Select 
+                value={settings?.date_format || 'dd/MM/yyyy'} 
+                onValueChange={(value) => updateSettings({ date_format: value })}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dd/MM/yyyy">dd/MM/yyyy</SelectItem>
+                  <SelectItem value="MM/dd/yyyy">MM/dd/yyyy</SelectItem>
+                  <SelectItem value="yyyy-MM-dd">yyyy-MM-dd</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </Card>
 
-        {/* About App Section */}
+        {/* About Section */}
         <Card className="p-4">
           <div className="flex items-center gap-3 mb-4">
             <Info className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">เกี่ยวกับแอป</h2>
+            <h2 className="text-lg font-semibold">เกี่ยวกับ</h2>
           </div>
           
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Info className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">เวอร์ชันแอป</span>
-              </div>
-              <span className="text-sm text-muted-foreground">v1.0.0</span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">เงื่อนไขการใช้งาน</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Shield className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">นโยบายความเป็นส่วนตัว</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">ติดต่อฝ่ายสนับสนุน</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>MoneyMind - แอพจัดการการเงินส่วนบุคคล</p>
+            <p>เวอร์ชัน 1.0.0</p>
           </div>
         </Card>
 
-        {/* App Theme */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <SettingsIcon className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-medium">โหมดมืด</h3>
-                <p className="text-sm text-muted-foreground">เปลี่ยนธีมแอป</p>
-              </div>
-            </div>
-            <Switch 
-              checked={settings?.dark_mode_enabled || false}
-              onCheckedChange={(checked) => updateSettings({ dark_mode_enabled: checked })}
-            />
-          </div>
-        </Card>
-
-        {/* Logout Section */}
-        <Card className="p-4">
-          <Button 
-            variant="destructive" 
-            className="w-full"
-            onClick={() => signOut()}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            ออกจากระบบ
-          </Button>
-        </Card>
+        {/* Logout Button */}
+        <Button 
+          variant="destructive" 
+          className="w-full"
+          onClick={() => signOut()}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          ออกจากระบบ
+        </Button>
       </div>
     </div>
   );
