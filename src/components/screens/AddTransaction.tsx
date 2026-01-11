@@ -16,6 +16,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { SlipScanner } from "../SlipScanner";
 
 interface AddTransactionProps {
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
@@ -40,11 +41,46 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState<"monthly" | "weekly" | "daily">("monthly");
   const [startDate, setStartDate] = useState<Date>(new Date());
+  const [showScanner, setShowScanner] = useState(false);
   const { toast } = useToast();
   const { t, language } = useLanguage();
   const dateLocale = language === 'th' ? th : enUS;
 
   const categories = type === "expense" ? expenseCategories : incomeCategories;
+
+  const handleScanComplete = (result: {
+    amount?: number;
+    date?: string;
+    recipient?: string;
+    description?: string;
+    transactionType?: "expense" | "income";
+    suggestedCategory?: string;
+  }) => {
+    // Auto-fill form with scanned data
+    if (result.amount) {
+      setAmount(result.amount.toString());
+    }
+    if (result.transactionType) {
+      setType(result.transactionType);
+    }
+    if (result.suggestedCategory) {
+      // Try to match with existing categories
+      const matchedCategory = categories.find(
+        cat => cat.toLowerCase().includes(result.suggestedCategory?.toLowerCase() || "")
+      );
+      if (matchedCategory) {
+        setCategory(matchedCategory);
+      }
+    }
+    if (result.recipient || result.description) {
+      setDescription([result.recipient, result.description].filter(Boolean).join(" - "));
+    }
+    
+    toast({
+      title: "นำเข้าข้อมูลสำเร็จ",
+      description: "ข้อมูลจากสลิปถูกกรอกในฟอร์มแล้ว",
+    });
+  };
 
   const priorityLabels: Record<PriorityLevel, string> = {
     1: t('priority.1'),
@@ -270,7 +306,12 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
 
         {/* Scan Options */}
         <div className="grid grid-cols-2 gap-4">
-          <Button type="button" variant="outline" className="h-12">
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="h-12"
+            onClick={() => setShowScanner(true)}
+          >
             <Camera className="mr-2 h-5 w-5" />
             {t('transaction.scanSlip')}
           </Button>
@@ -285,6 +326,13 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
           {t('transaction.save')}
         </Button>
       </form>
+
+      {/* Slip Scanner Dialog */}
+      <SlipScanner
+        open={showScanner}
+        onOpenChange={setShowScanner}
+        onScanComplete={handleScanComplete}
+      />
     </div>
   );
 }
