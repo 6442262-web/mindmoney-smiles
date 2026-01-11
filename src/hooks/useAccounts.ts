@@ -55,7 +55,6 @@ export function useAccounts() {
         await createAccount({
           name: 'บัญชีหลัก',
           color: '#4CAF50',
-          description: 'บัญชีหลักของคุณ',
           budget_limit: 0,
           is_default: true,
         });

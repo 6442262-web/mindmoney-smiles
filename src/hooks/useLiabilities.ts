@@ -174,24 +174,20 @@ export function useLiabilities() {
   };
 
   // Create payment
-  const createPayment = async (payment: Omit<LiabilityPayment, 'id' | 'user_id' | 'created_at'>) => {
+  const createPayment = async (payment: Omit<LiabilityPayment, 'id' | 'created_at'>, newBalance?: number) => {
     if (!user) return;
     
     try {
       const { error } = await supabase
         .from('liability_payments')
-        .insert({
-          ...payment,
-          user_id: user.id,
-        });
+        .insert(payment);
 
       if (error) throw error;
 
-      // Update liability balance
-      const liability = liabilities.find(l => l.id === payment.liability_id);
-      if (liability) {
+      // Update liability balance if newBalance is provided
+      if (newBalance !== undefined) {
         await updateLiability(payment.liability_id, {
-          current_balance: payment.remaining_balance,
+          current_balance: newBalance,
         });
       }
 

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChevronDown, Wallet, Check } from 'lucide-react';
 import { useAccounts } from '@/hooks/useAccounts';
@@ -22,7 +21,7 @@ export function AccountSelector({ className }: AccountSelectorProps) {
           <div className="flex items-center gap-2">
             <div 
               className="w-3 h-3 rounded-full" 
-              style={{ backgroundColor: currentAccount.color }}
+              style={{ backgroundColor: currentAccount.color || '#6366f1' }}
             />
             <span className="truncate">{currentAccount.name}</span>
           </div>
@@ -48,7 +47,7 @@ export function AccountSelector({ className }: AccountSelectorProps) {
                 <div className="flex items-center gap-3 w-full">
                   <div 
                     className="w-3 h-3 rounded-full flex-shrink-0" 
-                    style={{ backgroundColor: account.color }}
+                    style={{ backgroundColor: account.color || '#6366f1' }}
                   />
                   <div className="flex-1 text-left">
                     <div className="flex items-center gap-2">
@@ -59,11 +58,9 @@ export function AccountSelector({ className }: AccountSelectorProps) {
                         </span>
                       )}
                     </div>
-                    {account.description && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {account.description}
-                      </p>
-                    )}
+                    <p className="text-xs text-muted-foreground">
+                      ฿{(account.balance || 0).toLocaleString()}
+                    </p>
                   </div>
                   {currentAccount.id === account.id && (
                     <Check className="h-4 w-4 text-primary flex-shrink-0" />
@@ -78,7 +75,6 @@ export function AccountSelector({ className }: AccountSelectorProps) {
               className="w-full justify-start"
               onClick={() => {
                 setOpen(false);
-                // Navigate to accounts page - will be handled by the parent component
                 window.location.href = '/accounts';
               }}
             >
