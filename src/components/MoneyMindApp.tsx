@@ -80,7 +80,10 @@ function AppContent() {
     if (!currentAccount) return;
     
     await createTransaction({
-      ...transaction,
+      type: transaction.type,
+      amount: transaction.amount,
+      description: transaction.description,
+      date: transaction.date,
       account_id: currentAccount.id,
     });
   };
@@ -91,11 +94,10 @@ function AppContent() {
     await createRecurringTransaction({
       type: transaction.type,
       amount: transaction.amount,
-      category: transaction.category,
       description: transaction.description,
-      priority: transaction.priority,
       frequency: transaction.frequency,
-      next_date: transaction.nextDate,
+      start_date: transaction.nextDate,
+      next_execution: transaction.nextDate,
       is_active: transaction.isActive,
       account_id: currentAccount.id,
     });
@@ -113,27 +115,27 @@ function AppContent() {
               <Dashboard 
                 transactions={transactions.map(t => ({ 
                   id: t.id, 
-                  type: t.type, 
+                  type: t.type as TransactionType, 
                   amount: t.amount, 
-                  category: t.category, 
+                  category: t.category_id || '', 
                   description: t.description || '', 
                   date: t.date, 
-                  priority: t.priority as PriorityLevel, 
-                  isRecurring: t.is_recurring 
+                  priority: 3 as PriorityLevel, 
+                  isRecurring: false 
                 }))} 
                 recurringTransactions={recurringTransactions.map(rt => ({ 
                   id: rt.id, 
-                  type: rt.type, 
+                  type: rt.type as TransactionType, 
                   amount: rt.amount, 
-                  category: rt.category, 
+                  category: rt.category_id || '', 
                   description: rt.description || '', 
-                  priority: rt.priority as PriorityLevel, 
-                  frequency: rt.frequency, 
-                  nextDate: rt.next_date, 
-                  isActive: rt.is_active 
-                }))}
-              />
-            } 
+                  priority: 3 as PriorityLevel, 
+                  frequency: rt.frequency as "monthly" | "weekly" | "daily", 
+                  nextDate: rt.next_execution || rt.start_date, 
+                  isActive: rt.is_active ?? true 
+                }))}>
+              </Dashboard>
+            }
           />
           <Route 
             path="/add" 
@@ -148,9 +150,9 @@ function AppContent() {
             path="/transactions" 
             element={<TransactionList 
               transactions={transactions.map(t => ({ 
-                id: t.id, type: t.type, amount: t.amount, category: t.category, 
-                description: t.description || '', date: t.date, priority: t.priority as PriorityLevel, 
-                isRecurring: t.is_recurring 
+                id: t.id, type: t.type as TransactionType, amount: t.amount, category: t.category_id || '', 
+                description: t.description || '', date: t.date, priority: 3 as PriorityLevel, 
+                isRecurring: false 
               }))}
               onDelete={deleteTransaction}
               onUpdate={updateTransaction}
@@ -161,14 +163,14 @@ function AppContent() {
             element={
               <Summary 
                 transactions={transactions.map(t => ({ 
-                  id: t.id, type: t.type, amount: t.amount, category: t.category, 
-                  description: t.description || '', date: t.date, priority: t.priority as PriorityLevel, 
-                  isRecurring: t.is_recurring 
+                  id: t.id, type: t.type as TransactionType, amount: t.amount, category: t.category_id || '', 
+                  description: t.description || '', date: t.date, priority: 3 as PriorityLevel, 
+                  isRecurring: false 
                 }))} 
                 recurringTransactions={recurringTransactions.map(rt => ({ 
-                  id: rt.id, type: rt.type, amount: rt.amount, category: rt.category, 
-                  description: rt.description || '', priority: rt.priority as PriorityLevel, 
-                  frequency: rt.frequency, nextDate: rt.next_date, isActive: rt.is_active 
+                  id: rt.id, type: rt.type as TransactionType, amount: rt.amount, category: rt.category_id || '', 
+                  description: rt.description || '', priority: 3 as PriorityLevel, 
+                  frequency: rt.frequency as "monthly" | "weekly" | "daily", nextDate: rt.next_execution || rt.start_date, isActive: rt.is_active ?? true 
                 }))}
               />
             } 
@@ -178,13 +180,12 @@ function AppContent() {
             element={
               <RecurringTransactions 
                 recurringTransactions={recurringTransactions.map(rt => ({ 
-                  id: rt.id, type: rt.type, amount: rt.amount, category: rt.category, 
-                  description: rt.description || '', priority: rt.priority as PriorityLevel, 
-                  frequency: rt.frequency, nextDate: rt.next_date, isActive: rt.is_active 
+                  id: rt.id, type: rt.type as TransactionType, amount: rt.amount, category: rt.category_id || '', 
+                  description: rt.description || '', priority: 3 as PriorityLevel, 
+                  frequency: rt.frequency as "monthly" | "weekly" | "daily", nextDate: rt.next_execution || rt.start_date, isActive: rt.is_active ?? true 
                 }))}
                 onUpdate={(id, updates) => updateRecurringTransaction(id, { 
-                  ...updates, 
-                  next_date: updates.nextDate, 
+                  next_execution: updates.nextDate, 
                   is_active: updates.isActive 
                 })}
                 onDelete={deleteRecurringTransaction}

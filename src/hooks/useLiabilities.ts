@@ -6,23 +6,17 @@ import { useAuth } from '@/hooks/useAuth';
 export interface Liability {
   id: string;
   user_id: string;
-  account_id: string;
-  liability_type: 'loan' | 'trade_payable' | 'short_term' | 'long_term' | 'credit_card' | 'other';
-  creditor_name: string;
+  name: string;
+  type?: string;
   principal_amount: number;
   current_balance: number;
-  interest_rate: number;
-  start_date: string;
-  due_date?: string;
-  payment_frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
-  payment_amount?: number;
-  description?: string;
-  status: 'active' | 'paid_off' | 'defaulted';
-  credit_limit?: number;
-  min_payment?: number;
-  billing_cycle_day?: number;
-  payment_due_day?: number;
-  statement_date?: string;
+  interest_rate?: number | null;
+  monthly_payment?: number | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  creditor?: string | null;
+  note?: string | null;
+  is_active?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -30,14 +24,11 @@ export interface Liability {
 export interface LiabilityPayment {
   id: string;
   liability_id: string;
-  user_id: string;
-  payment_amount: number;
-  principal_paid: number;
-  interest_paid: number;
+  amount: number;
+  principal_amount?: number | null;
+  interest_amount?: number | null;
   payment_date: string;
-  remaining_balance: number;
-  transaction_id?: string;
-  notes?: string;
+  note?: string | null;
   created_at: string;
 }
 

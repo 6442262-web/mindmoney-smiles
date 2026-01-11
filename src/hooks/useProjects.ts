@@ -6,15 +6,13 @@ import { useAuth } from '@/hooks/useAuth';
 export interface Project {
   id: string;
   user_id: string;
-  account_id: string;
   name: string;
-  code?: string;
-  description?: string;
-  start_date?: string;
-  end_date?: string;
-  budget?: number;
-  status: 'active' | 'completed' | 'cancelled' | 'on_hold';
-  manager_name?: string;
+  description?: string | null;
+  budget?: number | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  status?: string | null;
+  color?: string | null;
   created_at: string;
   updated_at: string;
 }

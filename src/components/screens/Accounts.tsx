@@ -35,7 +35,6 @@ export function Accounts() {
   const [formData, setFormData] = useState({
     name: '',
     color: '#4CAF50',
-    description: '',
     budget_limit: 0,
     is_default: false,
   });
@@ -44,7 +43,6 @@ export function Accounts() {
     setFormData({
       name: '',
       color: '#4CAF50',
-      description: '',
       budget_limit: 0,
       is_default: false,
     });
@@ -64,10 +62,9 @@ export function Accounts() {
     setEditingAccount(account);
     setFormData({
       name: account.name,
-      color: account.color,
-      description: account.description || '',
-      budget_limit: account.budget_limit,
-      is_default: account.is_default,
+      color: account.color || '#4CAF50',
+      budget_limit: account.budget_limit || 0,
+      is_default: account.is_default || false,
     });
   };
 
@@ -158,16 +155,6 @@ export function Accounts() {
               </div>
 
               <div>
-                <Label>{t('accounts.description')}</Label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder={t('accounts.descriptionPlaceholder')}
-                  rows={3}
-                />
-              </div>
-
-              <div>
                 <Label>{t('accounts.budget')}</Label>
                 <Input
                   type="number"
@@ -209,10 +196,7 @@ export function Accounts() {
             <span className="text-sm text-muted-foreground">{t('accounts.currentAccount')}</span>
           </div>
           <h3 className="text-lg font-semibold">{currentAccount.name}</h3>
-          {currentAccount.description && (
-            <p className="text-sm text-muted-foreground">{currentAccount.description}</p>
-          )}
-          {currentAccount.budget_limit > 0 && (
+          {(currentAccount.budget_limit ?? 0) > 0 && (
             <p className="text-sm">
               {t('accounts.budget')}: ฿{formatCurrency(currentAccount.budget_limit)}
             </p>
@@ -253,12 +237,9 @@ export function Accounts() {
                         </span>
                       )}
                     </div>
-                    {account.description && (
-                      <p className="text-sm text-muted-foreground">{account.description}</p>
-                    )}
-                    {account.budget_limit > 0 && (
+                    {(account.budget_limit ?? 0) > 0 && (
                       <p className="text-sm text-muted-foreground">
-                        {t('accounts.budget')}: ฿{formatCurrency(account.budget_limit)}
+                        {t('accounts.budget')}: ฿{formatCurrency(account.budget_limit || 0)}
                       </p>
                     )}
                   </div>
@@ -345,16 +326,6 @@ export function Accounts() {
                   />
                 ))}
               </div>
-            </div>
-
-            <div>
-              <Label>{t('accounts.description')}</Label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder={t('accounts.descriptionPlaceholder')}
-                rows={3}
-              />
             </div>
 
             <div>

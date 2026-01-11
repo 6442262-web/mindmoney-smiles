@@ -5,15 +5,19 @@ import { useToast } from '@/hooks/use-toast';
 export interface RecurringTransaction {
   id: string;
   user_id: string;
-  account_id: string;
-  type: 'income' | 'expense';
+  account_id?: string | null;
+  category_id?: string | null;
+  type: string;
   amount: number;
-  category: string;
-  description?: string;
-  priority: number;
-  frequency: 'daily' | 'weekly' | 'monthly';
-  next_date: string;
-  is_active: boolean;
+  description?: string | null;
+  frequency: string;
+  start_date: string;
+  end_date?: string | null;
+  next_execution?: string | null;
+  last_execution?: string | null;
+  is_active?: boolean;
+  day_of_month?: number | null;
+  day_of_week?: number | null;
   created_at: string;
   updated_at: string;
 }

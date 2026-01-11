@@ -27,7 +27,7 @@ export function BusinessDashboard() {
   const netProfit = totalIncome - totalExpense;
   
   const totalDebt = liabilities
-    .filter(l => l.status === 'active')
+    .filter(l => l.is_active)
     .reduce((sum, l) => sum + l.current_balance, 0);
 
   return (
@@ -186,10 +186,10 @@ export function BusinessDashboard() {
                 </div>
                 <div>
                   <p className="font-medium">{transaction.description}</p>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {transaction.category}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {transaction.category_id || 'ไม่ระบุ'}
+                      </Badge>
                     <span className="text-xs text-muted-foreground">
                       {new Date(transaction.date).toLocaleDateString('th-TH')}
                     </span>

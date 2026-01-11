@@ -5,9 +5,10 @@ import { useToast } from '@/hooks/use-toast';
 export interface Keyword {
   id: string;
   user_id: string;
-  category: string;
   keyword: string;
-  usage_count: number;
+  category_id?: string | null;
+  category_name?: string | null;
+  usage_count?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -42,7 +43,7 @@ export const useKeywords = () => {
     }
   };
 
-  const addOrUpdateKeyword = async (category: string, keyword: string) => {
+  const addOrUpdateKeyword = async (categoryName: string, keyword: string) => {
     try {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error('User not authenticated');
@@ -52,15 +53,15 @@ export const useKeywords = () => {
         .from('keywords')
         .select('*')
         .eq('user_id', user.user.id)
-        .eq('category', category)
+        .eq('category_name', categoryName)
         .eq('keyword', keyword)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         // Update usage_count
         const { error } = await supabase
           .from('keywords')
-          .update({ usage_count: existing.usage_count + 1 })
+          .update({ usage_count: (existing.usage_count || 0) + 1 })
           .eq('id', existing.id);
 
         if (error) throw error;
@@ -70,7 +71,7 @@ export const useKeywords = () => {
           .from('keywords')
           .insert({
             user_id: user.user.id,
-            category,
+            category_name: categoryName,
             keyword,
             usage_count: 1,
           });
@@ -122,7 +123,7 @@ export const useKeywords = () => {
 
       const { error } = await supabase
         .from('keywords')
-        .update({ usage_count: keyword.usage_count + 1 })
+        .update({ usage_count: (keyword.usage_count || 0) + 1 })
         .eq('id', id);
 
       if (error) throw error;
@@ -139,16 +140,17 @@ export const useKeywords = () => {
 
   const getKeywordsByCategory = (): KeywordsByCategory => {
     return keywords.reduce((acc, keyword) => {
-      if (!acc[keyword.category]) {
-        acc[keyword.category] = [];
+      const categoryKey = keyword.category_name || 'uncategorized';
+      if (!acc[categoryKey]) {
+        acc[categoryKey] = [];
       }
-      acc[keyword.category].push(keyword);
+      acc[categoryKey].push(keyword);
       return acc;
     }, {} as KeywordsByCategory);
   };
 
   const getCategories = (): string[] => {
-    return Array.from(new Set(keywords.map(k => k.category))).sort();
+    return Array.from(new Set(keywords.map(k => k.category_name || 'uncategorized'))).sort();
   };
 
   useEffect(() => {

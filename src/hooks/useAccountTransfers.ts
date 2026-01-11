@@ -9,15 +9,17 @@ export interface AccountTransfer {
   from_account_id: string;
   to_account_id: string;
   amount: number;
-  from_currency: string;
-  to_currency: string;
-  exchange_rate: number;
-  converted_amount?: number;
-  description?: string;
+  from_currency?: string | null;
+  to_currency?: string | null;
+  exchange_rate?: number | null;
+  converted_amount?: number | null;
+  fee?: number | null;
+  description?: string | null;
   transfer_date: string;
-  status: 'pending' | 'completed' | 'cancelled';
-  reference_number?: string;
+  status?: string | null;
   created_at: string;
+  from_account?: { name: string; currency: string };
+  to_account?: { name: string; currency: string };
 }
 
 export function useAccountTransfers() {
