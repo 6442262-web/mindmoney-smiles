@@ -16,7 +16,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { SlipScanner } from "../SlipScanner";
+import { SlipScanner, SlipScanResult } from "../SlipScanner";
 
 interface AddTransactionProps {
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
@@ -48,14 +48,7 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
 
   const categories = type === "expense" ? expenseCategories : incomeCategories;
 
-  const handleScanComplete = (result: {
-    amount?: number;
-    date?: string;
-    recipient?: string;
-    description?: string;
-    transactionType?: "expense" | "income";
-    suggestedCategory?: string;
-  }) => {
+  const handleScanComplete = (result: SlipScanResult) => {
     // Auto-fill form with scanned data
     if (result.amount) {
       setAmount(result.amount.toString());
@@ -79,6 +72,38 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
     toast({
       title: "นำเข้าข้อมูลสำเร็จ",
       description: "ข้อมูลจากสลิปถูกกรอกในฟอร์มแล้ว",
+    });
+  };
+
+  // Quick save directly from scan result
+  const handleQuickSave = async (result: SlipScanResult) => {
+    if (!result.amount) {
+      throw new Error("ไม่พบจำนวนเงิน");
+    }
+
+    const transactionType = result.transactionType || "expense";
+    const categoryList = transactionType === "expense" ? expenseCategories : incomeCategories;
+    
+    // Find matching category or use default
+    let matchedCategory = "อื่นๆ";
+    if (result.suggestedCategory) {
+      const found = categoryList.find(
+        cat => cat.toLowerCase().includes(result.suggestedCategory?.toLowerCase() || "")
+      );
+      if (found) {
+        matchedCategory = found;
+      }
+    }
+
+    const description = [result.recipient, result.description].filter(Boolean).join(" - ") || "สแกนจากสลิป";
+
+    await onAddTransaction({
+      type: transactionType,
+      amount: result.amount,
+      category: matchedCategory,
+      description,
+      date: result.date || new Date().toISOString().split('T')[0],
+      priority: 3,
     });
   };
 
@@ -332,6 +357,7 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
         open={showScanner}
         onOpenChange={setShowScanner}
         onScanComplete={handleScanComplete}
+        onQuickSave={handleQuickSave}
       />
     </div>
   );
