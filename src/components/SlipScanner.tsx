@@ -12,7 +12,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-interface SlipScanResult {
+export interface SlipScanResult {
   success: boolean;
   amount?: number;
   date?: string;
@@ -28,10 +28,12 @@ interface SlipScannerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onScanComplete: (result: SlipScanResult) => void;
+  onQuickSave?: (result: SlipScanResult) => Promise<void>;
 }
 
-export function SlipScanner({ open, onOpenChange, onScanComplete }: SlipScannerProps) {
+export function SlipScanner({ open, onOpenChange, onScanComplete, onQuickSave }: SlipScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [result, setResult] = useState<SlipScanResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -110,6 +112,28 @@ export function SlipScanner({ open, onOpenChange, onScanComplete }: SlipScannerP
     }
   };
 
+  const handleQuickSave = async () => {
+    if (result?.success && onQuickSave) {
+      setIsSaving(true);
+      try {
+        await onQuickSave(result);
+        toast({
+          title: "บันทึกสำเร็จ",
+          description: `บันทึกรายการ ฿${result.amount?.toLocaleString("th-TH")} เรียบร้อยแล้ว`,
+        });
+        handleClose();
+      } catch (error) {
+        toast({
+          title: "เกิดข้อผิดพลาด",
+          description: "ไม่สามารถบันทึกรายการได้",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSaving(false);
+      }
+    }
+  };
+
   const handleConfirm = () => {
     if (result?.success) {
       onScanComplete(result);
@@ -121,6 +145,7 @@ export function SlipScanner({ open, onOpenChange, onScanComplete }: SlipScannerP
     setPreview(null);
     setResult(null);
     setIsScanning(false);
+    setIsSaving(false);
     onOpenChange(false);
   };
 
@@ -272,15 +297,36 @@ export function SlipScanner({ open, onOpenChange, onScanComplete }: SlipScannerP
 
               {/* Actions */}
               {result && (
-                <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={handleRetry}>
-                    สแกนใหม่
-                  </Button>
-                  {result.success && (
-                    <Button className="flex-1" onClick={handleConfirm}>
-                      ใช้ข้อมูลนี้
+                <div className="space-y-2">
+                  {result.success && onQuickSave && (
+                    <Button 
+                      className="w-full bg-green-600 hover:bg-green-700" 
+                      onClick={handleQuickSave}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          กำลังบันทึก...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          บันทึกทันที
+                        </>
+                      )}
                     </Button>
                   )}
+                  <div className="flex gap-3">
+                    <Button variant="outline" className="flex-1" onClick={handleRetry} disabled={isSaving}>
+                      สแกนใหม่
+                    </Button>
+                    {result.success && (
+                      <Button variant="outline" className="flex-1" onClick={handleConfirm} disabled={isSaving}>
+                        แก้ไขก่อนบันทึก
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
