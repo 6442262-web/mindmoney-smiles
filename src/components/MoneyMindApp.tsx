@@ -1,39 +1,42 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { Routes, Route } from "react-router-dom";
 import { AppModeProvider, useAppMode } from "@/hooks/useAppMode";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useRecurringTransactions } from "@/hooks/useRecurringTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
-import { Dashboard } from "./screens/Dashboard";
-import { BusinessDashboard } from "./screens/BusinessDashboard";
-import { AddTransaction } from "./screens/AddTransaction";
-import { BusinessAddTransaction } from "./screens/BusinessAddTransaction";
-import { BusinessTransactions } from "./screens/BusinessTransactions";
-import { TransactionList } from "./screens/TransactionList";
-import { Summary } from "./screens/Summary";
-import { TransactionFilter } from "./screens/TransactionFilter";
-import { Profile } from "./screens/Profile";
-import { RecurringTransactions } from "./screens/RecurringTransactions";
-import { Notifications } from "./screens/Notifications";
-import { Settings } from "./screens/Settings";
-import { CategoryManagement } from "./screens/CategoryManagement";
-import { ProfileSettings } from "./screens/ProfileSettings";
-import { Accounts } from "./screens/Accounts";
-import { LiabilitiesManagement } from "./screens/LiabilitiesManagement";
-import { BusinessReports } from "./screens/BusinessReports";
-import { KeywordsManagement } from "./screens/KeywordsManagement";
-import { AIExpenseAnalyzer } from "./screens/AIExpenseAnalyzer";
-import { PinSettings } from "./screens/PinSettings";
-import { FinancialInsights } from "./screens/FinancialInsights";
 import { BottomNavigation } from "./ui/BottomNavigation";
 import { Toaster } from "./ui/toaster";
 import { AuthGuard } from "./AuthGuard";
 import { GuestWarningBanner } from "./GuestWarningBanner";
+import { Skeleton } from "./ui/skeleton";
+
+// Lazy load all screen components for better performance
+const Dashboard = lazy(() => import("./screens/Dashboard").then(m => ({ default: m.Dashboard })));
+const BusinessDashboard = lazy(() => import("./screens/BusinessDashboard").then(m => ({ default: m.BusinessDashboard })));
+const AddTransaction = lazy(() => import("./screens/AddTransaction").then(m => ({ default: m.AddTransaction })));
+const BusinessAddTransaction = lazy(() => import("./screens/BusinessAddTransaction").then(m => ({ default: m.BusinessAddTransaction })));
+const BusinessTransactions = lazy(() => import("./screens/BusinessTransactions").then(m => ({ default: m.BusinessTransactions })));
+const TransactionList = lazy(() => import("./screens/TransactionList").then(m => ({ default: m.TransactionList })));
+const Summary = lazy(() => import("./screens/Summary").then(m => ({ default: m.Summary })));
+const TransactionFilter = lazy(() => import("./screens/TransactionFilter").then(m => ({ default: m.TransactionFilter })));
+const Profile = lazy(() => import("./screens/Profile").then(m => ({ default: m.Profile })));
+const RecurringTransactions = lazy(() => import("./screens/RecurringTransactions").then(m => ({ default: m.RecurringTransactions })));
+const Notifications = lazy(() => import("./screens/Notifications").then(m => ({ default: m.Notifications })));
+const Settings = lazy(() => import("./screens/Settings").then(m => ({ default: m.Settings })));
+const CategoryManagement = lazy(() => import("./screens/CategoryManagement").then(m => ({ default: m.CategoryManagement })));
+const ProfileSettings = lazy(() => import("./screens/ProfileSettings").then(m => ({ default: m.ProfileSettings })));
+const Accounts = lazy(() => import("./screens/Accounts").then(m => ({ default: m.Accounts })));
+const LiabilitiesManagement = lazy(() => import("./screens/LiabilitiesManagement").then(m => ({ default: m.LiabilitiesManagement })));
+const BusinessReports = lazy(() => import("./screens/BusinessReports").then(m => ({ default: m.BusinessReports })));
+const KeywordsManagement = lazy(() => import("./screens/KeywordsManagement").then(m => ({ default: m.KeywordsManagement })));
+const AIExpenseAnalyzer = lazy(() => import("./screens/AIExpenseAnalyzer").then(m => ({ default: m.AIExpenseAnalyzer })));
+const PinSettings = lazy(() => import("./screens/PinSettings").then(m => ({ default: m.PinSettings })));
+const FinancialInsights = lazy(() => import("./screens/FinancialInsights").then(m => ({ default: m.FinancialInsights })));
 
 export type TransactionType = "income" | "expense";
 export type PriorityLevel = 1 | 2 | 3 | 4 | 5;
 
-// Legacy interfaces for backward compatibility
 export interface Transaction {
   id: string;
   type: TransactionType;
@@ -57,6 +60,18 @@ export interface RecurringTransaction {
   isActive: boolean;
 }
 
+// Loading skeleton for lazy loaded components
+function PageSkeleton() {
+  return (
+    <div className="p-4 space-y-4">
+      <Skeleton className="h-12 w-3/4" />
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-24 w-full" />
+      <Skeleton className="h-24 w-full" />
+    </div>
+  );
+}
+
 function AppContent() {
   const { mode } = useAppMode();
   const { 
@@ -75,7 +90,6 @@ function AppContent() {
 
   const { currentAccount } = useAccounts();
 
-  // Convert new hook format to legacy format for backward compatibility
   const addTransaction = async (transaction: Omit<Transaction, "id">) => {
     if (!currentAccount) return;
     
@@ -103,112 +117,105 @@ function AppContent() {
     });
   };
 
+  // Transform transactions for legacy components
+  const legacyTransactions = transactions.map(t => ({ 
+    id: t.id, 
+    type: t.type as TransactionType, 
+    amount: t.amount, 
+    category: t.category_id || '', 
+    description: t.description || '', 
+    date: t.date, 
+    priority: 3 as PriorityLevel, 
+    isRecurring: false 
+  }));
+
+  const legacyRecurringTransactions = recurringTransactions.map(rt => ({ 
+    id: rt.id, 
+    type: rt.type as TransactionType, 
+    amount: rt.amount, 
+    category: rt.category_id || '', 
+    description: rt.description || '', 
+    priority: 3 as PriorityLevel, 
+    frequency: rt.frequency as "monthly" | "weekly" | "daily", 
+    nextDate: rt.next_execution || rt.start_date, 
+    isActive: rt.is_active ?? true 
+  }));
+
   return (
     <AuthGuard>
       <div className="min-h-screen bg-background">
         <GuestWarningBanner />
-        <Routes>
-          <Route 
-            path="/" 
-            element={
-              mode === "business" ? <BusinessDashboard /> : 
-              <Dashboard 
-                transactions={transactions.map(t => ({ 
-                  id: t.id, 
-                  type: t.type as TransactionType, 
-                  amount: t.amount, 
-                  category: t.category_id || '', 
-                  description: t.description || '', 
-                  date: t.date, 
-                  priority: 3 as PriorityLevel, 
-                  isRecurring: false 
-                }))} 
-                recurringTransactions={recurringTransactions.map(rt => ({ 
-                  id: rt.id, 
-                  type: rt.type as TransactionType, 
-                  amount: rt.amount, 
-                  category: rt.category_id || '', 
-                  description: rt.description || '', 
-                  priority: 3 as PriorityLevel, 
-                  frequency: rt.frequency as "monthly" | "weekly" | "daily", 
-                  nextDate: rt.next_execution || rt.start_date, 
-                  isActive: rt.is_active ?? true 
-                }))}>
-              </Dashboard>
-            }
-          />
-          <Route 
-            path="/add" 
-            element={
-              <AddTransaction 
-                onAddTransaction={addTransaction}
-                onAddRecurring={addRecurringTransaction}
-              />
-            } 
-          />
-          <Route 
-            path="/transactions" 
-            element={<TransactionList 
-              transactions={transactions.map(t => ({ 
-                id: t.id, type: t.type as TransactionType, amount: t.amount, category: t.category_id || '', 
-                description: t.description || '', date: t.date, priority: 3 as PriorityLevel, 
-                isRecurring: false 
-              }))}
-              onDelete={deleteTransaction}
-              onUpdate={updateTransaction}
-            />}
-          />
-          <Route 
-            path="/summary" 
-            element={
-              <Summary 
-                transactions={transactions.map(t => ({ 
-                  id: t.id, type: t.type as TransactionType, amount: t.amount, category: t.category_id || '', 
-                  description: t.description || '', date: t.date, priority: 3 as PriorityLevel, 
-                  isRecurring: false 
-                }))} 
-                recurringTransactions={recurringTransactions.map(rt => ({ 
-                  id: rt.id, type: rt.type as TransactionType, amount: rt.amount, category: rt.category_id || '', 
-                  description: rt.description || '', priority: 3 as PriorityLevel, 
-                  frequency: rt.frequency as "monthly" | "weekly" | "daily", nextDate: rt.next_execution || rt.start_date, isActive: rt.is_active ?? true 
-                }))}
-              />
-            } 
-          />
-          <Route 
-            path="/recurring" 
-            element={
-              <RecurringTransactions 
-                recurringTransactions={recurringTransactions.map(rt => ({ 
-                  id: rt.id, type: rt.type as TransactionType, amount: rt.amount, category: rt.category_id || '', 
-                  description: rt.description || '', priority: 3 as PriorityLevel, 
-                  frequency: rt.frequency as "monthly" | "weekly" | "daily", nextDate: rt.next_execution || rt.start_date, isActive: rt.is_active ?? true 
-                }))}
-                onUpdate={(id, updates) => updateRecurringTransaction(id, { 
-                  next_execution: updates.nextDate, 
-                  is_active: updates.isActive 
-                })}
-                onDelete={deleteRecurringTransaction}
-              />
-            } 
-          />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/category-management" element={<CategoryManagement />} />
-          <Route path="/profile-settings" element={<ProfileSettings />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/accounts" element={<Accounts />} />
-          <Route path="/business" element={<BusinessDashboard />} />
-          <Route path="/business/add-transaction" element={<BusinessAddTransaction />} />
-          <Route path="/business/transactions" element={<BusinessTransactions />} />
-          <Route path="/business/liabilities" element={<LiabilitiesManagement />} />
-          <Route path="/business/reports" element={<BusinessReports />} />
-          <Route path="/keywords" element={<KeywordsManagement />} />
-          <Route path="/ai-expense-analyzer" element={<AIExpenseAnalyzer onBack={() => window.history.back()} />} />
-          <Route path="/pin-settings" element={<PinSettings onBack={() => window.history.back()} />} />
-          <Route path="/transaction-filter" element={<TransactionFilter onBack={() => window.history.back()} />} />
-          <Route path="/financial-insights" element={<FinancialInsights />} />
-        </Routes>
+        <Suspense fallback={<PageSkeleton />}>
+          <Routes>
+            <Route 
+              path="/" 
+              element={
+                mode === "business" ? <BusinessDashboard /> : 
+                <Dashboard 
+                  transactions={legacyTransactions} 
+                  recurringTransactions={legacyRecurringTransactions}
+                />
+              }
+            />
+            <Route 
+              path="/add" 
+              element={
+                <AddTransaction 
+                  onAddTransaction={addTransaction}
+                  onAddRecurring={addRecurringTransaction}
+                />
+              } 
+            />
+            <Route 
+              path="/transactions" 
+              element={
+                <TransactionList 
+                  transactions={legacyTransactions}
+                  onDelete={deleteTransaction}
+                  onUpdate={updateTransaction}
+                />
+              }
+            />
+            <Route 
+              path="/summary" 
+              element={
+                <Summary 
+                  transactions={legacyTransactions} 
+                  recurringTransactions={legacyRecurringTransactions}
+                />
+              } 
+            />
+            <Route 
+              path="/recurring" 
+              element={
+                <RecurringTransactions 
+                  recurringTransactions={legacyRecurringTransactions}
+                  onUpdate={(id, updates) => updateRecurringTransaction(id, { 
+                    next_execution: updates.nextDate, 
+                    is_active: updates.isActive 
+                  })}
+                  onDelete={deleteRecurringTransaction}
+                />
+              } 
+            />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/category-management" element={<CategoryManagement />} />
+            <Route path="/profile-settings" element={<ProfileSettings />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/accounts" element={<Accounts />} />
+            <Route path="/business" element={<BusinessDashboard />} />
+            <Route path="/business/add-transaction" element={<BusinessAddTransaction />} />
+            <Route path="/business/transactions" element={<BusinessTransactions />} />
+            <Route path="/business/liabilities" element={<LiabilitiesManagement />} />
+            <Route path="/business/reports" element={<BusinessReports />} />
+            <Route path="/keywords" element={<KeywordsManagement />} />
+            <Route path="/ai-expense-analyzer" element={<AIExpenseAnalyzer onBack={() => window.history.back()} />} />
+            <Route path="/pin-settings" element={<PinSettings onBack={() => window.history.back()} />} />
+            <Route path="/transaction-filter" element={<TransactionFilter onBack={() => window.history.back()} />} />
+            <Route path="/financial-insights" element={<FinancialInsights />} />
+          </Routes>
+        </Suspense>
         <BottomNavigation />
         <Toaster />
       </div>

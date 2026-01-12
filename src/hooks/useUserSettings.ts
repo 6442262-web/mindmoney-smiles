@@ -25,22 +25,29 @@ export function useUserSettings() {
   const loadSettings = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
+      // Use limit(1) to get only the first row if duplicates exist
       const { data, error } = await supabase
         .from('user_settings')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .order('created_at', { ascending: true })
+        .limit(1);
 
       if (error) {
         console.error('Error loading user settings:', error);
+        setLoading(false);
         return;
       }
 
-      if (data) {
-        setSettings(data);
+      if (data && data.length > 0) {
+        setSettings(data[0]);
       } else {
+        // Create default settings
         const defaultSettings: UserSettings = {
           user_id: user.id,
           language: 'th',
@@ -67,6 +74,8 @@ export function useUserSettings() {
       }
     } catch (error) {
       console.error('Error in loadSettings:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,13 +115,7 @@ export function useUserSettings() {
   };
 
   useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      await loadSettings();
-      setLoading(false);
-    };
-
-    init();
+    loadSettings();
   }, []);
 
   // Apply theme on load
