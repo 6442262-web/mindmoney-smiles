@@ -28,17 +28,20 @@ import {
   Key,
   Brain,
   Loader2,
-  LogOut
+  LogOut,
+  Database
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { useBackup } from '@/hooks/useBackup';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRoles } from '@/hooks/useUserRoles';
 
 export function Settings() {
   const { settings, loading, updateSettings } = useUserSettings();
   const { loading: backupLoading, createBackup, exportData } = useBackup();
   const { signOut } = useAuth();
+  const { isAdminOrDeveloper } = useUserRoles();
   const { t } = useLanguage();
 
   if (loading) {
@@ -274,6 +277,28 @@ export function Settings() {
             </Link>
           </div>
         </Card>
+
+        {/* Developer Section - Only visible to admins/developers */}
+        {isAdminOrDeveloper && (
+          <Card className="p-4 border-primary/50">
+            <div className="flex items-center gap-3 mb-4">
+              <Database className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold">Developer Mode</h2>
+            </div>
+            
+            <div className="space-y-3">
+              <Link to="/admin">
+                <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Database className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Admin Dashboard</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-primary" />
+                </div>
+              </Link>
+            </div>
+          </Card>
+        )}
 
         {/* Theme Section */}
         <Card className="p-4">
