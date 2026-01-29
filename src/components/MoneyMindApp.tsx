@@ -34,6 +34,7 @@ const AIExpenseAnalyzer = lazy(() => import("./screens/AIExpenseAnalyzer").then(
 const PinSettings = lazy(() => import("./screens/PinSettings").then(m => ({ default: m.PinSettings })));
 const FinancialInsights = lazy(() => import("./screens/FinancialInsights").then(m => ({ default: m.FinancialInsights })));
 const AdminDashboard = lazy(() => import("./screens/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
+const Feedback = lazy(() => import("./screens/Feedback").then(m => ({ default: m.Feedback })));
 
 export type TransactionType = "income" | "expense";
 export type PriorityLevel = 1 | 2 | 3 | 4 | 5;
@@ -216,6 +217,7 @@ function AppContent() {
             <Route path="/transaction-filter" element={<TransactionFilter onBack={() => window.history.back()} />} />
             <Route path="/financial-insights" element={<FinancialInsights />} />
             <Route path="/admin" element={<AdminDashboard onBack={() => window.history.back()} />} />
+            <Route path="/feedback" element={<Feedback />} />
           </Routes>
         </Suspense>
         <BottomNavigation />

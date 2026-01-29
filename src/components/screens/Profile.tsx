@@ -137,9 +137,11 @@ export function Profile() {
               <Button variant="ghost" size="sm" className="w-full justify-start">
                 เงื่อนไขการใช้งาน
               </Button>
-              <Button variant="ghost" size="sm" className="w-full justify-start">
-                ติดต่อเรา
-              </Button>
+              <Link to="/feedback">
+                <Button variant="ghost" size="sm" className="w-full justify-start">
+                  ติดต่อเรา / ส่งข้อเสนอแนะ
+                </Button>
+              </Link>
             </div>
           </div>
         </Card>
