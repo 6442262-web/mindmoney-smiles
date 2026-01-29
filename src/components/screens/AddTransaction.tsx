@@ -17,6 +17,9 @@ import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { SlipScanner, SlipScanResult } from "../SlipScanner";
+import { TransactionSearch } from "../TransactionSearch";
+import { useTransactions } from "@/hooks/useTransactions";
+import { SearchableTransaction } from "@/hooks/useTransactionSearch";
 
 interface AddTransactionProps {
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
@@ -45,6 +48,19 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
   const { toast } = useToast();
   const { t, language } = useLanguage();
   const dateLocale = language === 'th' ? th : enUS;
+  const { transactions } = useTransactions();
+
+  // Handle selection from transaction search
+  const handleTransactionSelect = (selected: SearchableTransaction) => {
+    setType(selected.type);
+    setAmount(selected.amount.toString());
+    setDescription(selected.description);
+    // Category will need to be matched by name since we store category_id
+    toast({
+      title: language === 'th' ? 'นำเข้าข้อมูลสำเร็จ' : 'Data imported',
+      description: language === 'th' ? 'ข้อมูลจากรายการเดิมถูกกรอกในฟอร์มแล้ว' : 'Previous entry data has been filled in the form',
+    });
+  };
 
   const categories = type === "expense" ? expenseCategories : incomeCategories;
 
@@ -178,6 +194,12 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Search Previous Transactions */}
+        <TransactionSearch
+          transactions={transactions}
+          onSelect={handleTransactionSelect}
+        />
+
         {/* Transaction Type */}
         <Card className="p-4">
           <Label className="text-base font-semibold">{t('transaction.type')}</Label>
