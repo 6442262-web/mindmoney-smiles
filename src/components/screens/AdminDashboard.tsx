@@ -1,70 +1,41 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Users, CreditCard, Wallet, TrendingUp, RefreshCw, Database, Shield } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { 
+  ArrowLeft, 
+  Users, 
+  CreditCard, 
+  Wallet, 
+  TrendingUp, 
+  RefreshCw, 
+  Database, 
+  Shield,
+  MessageSquare,
+  Ticket,
+  UserCheck,
+  UserPlus,
+  Activity,
+  Ghost
+} from 'lucide-react';
 import { useUserRoles } from '@/hooks/useUserRoles';
-import { useLanguage } from '@/hooks/useLanguage';
+import { useAdminStats } from '@/hooks/useAdminStats';
 import { format } from 'date-fns';
 
 interface AdminDashboardProps {
   onBack: () => void;
 }
 
-interface Stats {
-  totalUsers: number;
-  totalTransactions: number;
-  totalAccounts: number;
-  totalCategories: number;
-}
-
 export function AdminDashboard({ onBack }: AdminDashboardProps) {
   const { isAdminOrDeveloper, loading: roleLoading } = useUserRoles();
-  const { t } = useLanguage();
-  const [stats, setStats] = useState<Stats>({ totalUsers: 0, totalTransactions: 0, totalAccounts: 0, totalCategories: 0 });
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [accounts, setAccounts] = useState<any[]>([]);
-  const [userRoles, setUserRoles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // Note: These queries will only return data the user has access to via RLS
-      // For full admin access, you'd need to use service role in edge functions
-      
-      const [transactionsRes, accountsRes, categoriesRes, rolesRes] = await Promise.all([
-        supabase.from('transactions').select('*').order('created_at', { ascending: false }).limit(100),
-        supabase.from('accounts').select('*').order('created_at', { ascending: false }),
-        supabase.from('categories').select('*'),
-        supabase.from('user_roles').select('*'),
-      ]);
-
-      setTransactions(transactionsRes.data || []);
-      setAccounts(accountsRes.data || []);
-      setUserRoles(rolesRes.data || []);
-
-      setStats({
-        totalUsers: new Set((transactionsRes.data || []).map(t => t.user_id)).size,
-        totalTransactions: transactionsRes.data?.length || 0,
-        totalAccounts: accountsRes.data?.length || 0,
-        totalCategories: categoriesRes.data?.length || 0,
-      });
-    } catch (error) {
-      console.error('Error fetching admin data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data, loading, fetchStats } = useAdminStats();
 
   useEffect(() => {
     if (isAdminOrDeveloper) {
-      fetchData();
+      fetchStats();
     }
   }, [isAdminOrDeveloper]);
 
@@ -87,8 +58,10 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
     );
   }
 
+  const stats = data?.stats;
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       <div className="sticky top-0 z-10 bg-background border-b">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
@@ -98,12 +71,12 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
             <div>
               <h1 className="text-xl font-bold flex items-center gap-2">
                 <Database className="h-5 w-5" />
-                Admin Dashboard
+                Developer Dashboard
               </h1>
-              <p className="text-sm text-muted-foreground">Developer Mode</p>
+              <p className="text-sm text-muted-foreground">ภาพรวมระบบทั้งหมด</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
+          <Button variant="outline" size="sm" onClick={fetchStats} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             รีเฟรช
           </Button>
@@ -111,26 +84,63 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
+        {/* User Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Users</p>
-                  <p className="text-2xl font-bold">{stats.totalUsers}</p>
+                  <p className="text-xs text-muted-foreground">ผู้ใช้ทั้งหมด</p>
+                  <p className="text-2xl font-bold">{stats?.totalUsers || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
+          <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5 text-green-500" />
+                <div>
+                  <p className="text-xs text-muted-foreground">ใหม่ (30 วัน)</p>
+                  <p className="text-2xl font-bold">{stats?.newUsersLast30Days || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-blue-500" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Active (7 วัน)</p>
+                  <p className="text-2xl font-bold">{stats?.activeUsersLast7Days || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-gray-500/10 to-gray-500/5">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <Ghost className="h-5 w-5 text-gray-500" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Guest Users</p>
+                  <p className="text-2xl font-bold">{stats?.guestUsers || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* System Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-green-500" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Transactions</p>
-                  <p className="text-2xl font-bold">{stats.totalTransactions}</p>
+                  <p className="text-xs text-muted-foreground">Transactions</p>
+                  <p className="text-xl font-bold">{stats?.totalTransactions || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -140,8 +150,8 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
               <div className="flex items-center gap-2">
                 <Wallet className="h-5 w-5 text-blue-500" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Accounts</p>
-                  <p className="text-2xl font-bold">{stats.totalAccounts}</p>
+                  <p className="text-xs text-muted-foreground">Accounts</p>
+                  <p className="text-xl font-bold">{stats?.totalAccounts || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -149,83 +159,108 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-orange-500" />
+                <MessageSquare className="h-5 w-5 text-orange-500" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Categories</p>
-                  <p className="text-2xl font-bold">{stats.totalCategories}</p>
+                  <p className="text-xs text-muted-foreground">Feedback รอ</p>
+                  <p className="text-xl font-bold">{stats?.pendingFeedback || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <Ticket className="h-5 w-5 text-purple-500" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Invite Codes</p>
+                  <p className="text-xl font-bold">{stats?.activeInviteCodes || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
+        {/* Revenue Stats */}
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="bg-green-500/10">
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground">รายรับทั้งหมด</p>
+              <p className="text-2xl font-bold text-green-600">
+                ฿{(stats?.totalIncome || 0).toLocaleString()}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-red-500/10">
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground">รายจ่ายทั้งหมด</p>
+              <p className="text-2xl font-bold text-red-600">
+                ฿{(stats?.totalExpense || 0).toLocaleString()}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Data Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full">
-            <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
-            <TabsTrigger value="transactions" className="flex-1">Transactions</TabsTrigger>
-            <TabsTrigger value="accounts" className="flex-1">Accounts</TabsTrigger>
-            <TabsTrigger value="roles" className="flex-1">Roles</TabsTrigger>
+        <Tabs defaultValue="users">
+          <TabsList className="w-full grid grid-cols-4">
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="feedback">Feedback</TabsTrigger>
+            <TabsTrigger value="roles">Roles</TabsTrigger>
+            <TabsTrigger value="invites">Invites</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="mt-4">
+          <TabsContent value="users" className="mt-4">
             <Card>
-              <CardHeader>
-                <CardTitle>ภาพรวมระบบ</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 rounded-lg bg-muted">
-                      <p className="text-sm text-muted-foreground">Total Revenue</p>
-                      <p className="text-xl font-bold text-green-500">
-                        ฿{transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + Number(t.amount), 0).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="p-4 rounded-lg bg-muted">
-                      <p className="text-sm text-muted-foreground">Total Expenses</p>
-                      <p className="text-xl font-bold text-red-500">
-                        ฿{transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + Number(t.amount), 0).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="transactions" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>รายการธุรกรรมล่าสุด (100 รายการ)</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <UserCheck className="h-4 w-4" />
+                  ผู้ใช้ทั้งหมด ({data?.users?.length || 0})
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[400px]">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead>ผู้ใช้</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead className="text-center">รายการ</TableHead>
+                        <TableHead className="text-right">ยอด</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {transactions.map((tx) => (
-                        <TableRow key={tx.id}>
-                          <TableCell className="text-sm">
-                            {format(new Date(tx.date), 'dd/MM/yyyy')}
+                      {data?.users?.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-sm truncate max-w-[150px]">
+                                {user.is_anonymous ? '👻 Guest' : user.full_name}
+                              </span>
+                              <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                                {user.email || 'Anonymous'}
+                              </span>
+                            </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={tx.type === 'income' ? 'default' : 'destructive'}>
-                              {tx.type}
+                            <Badge 
+                              variant={
+                                user.role === 'admin' ? 'default' : 
+                                user.role === 'developer' ? 'secondary' : 
+                                'outline'
+                              }
+                              className="text-xs"
+                            >
+                              {user.role}
                             </Badge>
                           </TableCell>
-                          <TableCell className="max-w-[150px] truncate">
-                            {tx.description || '-'}
+                          <TableCell className="text-center">
+                            <span className="text-sm">{user.transaction_count}</span>
                           </TableCell>
-                          <TableCell className={`text-right font-medium ${tx.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
-                            {tx.type === 'income' ? '+' : '-'}฿{Number(tx.amount).toLocaleString()}
+                          <TableCell className="text-right">
+                            <div className="flex flex-col items-end text-xs">
+                              <span className="text-green-600">+{user.total_income.toLocaleString()}</span>
+                              <span className="text-red-600">-{user.total_expense.toLocaleString()}</span>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -236,37 +271,41 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
             </Card>
           </TabsContent>
 
-          <TabsContent value="accounts" className="mt-4">
+          <TabsContent value="feedback" className="mt-4">
             <Card>
-              <CardHeader>
-                <CardTitle>บัญชีทั้งหมด</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Feedback ล่าสุด
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[400px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Currency</TableHead>
-                        <TableHead className="text-right">Balance</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {accounts.map((acc) => (
-                        <TableRow key={acc.id}>
-                          <TableCell className="font-medium">{acc.name}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{acc.type}</Badge>
-                          </TableCell>
-                          <TableCell>{acc.currency}</TableCell>
-                          <TableCell className="text-right">
-                            ฿{Number(acc.balance || 0).toLocaleString()}
-                          </TableCell>
-                        </TableRow>
+                  {data?.feedback?.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      ยังไม่มี feedback
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {data?.feedback?.map((fb) => (
+                        <div key={fb.id} className="p-3 rounded-lg bg-muted/50 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Badge variant={fb.status === 'pending' ? 'destructive' : fb.status === 'reviewed' ? 'secondary' : 'default'}>
+                              {fb.status}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(fb.created_at), 'dd/MM/yy HH:mm')}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{fb.subject}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{fb.message}</p>
+                          </div>
+                          <Badge variant="outline" className="text-xs">{fb.type}</Badge>
+                        </div>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </div>
+                  )}
                 </ScrollArea>
               </CardContent>
             </Card>
@@ -274,41 +313,95 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
 
           <TabsContent value="roles" className="mt-4">
             <Card>
-              <CardHeader>
-                <CardTitle>User Roles</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  User Roles
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="p-3 rounded-lg bg-primary/10 text-center">
+                    <p className="text-2xl font-bold">{stats?.adminCount || 0}</p>
+                    <p className="text-xs text-muted-foreground">Admins</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-secondary/50 text-center">
+                    <p className="text-2xl font-bold">{stats?.developerCount || 0}</p>
+                    <p className="text-xs text-muted-foreground">Developers</p>
+                  </div>
+                </div>
+                <ScrollArea className="h-[300px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>User ID</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Created</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data?.userRoles?.map((role) => (
+                        <TableRow key={role.id}>
+                          <TableCell className="font-mono text-xs truncate max-w-[120px]">
+                            {role.user_id.slice(0, 8)}...
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={role.role === 'admin' ? 'default' : 'secondary'}
+                            >
+                              {role.role}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {format(new Date(role.created_at), 'dd/MM/yy')}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="invites" className="mt-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Ticket className="h-4 w-4" />
+                  Invite Codes
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[400px]">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>User ID</TableHead>
+                        <TableHead>Code</TableHead>
                         <TableHead>Role</TableHead>
-                        <TableHead>Created At</TableHead>
+                        <TableHead className="text-center">Uses</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {userRoles.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={3} className="text-center text-muted-foreground">
-                            ยังไม่มี user roles - กรุณาเพิ่มผ่าน Supabase Dashboard
+                      {data?.inviteCodes?.map((code) => (
+                        <TableRow key={code.id}>
+                          <TableCell className="font-mono text-xs">
+                            {code.code}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{code.role}</Badge>
+                          </TableCell>
+                          <TableCell className="text-center text-sm">
+                            {code.current_uses}/{code.max_uses || '∞'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={code.is_active ? 'default' : 'secondary'}>
+                              {code.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
                           </TableCell>
                         </TableRow>
-                      ) : (
-                        userRoles.map((role) => (
-                          <TableRow key={role.id}>
-                            <TableCell className="font-mono text-xs">{role.user_id}</TableCell>
-                            <TableCell>
-                              <Badge variant={role.role === 'admin' ? 'default' : role.role === 'developer' ? 'secondary' : 'outline'}>
-                                {role.role}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {format(new Date(role.created_at), 'dd/MM/yyyy HH:mm')}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
+                      ))}
                     </TableBody>
                   </Table>
                 </ScrollArea>
