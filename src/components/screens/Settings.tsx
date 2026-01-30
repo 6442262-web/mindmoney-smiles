@@ -29,8 +29,10 @@ import {
   Brain,
   Loader2,
   LogOut,
-  Database
+  Database,
+  Ticket
 } from 'lucide-react';
+import { InviteCodeDialog } from '@/components/InviteCodeDialog';
 import { Link } from 'react-router-dom';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { useBackup } from '@/hooks/useBackup';
@@ -275,6 +277,11 @@ export function Settings() {
                 />
               </div>
             </Link>
+
+            {/* Invite Code - only show if not already admin/developer */}
+            {!isAdminOrDeveloper && (
+              <InviteCodeDialog />
+            )}
           </div>
         </Card>
 
