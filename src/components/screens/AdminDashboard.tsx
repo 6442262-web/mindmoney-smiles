@@ -222,7 +222,7 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>ผู้ใช้</TableHead>
+                        <TableHead>UID</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead className="text-center">รายการ</TableHead>
                         <TableHead className="text-right">ยอด</TableHead>
