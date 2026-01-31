@@ -72,27 +72,43 @@ interface AdminData {
 // Generate mock users data
 const generateMockUsers = (): UserDetail[] => {
   const users: UserDetail[] = [];
-  const names = ['สมชาย', 'สมหญิง', 'วิชัย', 'นภา', 'ธนา', 'อรุณ', 'พิมพ์', 'กิตติ', 'ศิริ', 'มานะ'];
-  const lastNames = ['ใจดี', 'สุขสันต์', 'รักเรียน', 'มั่งมี', 'ชอบออม'];
+  
+  // December 2025 dates for last_sign_in
+  const dec2025Start = new Date('2025-12-01T00:00:00Z');
+  const dec2025End = new Date('2025-12-31T23:59:59Z');
   
   for (let i = 0; i < 443; i++) {
     const isGuest = i < 279; // First 279 are guests
-    const randomName = names[Math.floor(Math.random() * names.length)];
-    const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    const daysAgo = Math.floor(Math.random() * 90);
+    
+    // Created dates spread across the last few months
+    const daysAgo = Math.floor(Math.random() * 120) + 30; // 30-150 days ago
     const createdAt = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+    
+    // Last sign in only in December 2025
+    const decDay = Math.floor(Math.random() * 31) + 1;
+    const lastSignIn = new Date(`2025-12-${decDay.toString().padStart(2, '0')}T${Math.floor(Math.random() * 24).toString().padStart(2, '0')}:00:00Z`).toISOString();
+    
+    // 95% have 1-2 transactions, 5% have 10-30 transactions
+    const isHighActivity = Math.random() < 0.05;
+    const transactionCount = isHighActivity 
+      ? Math.floor(Math.random() * 21) + 10 // 10-30
+      : Math.floor(Math.random() * 2) + 1;   // 1-2
+    
+    // Money in hundreds only (100-999)
+    const totalIncome = Math.floor(Math.random() * 900) + 100;
+    const totalExpense = Math.floor(Math.random() * 900) + 100;
     
     users.push({
       id: `mock-user-${i + 1}`,
       email: isGuest ? '' : `user${i + 1}@example.com`,
-      full_name: isGuest ? '' : `${randomName} ${randomLastName}`,
+      full_name: '', // No names for all users
       created_at: createdAt,
-      last_sign_in_at: new Date(Date.now() - Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000).toISOString(),
+      last_sign_in_at: lastSignIn,
       is_anonymous: isGuest,
-      transaction_count: Math.floor(Math.random() * 150) + 1,
-      account_count: Math.floor(Math.random() * 5) + 1,
-      total_income: Math.floor(Math.random() * 500000) + 10000,
-      total_expense: Math.floor(Math.random() * 300000) + 5000,
+      transaction_count: transactionCount,
+      account_count: 1, // Most have just 1 account
+      total_income: totalIncome,
+      total_expense: totalExpense,
       role: i === 0 ? 'admin' : i < 5 ? 'developer' : 'user',
       language: Math.random() > 0.3 ? 'th' : 'en',
       theme: Math.random() > 0.5 ? 'light' : 'dark'
