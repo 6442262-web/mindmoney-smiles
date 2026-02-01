@@ -118,30 +118,13 @@ const generateMockUsers = (): UserDetail[] => {
   return users;
 };
 
-// Generate mock feedback
+// Generate mock feedback - base data (empty, real feedback will be added on top)
 const generateMockFeedback = (): Feedback[] => {
-  const subjects = [
-    'แอปใช้งานดีมาก',
-    'อยากให้เพิ่มฟีเจอร์กราฟ',
-    'มีบั๊กตอนเพิ่มรายจ่าย',
-    'ขอเสนอแนะ UI ใหม่',
-    'ระบบแจ้งเตือนดีมาก'
-  ];
-  const types = ['bug', 'feature', 'general', 'improvement'];
-  const statuses = ['pending', 'reviewed', 'resolved'];
-  
-  return Array.from({ length: 23 }, (_, i) => ({
-    id: `mock-feedback-${i + 1}`,
-    user_id: `mock-user-${Math.floor(Math.random() * 443) + 1}`,
-    type: types[Math.floor(Math.random() * types.length)],
-    subject: subjects[Math.floor(Math.random() * subjects.length)],
-    message: 'รายละเอียดเพิ่มเติมเกี่ยวกับ feedback นี้ ซึ่งมีรายละเอียดที่ต้องการแจ้งให้ทราบ',
-    status: statuses[Math.floor(Math.random() * statuses.length)],
-    created_at: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toISOString()
-  }));
+  // Base mock feedback is empty - real feedback from database will be added
+  return [];
 };
 
-// Generate mock data
+// Generate mock data - base stats (feedback starts at 0, real data adds on top)
 const generateMockData = (): AdminData => {
   const users = generateMockUsers();
   const feedback = generateMockFeedback();
@@ -165,15 +148,15 @@ const generateMockData = (): AdminData => {
       totalCategories: 156,
       totalIncome: users.reduce((sum, u) => sum + u.total_income, 0),
       totalExpense: users.reduce((sum, u) => sum + u.total_expense, 0),
-      pendingFeedback: feedback.filter(f => f.status === 'pending').length,
-      resolvedFeedback: feedback.filter(f => f.status === 'resolved').length,
-      totalFeedback: feedback.length,
+      pendingFeedback: 0,
+      resolvedFeedback: 0,
+      totalFeedback: 0,
       adminCount: 1,
       developerCount: 4,
       activeInviteCodes: 3
     },
     users: users.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
-    feedback: feedback.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+    feedback: feedback,
     userRoles: [
       { id: '1', user_id: 'mock-user-1', role: 'admin', created_at: new Date().toISOString() },
       { id: '2', user_id: 'mock-user-2', role: 'developer', created_at: new Date().toISOString() },
