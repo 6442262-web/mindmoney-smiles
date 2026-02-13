@@ -73,20 +73,18 @@ interface AdminData {
 const generateMockUsers = (): UserDetail[] => {
   const users: UserDetail[] = [];
   
-  // December 2025 dates for last_sign_in
-  const dec2025Start = new Date('2025-12-01T00:00:00Z');
-  const dec2025End = new Date('2025-12-31T23:59:59Z');
+  const now = Date.now();
   
   for (let i = 0; i < 443; i++) {
     const isGuest = i < 279; // First 279 are guests
     
     // Created dates spread across the last few months
     const daysAgo = Math.floor(Math.random() * 120) + 30; // 30-150 days ago
-    const createdAt = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+    const createdAt = new Date(now - daysAgo * 24 * 60 * 60 * 1000).toISOString();
     
-    // Last sign in only in December 2025
-    const decDay = Math.floor(Math.random() * 31) + 1;
-    const lastSignIn = new Date(`2025-12-${decDay.toString().padStart(2, '0')}T${Math.floor(Math.random() * 24).toString().padStart(2, '0')}:00:00Z`).toISOString();
+    // Last sign in spread across last 30 days (relative to now)
+    const signInDaysAgo = Math.floor(Math.random() * 30);
+    const lastSignIn = new Date(now - signInDaysAgo * 24 * 60 * 60 * 1000).toISOString();
     
     // 95% have 1-2 transactions, 5% have 10-30 transactions
     const isHighActivity = Math.random() < 0.05;
