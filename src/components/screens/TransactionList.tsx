@@ -39,7 +39,7 @@ export function TransactionList({ transactions, onDelete, onUpdate }: Transactio
     toast.success(t('transaction.updateSuccess'));
   };
 
-  const categories = Array.from(new Set(transactions.map(t => t.category)));
+  const categories = Array.from(new Set(transactions.map(t => t.category).filter(c => c && c.trim() !== '')));
 
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
