@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
+import { getLocalDateString } from '@/lib/dateUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
 
@@ -188,7 +189,7 @@ export const AIExpenseAnalyzer: React.FC<AIExpenseAnalyzerProps> = ({ onBack }) 
     
     const a = document.createElement('a');
     a.href = url;
-    a.download = `expense-analysis-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `expense-analysis-${getLocalDateString()}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

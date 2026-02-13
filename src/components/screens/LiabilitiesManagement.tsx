@@ -12,6 +12,7 @@ import { ArrowLeft, Plus, CreditCard, Building2, TrendingDown, Calendar, Percent
 import { Link } from "react-router-dom";
 import { useLiabilities, Liability } from "@/hooks/useLiabilities";
 import { format } from "date-fns";
+import { getLocalDateString } from "@/lib/dateUtils";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
@@ -36,7 +37,7 @@ export function LiabilitiesManagement() {
     current_balance: '',
     interest_rate: '',
     monthly_payment: '',
-    start_date: new Date().toISOString().split('T')[0],
+     start_date: getLocalDateString(),
     end_date: '',
     note: '',
     is_active: true,
@@ -51,7 +52,7 @@ export function LiabilitiesManagement() {
       current_balance: '',
       interest_rate: '',
       monthly_payment: '',
-      start_date: new Date().toISOString().split('T')[0],
+      start_date: getLocalDateString(),
       end_date: '',
       note: '',
       is_active: true,
@@ -69,7 +70,7 @@ export function LiabilitiesManagement() {
       current_balance: liability.current_balance.toString(),
       interest_rate: liability.interest_rate?.toString() || '',
       monthly_payment: liability.monthly_payment?.toString() || '',
-      start_date: liability.start_date || new Date().toISOString().split('T')[0],
+      start_date: liability.start_date || getLocalDateString(),
       end_date: liability.end_date || '',
       note: liability.note || '',
       is_active: liability.is_active ?? true,
