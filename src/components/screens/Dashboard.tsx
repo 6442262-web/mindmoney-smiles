@@ -8,6 +8,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useLanguage } from "@/hooks/useLanguage";
 import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
+import { parseLocalDate } from "@/lib/dateUtils";
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -184,7 +185,7 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
                     <p className="text-sm text-muted-foreground">{transaction.category}</p>
                     <span className="text-xs text-muted-foreground">•</span>
                     <p className="text-xs text-muted-foreground">
-                      {format(new Date(transaction.date), "d MMM", { locale: dateLocale })} {format(new Date(transaction.date), "HH:mm")} {language === 'th' ? 'น.' : ''}
+                      {format(parseLocalDate(transaction.date), "d MMM", { locale: dateLocale })} {language === 'th' ? 'น.' : ''}
                     </p>
                   </div>
                 </div>

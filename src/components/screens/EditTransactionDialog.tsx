@@ -14,6 +14,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { parseLocalDate } from "@/lib/dateUtils";
 
 interface EditTransactionDialogProps {
   transaction: Transaction | null;
@@ -54,7 +55,7 @@ export function EditTransactionDialog({
       setCategory(transaction.category);
       setDescription(transaction.description || "");
       setPriority(transaction.priority || 3);
-      setDate(new Date(transaction.date));
+      setDate(parseLocalDate(transaction.date));
     }
   }, [transaction]);
 

@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from 'date-fns';
 import { th } from 'date-fns/locale';
-
+import { parseLocalDate } from '@/lib/dateUtils';
 // Sample transaction data - in real app this would come from props or context
 const sampleTransactions = [
   { id: '1', date: '2024-01-15', description: 'ยอดขาย', category: 'income', amount: 15000, type: 'income' as const },
@@ -83,7 +83,7 @@ export function TransactionFilter({ onBack, transactions = sampleTransactions }:
   // Filter transactions based on current filters
   const filteredTransactions = useMemo(() => {
     return transactions.filter(transaction => {
-      const transactionDate = new Date(transaction.date);
+      const transactionDate = parseLocalDate(transaction.date);
       
       // Date range filter
       if (startDate && endDate) {
@@ -339,7 +339,7 @@ export function TransactionFilter({ onBack, transactions = sampleTransactions }:
                             {transaction.description}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {format(new Date(transaction.date), 'dd/MM/yyyy', { locale: th })}
+                            {format(parseLocalDate(transaction.date), 'dd/MM/yyyy', { locale: th })}
                           </div>
                         </div>
                         <div className="text-right">
