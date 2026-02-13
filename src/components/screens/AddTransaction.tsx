@@ -16,6 +16,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { getLocalDateString } from "@/lib/dateUtils";
 import { SlipScanner, SlipScanResult } from "../SlipScanner";
 import { TransactionSearch } from "../TransactionSearch";
 import { useTransactions } from "@/hooks/useTransactions";
@@ -118,7 +119,7 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
       amount: result.amount,
       category: matchedCategory,
       description,
-      date: result.date || new Date().toISOString().split('T')[0],
+      date: result.date || getLocalDateString(),
       priority: 3,
     });
   };
@@ -155,7 +156,7 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
       onAddRecurring({
         ...baseData,
         frequency,
-        nextDate: startDate.toISOString().split('T')[0],
+        nextDate: getLocalDateString(startDate),
         isActive: true,
       });
       toast({
@@ -165,7 +166,7 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
     } else {
       onAddTransaction({
         ...baseData,
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalDateString(),
       });
       toast({
         title: t('transaction.addSuccess'),

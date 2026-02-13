@@ -7,13 +7,14 @@ import { Link } from "react-router-dom";
 import { useAppMode } from "@/hooks/useAppMode";
 import { useBusinessTransactions } from "@/hooks/useBusinessTransactions";
 import { useLiabilities } from "@/hooks/useLiabilities";
+import { getLocalDateString } from "@/lib/dateUtils";
 
 export function BusinessDashboard() {
   const { mode, toggleMode } = useAppMode();
   const { transactions, loading } = useBusinessTransactions();
   const { liabilities } = useLiabilities();
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
   const todaysTransactions = transactions.filter(t => t.date === today);
   
   const totalIncome = todaysTransactions
