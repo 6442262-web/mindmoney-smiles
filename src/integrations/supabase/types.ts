@@ -630,6 +630,7 @@ export type Database = {
           project_id: string | null
           recurring_id: string | null
           tax_amount: number | null
+          time: string | null
           type: string
           updated_at: string
           user_id: string
@@ -649,6 +650,7 @@ export type Database = {
           project_id?: string | null
           recurring_id?: string | null
           tax_amount?: number | null
+          time?: string | null
           type?: string
           updated_at?: string
           user_id: string
@@ -668,6 +670,7 @@ export type Database = {
           project_id?: string | null
           recurring_id?: string | null
           tax_amount?: number | null
+          time?: string | null
           type?: string
           updated_at?: string
           user_id?: string

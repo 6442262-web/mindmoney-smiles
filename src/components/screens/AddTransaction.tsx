@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft, Camera, Receipt, CalendarIcon } from "lucide-react";
+import { ArrowLeft, Camera, Receipt, CalendarIcon, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction, RecurringTransaction, TransactionType, PriorityLevel } from "../MoneyMindApp";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +16,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { getLocalDateString } from "@/lib/dateUtils";
+import { getLocalDateString, getLocalTimeString } from "@/lib/dateUtils";
 import { SlipScanner, SlipScanResult } from "../SlipScanner";
 import { TransactionSearch } from "../TransactionSearch";
 import { useTransactions } from "@/hooks/useTransactions";
@@ -46,6 +46,7 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
   const [frequency, setFrequency] = useState<"monthly" | "weekly" | "daily">("monthly");
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [showScanner, setShowScanner] = useState(false);
+  const [transactionTime, setTransactionTime] = useState(getLocalTimeString());
   const { toast } = useToast();
   const { t, language } = useLanguage();
   const dateLocale = language === 'th' ? th : enUS;
@@ -120,6 +121,7 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
       category: matchedCategory,
       description,
       date: result.date || getLocalDateString(),
+      time: getLocalTimeString(),
       priority: 3,
     });
   };
@@ -167,6 +169,7 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
       onAddTransaction({
         ...baseData,
         date: getLocalDateString(),
+        time: transactionTime,
       });
       toast({
         title: t('transaction.addSuccess'),
@@ -181,6 +184,7 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
     setPriority(3);
     setIsRecurring(false);
     setStartDate(new Date());
+    setTransactionTime(getLocalTimeString());
   };
 
   return (
@@ -298,6 +302,23 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             className="mt-2 text-lg"
+          />
+        </Card>
+
+        {/* Time */}
+        <Card className="p-4">
+          <Label htmlFor="time" className="text-base font-semibold">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              {language === 'th' ? 'เวลา' : 'Time'}
+            </div>
+          </Label>
+          <Input
+            id="time"
+            type="time"
+            value={transactionTime}
+            onChange={(e) => setTransactionTime(e.target.value)}
+            className="mt-2"
           />
         </Card>
 

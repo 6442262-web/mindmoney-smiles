@@ -46,6 +46,7 @@ export interface Transaction {
   category: string;
   description: string;
   date: string;
+  time?: string;
   priority?: PriorityLevel;
   isRecurring?: boolean;
 }
@@ -100,6 +101,7 @@ function AppContent() {
       amount: transaction.amount,
       description: transaction.description,
       date: transaction.date,
+      time: transaction.time || null,
       account_id: currentAccount.id,
     });
   };
