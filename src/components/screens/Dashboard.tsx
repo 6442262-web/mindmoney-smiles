@@ -52,8 +52,6 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
     .filter(t => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const availableThisMonth = monthlyTotalIncome - monthlyTotalExpense;
-
   // Calculate totals (all time)
   const totalIncome = transactions
     .filter(t => t.type === "income")
@@ -73,6 +71,7 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
 
   const balance = totalIncome - totalExpense;
   const projectedBalance = monthlyRecurringIncome - monthlyRecurringExpenses;
+  const availableThisMonth = balance - monthlyRecurringExpenses;
 
   return (
     <div className="pb-20 px-4 pt-6 space-y-6">
