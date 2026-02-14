@@ -34,7 +34,27 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
     }
   };
   
-  // Calculate totals
+  // Get current month transactions
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  
+  const monthlyTransactions = transactions.filter(t => {
+    const d = parseLocalDate(t.date);
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  });
+
+  const monthlyTotalIncome = monthlyTransactions
+    .filter(t => t.type === "income")
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const monthlyTotalExpense = monthlyTransactions
+    .filter(t => t.type === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const availableThisMonth = monthlyTotalIncome - monthlyTotalExpense;
+
+  // Calculate totals (all time)
   const totalIncome = transactions
     .filter(t => t.type === "income")
     .reduce((sum, t) => sum + t.amount, 0);
@@ -43,16 +63,16 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
     .filter(t => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
   
-  const monthlyIncome = recurringTransactions
+  const monthlyRecurringIncome = recurringTransactions
     .filter(t => t.type === "income" && t.isActive)
     .reduce((sum, t) => sum + getMonthlyAmount(t.amount, t.frequency), 0);
   
-  const monthlyExpenses = recurringTransactions
+  const monthlyRecurringExpenses = recurringTransactions
     .filter(t => t.type === "expense" && t.isActive)
     .reduce((sum, t) => sum + getMonthlyAmount(t.amount, t.frequency), 0);
 
   const balance = totalIncome - totalExpense;
-  const projectedBalance = monthlyIncome - monthlyExpenses;
+  const projectedBalance = monthlyRecurringIncome - monthlyRecurringExpenses;
 
   return (
     <div className="pb-20 px-4 pt-6 space-y-6">
@@ -87,22 +107,64 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
         <AccountSelector className="w-full" />
       </div>
 
-      {/* Balance Overview */}
+      {/* Available This Month */}
       <Card className="p-6 bg-gradient-primary text-white">
         <div className="text-center">
-          <p className="text-sm opacity-90 mb-2">{t('dashboard.currentBalance')}</p>
-          <h2 className="text-3xl font-bold mb-4">
-            ฿{balance.toLocaleString()}
+          <p className="text-sm opacity-90 mb-2">
+            {language === 'th' ? 'เงินที่ใช้ได้เดือนนี้' : 'Available This Month'}
+          </p>
+          <h2 className={`text-3xl font-bold ${availableThisMonth < 0 ? 'text-red-200' : ''}`}>
+            ฿{availableThisMonth.toLocaleString()}
           </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs opacity-80">{t('dashboard.income')}</p>
-              <p className="text-lg font-semibold">฿{totalIncome.toLocaleString()}</p>
+        </div>
+      </Card>
+
+      {/* Monthly Income & Expense */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-income-accent rounded-lg">
+              <TrendingUp className="h-5 w-5 text-income" />
             </div>
             <div>
-              <p className="text-xs opacity-80">{t('dashboard.expense')}</p>
-              <p className="text-lg font-semibold">฿{totalExpense.toLocaleString()}</p>
+              <p className="text-sm text-muted-foreground">
+                {language === 'th' ? 'รายรับเดือนนี้' : 'Income This Month'}
+              </p>
+              <p className="text-lg font-bold text-income">
+                ฿{monthlyTotalIncome.toLocaleString()}
+              </p>
             </div>
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-expense-accent rounded-lg">
+              <TrendingDown className="h-5 w-5 text-expense" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">
+                {language === 'th' ? 'รายจ่ายเดือนนี้' : 'Expense This Month'}
+              </p>
+              <p className="text-lg font-bold text-expense">
+                ฿{monthlyTotalExpense.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Overall Balance */}
+      <Card className="p-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <DollarSign className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-muted-foreground">{t('dashboard.currentBalance')}</p>
+            <p className={`text-lg font-bold ${balance >= 0 ? 'text-balance-positive' : 'text-balance-negative'}`}>
+              ฿{balance.toLocaleString()}
+            </p>
           </div>
         </div>
       </Card>
@@ -117,7 +179,7 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
             <div>
               <p className="text-sm text-muted-foreground">{t('dashboard.recurringIncome')}</p>
               <p className="text-lg font-bold text-income">
-                ฿{monthlyIncome.toLocaleString()}
+                ฿{monthlyRecurringIncome.toLocaleString()}
               </p>
             </div>
           </div>
@@ -131,7 +193,7 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
             <div>
               <p className="text-sm text-muted-foreground">{t('dashboard.recurringExpense')}</p>
               <p className="text-lg font-bold text-expense">
-                ฿{monthlyExpenses.toLocaleString()}
+                ฿{monthlyRecurringExpenses.toLocaleString()}
               </p>
             </div>
           </div>
