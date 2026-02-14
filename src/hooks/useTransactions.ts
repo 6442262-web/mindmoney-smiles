@@ -12,6 +12,7 @@ export interface Transaction {
   description?: string | null;
   note?: string | null;
   date: string;
+  time?: string | null;
   is_business?: boolean;
   project_id?: string | null;
   recurring_id?: string | null;

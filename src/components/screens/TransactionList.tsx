@@ -153,6 +153,7 @@ export function TransactionList({ transactions, onDelete, onUpdate }: Transactio
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {formatDate(transaction.date)}
+                    {(transaction as any).time && ` ${(transaction as any).time} น.`}
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
