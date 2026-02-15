@@ -6,9 +6,11 @@ import { Transaction, RecurringTransaction } from "../MoneyMindApp";
 import { AccountSelector } from "@/components/ui/AccountSelector";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCategories } from "@/hooks/useCategories";
 import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/dateUtils";
+import { useMemo } from "react";
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -18,7 +20,14 @@ interface DashboardProps {
 export function Dashboard({ transactions, recurringTransactions }: DashboardProps) {
   const { unreadCount } = useNotifications();
   const { t, language } = useLanguage();
+  const { categories } = useCategories();
   const dateLocale = language === 'th' ? th : enUS;
+
+  const categoryMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    categories.forEach(c => { map[c.id] = c.name; });
+    return map;
+  }, [categories]);
   
   // Calculate monthly amount based on frequency
   const getMonthlyAmount = (amount: number, frequency: string) => {
@@ -249,7 +258,7 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
                 <div className="flex-1">
                   <p className="font-medium">{transaction.description}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <p className="text-sm text-muted-foreground">{transaction.category}</p>
+                    <p className="text-sm text-muted-foreground">{categoryMap[transaction.category] || transaction.category || (language === 'th' ? 'ไม่ระบุหมวดหมู่' : 'Uncategorized')}</p>
                     <span className="text-xs text-muted-foreground">•</span>
                     <p className="text-xs text-muted-foreground">
                       {format(parseLocalDate(transaction.date), "d MMM", { locale: dateLocale })} {language === 'th' ? 'น.' : ''}
