@@ -26,14 +26,15 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
+    const body = await req.json();
+    const { message, categories } = body;
+
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Invalid token' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    const { message, categories } = await req.json();
 
     if (!message || typeof message !== 'string' || message.length > 1000) {
       return new Response(JSON.stringify({ error: 'Invalid message' }), {
