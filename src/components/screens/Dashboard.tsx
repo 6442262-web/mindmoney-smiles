@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Bell, Wallet } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Bell, Wallet, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction, RecurringTransaction } from "../MoneyMindApp";
 import { AccountSelector } from "@/components/ui/AccountSelector";
@@ -215,15 +215,21 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         <Link to="/add">
-          <Button className="w-full h-16 text-base bg-gradient-primary">
-            <Plus className="mr-2 h-5 w-5" />
+          <Button className="w-full h-16 text-sm bg-gradient-primary flex-col gap-1">
+            <Plus className="h-5 w-5" />
             {t('dashboard.addNew')}
           </Button>
         </Link>
+        <Link to="/chat-transaction">
+          <Button variant="outline" className="w-full h-16 text-sm flex-col gap-1 border-primary/30 text-primary">
+            <MessageCircle className="h-5 w-5" />
+            {language === 'th' ? 'แชทบันทึก' : 'Chat Entry'}
+          </Button>
+        </Link>
         <Link to="/recurring">
-          <Button variant="outline" className="w-full h-16 text-base">
+          <Button variant="outline" className="w-full h-16 text-sm flex-col gap-1">
             {t('dashboard.recurring')}
           </Button>
         </Link>
