@@ -87,15 +87,18 @@ ${categoryList}
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'google/gemini-2-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
+        response_format: { type: 'json_object' },
       }),
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('AI API error:', response.status, errorText);
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
           status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -110,13 +113,19 @@ ${categoryList}
     }
 
     const data = await response.json();
-    let aiResponse = data.choices[0].message.content.trim();
+    const rawContent = data.choices?.[0]?.message?.content ?? '';
+    console.log('AI raw response:', rawContent.substring(0, 500));
     
+    let aiResponse = rawContent.trim();
     // Clean markdown
     if (aiResponse.startsWith('```json')) aiResponse = aiResponse.slice(7);
     else if (aiResponse.startsWith('```')) aiResponse = aiResponse.slice(3);
     if (aiResponse.endsWith('```')) aiResponse = aiResponse.slice(0, -3);
     aiResponse = aiResponse.trim();
+
+    if (!aiResponse) {
+      throw new Error('Empty AI response');
+    }
 
     const result = JSON.parse(aiResponse);
 
