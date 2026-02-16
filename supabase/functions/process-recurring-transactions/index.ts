@@ -5,51 +5,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface RecurringTransaction {
-  id: string
-  user_id: string
-  account_id: string
-  type: string
-  category: string
-  description: string | null
-  amount: number
-  frequency: string
-  next_date: string
-  priority: number
-  is_active: boolean
-}
-
 function calculateNextDate(currentDate: string, frequency: string): string {
   const date = new Date(currentDate)
-  
   switch (frequency) {
-    case 'daily':
-      date.setDate(date.getDate() + 1)
-      break
-    case 'weekly':
-      date.setDate(date.getDate() + 7)
-      break
-    case 'biweekly':
-      date.setDate(date.getDate() + 14)
-      break
-    case 'monthly':
-      date.setMonth(date.getMonth() + 1)
-      break
-    case 'quarterly':
-      date.setMonth(date.getMonth() + 3)
-      break
-    case 'yearly':
-      date.setFullYear(date.getFullYear() + 1)
-      break
-    default:
-      date.setMonth(date.getMonth() + 1)
+    case 'daily': date.setDate(date.getDate() + 1); break
+    case 'weekly': date.setDate(date.getDate() + 7); break
+    case 'biweekly': date.setDate(date.getDate() + 14); break
+    case 'monthly': date.setMonth(date.getMonth() + 1); break
+    case 'quarterly': date.setMonth(date.getMonth() + 3); break
+    case 'yearly': date.setFullYear(date.getFullYear() + 1); break
+    default: date.setMonth(date.getMonth() + 1)
   }
-  
   return date.toISOString().split('T')[0]
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -58,24 +28,22 @@ Deno.serve(async (req) => {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
+      { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
-    const today = new Date().toISOString().split('T')[0]
-    
-    console.log('Processing recurring transactions for date:', today)
+    // Use Thailand timezone for "today"
+    const now = new Date()
+    const thaiOffset = 7 * 60 // UTC+7
+    const thaiTime = new Date(now.getTime() + (thaiOffset + now.getTimezoneOffset()) * 60000)
+    const today = thaiTime.toISOString().split('T')[0]
 
-    // Get all active recurring transactions that are due
+    console.log('Processing recurring transactions for date (Thai time):', today)
+
     const { data: recurringTransactions, error: fetchError } = await supabaseClient
       .from('recurring_transactions')
       .select('*')
       .eq('is_active', true)
-      .lte('next_date', today)
+      .lte('next_execution', today)
 
     if (fetchError) {
       console.error('Error fetching recurring transactions:', fetchError)
@@ -95,24 +63,21 @@ Deno.serve(async (req) => {
     let processedCount = 0
     let errorCount = 0
 
-    // Process each recurring transaction
-    for (const recurring of recurringTransactions as RecurringTransaction[]) {
+    for (const recurring of recurringTransactions) {
       try {
         console.log(`Processing recurring transaction ${recurring.id} for user ${recurring.user_id}`)
 
-        // Create the transaction
         const { data: transaction, error: transactionError } = await supabaseClient
           .from('transactions')
           .insert({
             user_id: recurring.user_id,
             account_id: recurring.account_id,
             type: recurring.type,
-            category: recurring.category,
+            category_id: recurring.category_id,
             description: recurring.description,
             amount: recurring.amount,
             date: today,
-            priority: recurring.priority,
-            is_recurring: true,
+            recurring_id: recurring.id,
           })
           .select()
           .single()
@@ -120,55 +85,42 @@ Deno.serve(async (req) => {
         if (transactionError) {
           console.error(`Error creating transaction for ${recurring.id}:`, transactionError)
           errorCount++
-          
-          // Create failed execution record
+
           await supabaseClient
-            .from('recurring_transaction_executions')
+            .from('recurring_executions')
             .insert({
-              recurring_transaction_id: recurring.id,
-              user_id: recurring.user_id,
+              recurring_id: recurring.id,
               execution_date: today,
-              amount: recurring.amount,
               status: 'failed',
-              notes: `Error: ${transactionError.message}`,
+              error_message: transactionError.message,
             })
-          
+
           continue
         }
 
         console.log(`Created transaction ${transaction.id}`)
 
-        // Create execution record
-        const { error: executionError } = await supabaseClient
-          .from('recurring_transaction_executions')
+        await supabaseClient
+          .from('recurring_executions')
           .insert({
-            recurring_transaction_id: recurring.id,
-            user_id: recurring.user_id,
+            recurring_id: recurring.id,
             transaction_id: transaction.id,
             execution_date: today,
-            amount: recurring.amount,
-            status: 'completed',
-            notes: 'สร้างรายการอัตโนมัติสำเร็จ',
+            status: 'success',
           })
 
-        if (executionError) {
-          console.error(`Error creating execution record for ${recurring.id}:`, executionError)
-        }
+        const nextDate = calculateNextDate(recurring.next_execution, recurring.frequency)
 
-        // Calculate next date
-        const nextDate = calculateNextDate(recurring.next_date, recurring.frequency)
-
-        // Update recurring transaction with new next_date
         const { error: updateError } = await supabaseClient
           .from('recurring_transactions')
-          .update({ next_date: nextDate })
+          .update({ next_execution: nextDate, last_execution: today })
           .eq('id', recurring.id)
 
         if (updateError) {
           console.error(`Error updating recurring transaction ${recurring.id}:`, updateError)
           errorCount++
         } else {
-          console.log(`Updated next_date for ${recurring.id} to ${nextDate}`)
+          console.log(`Updated next_execution for ${recurring.id} to ${nextDate}`)
           processedCount++
         }
       } catch (error) {
@@ -180,22 +132,14 @@ Deno.serve(async (req) => {
     console.log(`Processing complete. Success: ${processedCount}, Errors: ${errorCount}`)
 
     return new Response(
-      JSON.stringify({
-        message: 'Processing complete',
-        processed: processedCount,
-        errors: errorCount,
-        total: recurringTransactions.length,
-      }),
+      JSON.stringify({ message: 'Processing complete', processed: processedCount, errors: errorCount, total: recurringTransactions.length }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     console.error('Error in process-recurring-transactions:', error)
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 })
