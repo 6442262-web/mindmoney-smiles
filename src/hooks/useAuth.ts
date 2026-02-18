@@ -150,6 +150,26 @@ export function useAuth() {
     return { error: null };
   };
 
+  const signInWithGoogle = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+
+    if (error) {
+      toast({
+        title: "เข้าสู่ระบบไม่สำเร็จ",
+        description: error.message,
+        variant: "destructive",
+      });
+      return { data: null, error };
+    }
+
+    return { data, error: null };
+  };
+
   const signInAsGuest = async () => {
     const { data, error } = await supabase.auth.signInAnonymously();
 
@@ -178,6 +198,7 @@ export function useAuth() {
     signUp,
     signOut,
     signInAsGuest,
+    signInWithGoogle,
     resetPassword,
     updatePassword,
   };
