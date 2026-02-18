@@ -183,7 +183,7 @@ export function KeywordsManagement() {
             <SelectValue placeholder={t.allCategories} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{t.allCategories}</SelectItem>
+            <SelectItem value="all">{t.allCategories}</SelectItem>
             {categories.map(category => (
               <SelectItem key={category} value={category}>
                 {getCategoryName(category)}
