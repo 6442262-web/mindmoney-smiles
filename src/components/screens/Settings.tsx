@@ -30,7 +30,8 @@ import {
   Loader2,
   LogOut,
   Database,
-  Ticket
+  Ticket,
+  TrendingUp
 } from 'lucide-react';
 import { InviteCodeDialog } from '@/components/InviteCodeDialog';
 import { Link } from 'react-router-dom';
@@ -40,6 +41,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 
 export function Settings() {
+  const [investmentMode, setInvestmentMode] = useState(() => {
+    return localStorage.getItem('investment-mode') === 'true';
+  });
+
+  const handleInvestmentModeToggle = (checked: boolean) => {
+    setInvestmentMode(checked);
+    localStorage.setItem('investment-mode', String(checked));
+  };
+
   const { settings, loading, updateSettings } = useUserSettings();
   const { loading: backupLoading, createBackup, exportData } = useBackup();
   const { signOut } = useAuth();
@@ -173,6 +183,45 @@ export function Settings() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        </Card>
+
+        {/* Investment Mode Section */}
+        <Card className="p-4">
+          <div className="flex items-center gap-3 mb-4">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">โหมดการลงทุน</h2>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <span className="text-sm">เปิดใช้งานโหมดการลงทุน</span>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    ติดตามพอร์ตการลงทุน หุ้น กองทุน คริปโต
+                  </p>
+                </div>
+              </div>
+              <Switch 
+                checked={investmentMode}
+                onCheckedChange={handleInvestmentModeToggle}
+              />
+            </div>
+
+            {investmentMode && (
+              <div className="space-y-2 p-3 bg-primary/5 rounded-lg border border-primary/10">
+                <p className="text-xs text-muted-foreground">
+                  🚀 โหมดการลงทุนเปิดใช้งานแล้ว! คุณสามารถ:
+                </p>
+                <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                  <li>บันทึกรายการซื้อ-ขายหุ้น/กองทุน/คริปโต</li>
+                  <li>ติดตามกำไร-ขาดทุน</li>
+                  <li>ดูสรุปพอร์ตการลงทุน</li>
+                </ul>
+              </div>
+            )}
           </div>
         </Card>
 
