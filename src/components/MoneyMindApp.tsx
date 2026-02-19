@@ -36,6 +36,9 @@ const FinancialInsights = lazy(() => import("./screens/FinancialInsights").then(
 const AdminDashboard = lazy(() => import("./screens/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
 const Feedback = lazy(() => import("./screens/Feedback").then(m => ({ default: m.Feedback })));
 const ChatTransaction = lazy(() => import("./screens/ChatTransaction").then(m => ({ default: m.ChatTransaction })));
+const InvestmentDashboard = lazy(() => import("./screens/InvestmentDashboard").then(m => ({ default: m.InvestmentDashboard })));
+const AddInvestmentTransaction = lazy(() => import("./screens/AddInvestmentTransaction").then(m => ({ default: m.AddInvestmentTransaction })));
+const InvestmentTransactions = lazy(() => import("./screens/InvestmentTransactions").then(m => ({ default: m.InvestmentTransactions })));
 
 export type TransactionType = "income" | "expense";
 export type PriorityLevel = 1 | 2 | 3 | 4 | 5;
@@ -222,6 +225,9 @@ function AppContent() {
             <Route path="/admin" element={<AdminDashboard onBack={() => window.history.back()} />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/chat-transaction" element={<ChatTransaction />} />
+            <Route path="/investment" element={<InvestmentDashboard />} />
+            <Route path="/investment/add-transaction" element={<AddInvestmentTransaction />} />
+            <Route path="/investment/transactions" element={<InvestmentTransactions />} />
           </Routes>
         </Suspense>
         <BottomNavigation />

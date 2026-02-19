@@ -241,6 +241,107 @@ export type Database = {
         }
         Relationships: []
       }
+      investment_transactions: {
+        Row: {
+          created_at: string
+          date: string
+          fee: number | null
+          id: string
+          investment_id: string | null
+          note: string | null
+          price_per_unit: number
+          quantity: number
+          tax: number | null
+          total_amount: number
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          fee?: number | null
+          id?: string
+          investment_id?: string | null
+          note?: string | null
+          price_per_unit?: number
+          quantity?: number
+          tax?: number | null
+          total_amount?: number
+          transaction_type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          fee?: number | null
+          id?: string
+          investment_id?: string | null
+          note?: string | null
+          price_per_unit?: number
+          quantity?: number
+          tax?: number | null
+          total_amount?: number
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_transactions_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investments: {
+        Row: {
+          asset_type: string
+          avg_cost: number
+          created_at: string
+          currency: string | null
+          current_price: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          note: string | null
+          quantity: number
+          symbol: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset_type?: string
+          avg_cost?: number
+          created_at?: string
+          currency?: string | null
+          current_price?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          note?: string | null
+          quantity?: number
+          symbol?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset_type?: string
+          avg_cost?: number
+          created_at?: string
+          currency?: string | null
+          current_price?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          note?: string | null
+          quantity?: number
+          symbol?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invite_codes: {
         Row: {
           code: string
