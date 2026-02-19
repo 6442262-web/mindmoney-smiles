@@ -211,7 +211,18 @@ export function Settings() {
             </div>
 
             {investmentMode && (
-              <div className="space-y-2 p-3 bg-primary/5 rounded-lg border border-primary/10">
+              <Link to="/investment">
+                <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">เปิดพอร์ตการลงทุน</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-primary" />
+                </div>
+              </Link>
+            )}
+            {investmentMode && (
+              <div className="p-3 bg-primary/5 rounded-lg border border-primary/10">
                 <p className="text-xs text-muted-foreground">
                   🚀 โหมดการลงทุนเปิดใช้งานแล้ว! คุณสามารถ:
                 </p>
@@ -219,6 +230,7 @@ export function Settings() {
                   <li>บันทึกรายการซื้อ-ขายหุ้น/กองทุน/คริปโต</li>
                   <li>ติดตามกำไร-ขาดทุน</li>
                   <li>ดูสรุปพอร์ตการลงทุน</li>
+                  <li>บันทึกเงินปันผล/ดอกเบี้ย</li>
                 </ul>
               </div>
             )}
