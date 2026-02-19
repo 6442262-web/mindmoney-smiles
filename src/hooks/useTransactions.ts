@@ -31,13 +31,13 @@ export function useTransactions() {
   // Load transactions
   const loadTransactions = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
 
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', session.user.id)
         .order('date', { ascending: false })
         .order('created_at', { ascending: false });
 
@@ -55,8 +55,8 @@ export function useTransactions() {
   // Create transaction
   const createTransaction = async (transactionData: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
         toast({
           title: "กรุณาเข้าสู่ระบบ",
           description: "คุณต้องเข้าสู่ระบบก่อนเพิ่มรายการ",
@@ -69,7 +69,7 @@ export function useTransactions() {
         .from('transactions')
         .insert({
           ...transactionData,
-          user_id: user.id,
+          user_id: session.user.id,
         })
         .select()
         .single();

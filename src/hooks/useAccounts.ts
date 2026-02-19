@@ -27,13 +27,13 @@ export function useAccounts() {
   // Load accounts
   const loadAccounts = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
 
       const { data, error } = await supabase
         .from('accounts')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', session.user.id)
         .order('is_default', { ascending: false })
         .order('created_at', { ascending: true });
 
@@ -67,22 +67,22 @@ export function useAccounts() {
   // Create account
   const createAccount = async (accountData: Omit<Account, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return null;
 
       // If this is set as default, unset other defaults
       if (accountData.is_default) {
         await supabase
           .from('accounts')
           .update({ is_default: false })
-          .eq('user_id', user.id);
+          .eq('user_id', session.user.id);
       }
 
       const { data, error } = await supabase
         .from('accounts')
         .insert({
           ...accountData,
-          user_id: user.id,
+          user_id: session.user.id,
         })
         .select()
         .single();
@@ -119,12 +119,12 @@ export function useAccounts() {
     try {
       // If setting as default, unset other defaults
       if (updates.is_default) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
           await supabase
             .from('accounts')
             .update({ is_default: false })
-            .eq('user_id', user.id)
+            .eq('user_id', session.user.id)
             .neq('id', accountId);
         }
       }

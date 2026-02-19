@@ -20,8 +20,9 @@ export function useBackup() {
   const createBackup = async (type: 'manual' | 'export' = 'manual') => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      const user = session.user;
 
       // Create backup log entry
       const { data: logEntry, error: logError } = await supabase

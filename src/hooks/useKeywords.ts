@@ -45,14 +45,14 @@ export const useKeywords = () => {
 
   const addOrUpdateKeyword = async (categoryName: string, keyword: string) => {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('User not authenticated');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error('User not authenticated');
 
       // Check if keyword exists
       const { data: existing } = await supabase
         .from('keywords')
         .select('*')
-        .eq('user_id', user.user.id)
+        .eq('user_id', session.user.id)
         .eq('category_name', categoryName)
         .eq('keyword', keyword)
         .maybeSingle();
@@ -70,7 +70,7 @@ export const useKeywords = () => {
         const { error } = await supabase
           .from('keywords')
           .insert({
-            user_id: user.user.id,
+            user_id: session.user.id,
             category_name: categoryName,
             keyword,
             usage_count: 1,

@@ -30,13 +30,13 @@ export function useRecurringTransactions() {
   // Load recurring transactions
   const loadRecurringTransactions = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
 
       const { data, error } = await supabase
         .from('recurring_transactions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -53,8 +53,8 @@ export function useRecurringTransactions() {
   // Create recurring transaction
   const createRecurringTransaction = async (transactionData: Omit<RecurringTransaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
         toast({
           title: "กรุณาเข้าสู่ระบบ",
           description: "คุณต้องเข้าสู่ระบบก่อนเพิ่มรายการ",
@@ -67,7 +67,7 @@ export function useRecurringTransactions() {
         .from('recurring_transactions')
         .insert({
           ...transactionData,
-          user_id: user.id,
+          user_id: session.user.id,
         })
         .select()
         .single();

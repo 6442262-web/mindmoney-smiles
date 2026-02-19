@@ -23,13 +23,13 @@ export function useCategories() {
 
   const loadCategories = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
 
       const { data, error } = await supabase
         .from('categories')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', session.user.id)
         .order('name');
 
       if (error) {
@@ -44,12 +44,12 @@ export function useCategories() {
 
   const createCategory = async (categoryData: Omit<Category, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
 
       const { data, error } = await supabase
         .from('categories')
-        .insert({ ...categoryData, user_id: user.id })
+        .insert({ ...categoryData, user_id: session.user.id })
         .select()
         .single();
 
