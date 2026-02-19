@@ -24,8 +24,8 @@ export function useUserSettings() {
 
   const loadSettings = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
         setLoading(false);
         return;
       }
@@ -34,7 +34,7 @@ export function useUserSettings() {
       const { data, error } = await supabase
         .from('user_settings')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', session.user.id)
         .order('created_at', { ascending: true })
         .limit(1);
 
@@ -49,7 +49,7 @@ export function useUserSettings() {
       } else {
         // Create default settings
         const defaultSettings: UserSettings = {
-          user_id: user.id,
+          user_id: session.user.id,
           language: 'th',
           currency: 'THB',
           theme: 'light',

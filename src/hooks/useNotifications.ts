@@ -22,13 +22,13 @@ export function useNotifications() {
   // Load notifications
   const loadNotifications = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
 
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', session.user.id)
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -69,13 +69,13 @@ export function useNotifications() {
   // Mark all as read
   const markAllAsRead = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
 
       const { error } = await supabase
         .from('notifications')
         .update({ is_read: true })
-        .eq('user_id', user.id)
+        .eq('user_id', session.user.id)
         .eq('is_read', false);
 
       if (error) {
