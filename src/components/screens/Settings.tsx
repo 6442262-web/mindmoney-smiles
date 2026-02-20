@@ -39,15 +39,33 @@ import { useUserSettings } from '@/hooks/useUserSettings';
 import { useBackup } from '@/hooks/useBackup';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
+import { useAccounts } from '@/hooks/useAccounts';
 
 export function Settings() {
   const [investmentMode, setInvestmentMode] = useState(() => {
     return localStorage.getItem('investment-mode') === 'true';
   });
 
-  const handleInvestmentModeToggle = (checked: boolean) => {
+  const { accounts, createAccount } = useAccounts();
+
+  const handleInvestmentModeToggle = async (checked: boolean) => {
     setInvestmentMode(checked);
     localStorage.setItem('investment-mode', String(checked));
+
+    if (checked) {
+      // Auto-create investment account if none exists
+      const hasInvestmentAccount = accounts.some(acc => acc.type === 'investment');
+      if (!hasInvestmentAccount) {
+        await createAccount({
+          name: 'บัญชีการลงทุน',
+          type: 'investment',
+          color: '#FF9800',
+          icon: '📈',
+          is_default: false,
+          balance: 0,
+        });
+      }
+    }
   };
 
   const { settings, loading, updateSettings } = useUserSettings();
