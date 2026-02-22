@@ -204,12 +204,9 @@ export function useAccounts() {
     localStorage.setItem('currentAccountId', account.id);
   };
 
+  // Restore saved account after accounts are loaded
   useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      await loadAccounts();
-      
-      // Try to restore last selected account
+    if (accounts.length > 0) {
       const savedAccountId = localStorage.getItem('currentAccountId');
       if (savedAccountId) {
         const savedAccount = accounts.find(acc => acc.id === savedAccountId);
@@ -217,7 +214,13 @@ export function useAccounts() {
           setCurrentAccount(savedAccount);
         }
       }
-      
+    }
+  }, [accounts]);
+
+  useEffect(() => {
+    const init = async () => {
+      setLoading(true);
+      await loadAccounts();
       setLoading(false);
     };
 
