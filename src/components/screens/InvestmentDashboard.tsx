@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +6,7 @@ import { useInvestments, Investment } from '@/hooks/useInvestments';
 import { Link } from 'react-router-dom';
 import { 
   ArrowLeft, TrendingUp, TrendingDown, Plus, PieChart, 
-  Wallet, DollarSign, BarChart3, Loader2, Trash2, Pencil
+  Wallet, DollarSign, BarChart3, Loader2, Trash2, Pencil, Search
 } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
@@ -19,6 +19,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
+import { supabase } from '@/integrations/supabase/client';
 
 const ASSET_TYPES = [
   { value: 'stock_th', label: 'หุ้นไทย' },
@@ -30,6 +31,13 @@ const ASSET_TYPES = [
   { value: 'bond', label: 'พันธบัตร/ตราสารหนี้' },
   { value: 'other', label: 'อื่นๆ' },
 ];
+
+interface YahooQuote {
+  symbol: string;
+  name: string;
+  type: string;
+  exchange: string;
+}
 
 function getAssetLabel(type: string) {
   return ASSET_TYPES.find(a => a.value === type)?.label || type;
@@ -51,13 +59,73 @@ export function InvestmentDashboard() {
     name: '', symbol: '', asset_type: 'stock_th', currency: 'THB', note: '',
     current_price: '',
   });
+  const [searchResults, setSearchResults] = useState<YahooQuote[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout>>();
 
-  const resetForm = () => setForm({ name: '', symbol: '', asset_type: 'stock_th', currency: 'THB', note: '', current_price: '' });
+  const resetForm = () => {
+    setForm({ name: '', symbol: '', asset_type: 'stock_th', currency: 'THB', note: '', current_price: '' });
+    setSearchResults([]);
+    setShowResults(false);
+  };
+
+  // Search Yahoo Finance when symbol changes
+  const handleSymbolChange = (value: string) => {
+    setForm(f => ({ ...f, symbol: value }));
+    
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    
+    if (value.length < 1) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    setSearching(true);
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('yahoo-finance', {
+          body: { action: 'search', symbol: value },
+        });
+        if (!error && data?.quotes) {
+          setSearchResults(data.quotes);
+          setShowResults(true);
+        }
+      } catch (e) {
+        console.error('Symbol search error:', e);
+      } finally {
+        setSearching(false);
+      }
+    }, 400);
+  };
+
+  const selectSymbol = async (quote: YahooQuote) => {
+    setForm(f => ({ ...f, symbol: quote.symbol, name: quote.name }));
+    setShowResults(false);
+
+    // Fetch current price
+    try {
+      const { data, error } = await supabase.functions.invoke('yahoo-finance', {
+        body: { action: 'quote', symbol: quote.symbol },
+      });
+      if (!error && data?.price) {
+        setForm(f => ({ 
+          ...f, 
+          current_price: String(data.price),
+          currency: data.currency === 'THB' ? 'THB' : 'USD',
+        }));
+      }
+    } catch (e) {
+      console.error('Quote fetch error:', e);
+    }
+  };
 
   const handleAdd = async () => {
-    if (!form.name) return;
+    const assetName = form.name || form.symbol;
+    if (!assetName) return;
     await createInvestment({
-      name: form.name,
+      name: assetName,
       symbol: form.symbol || null,
       asset_type: form.asset_type,
       quantity: 0,
@@ -118,16 +186,38 @@ export function InvestmentDashboard() {
             <DialogContent>
               <DialogHeader><DialogTitle>เพิ่มสินทรัพย์ใหม่</DialogTitle></DialogHeader>
               <div className="space-y-4">
-                <div>
-                  <Label>ชื่อสินทรัพย์ *</Label>
-                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="เช่น PTT, Bitcoin" />
+                <div className="relative">
+                  <Label>สัญลักษณ์ (Symbol) *</Label>
+                  <div className="relative">
+                    <Input 
+                      value={form.symbol} 
+                      onChange={e => handleSymbolChange(e.target.value)} 
+                      placeholder="พิมพ์ตัวย่อ เช่น PTT, AAPL, BTC-USD"
+                      autoComplete="off"
+                    />
+                    {searching && <Loader2 className="h-4 w-4 animate-spin absolute right-3 top-3 text-muted-foreground" />}
+                  </div>
+                  {showResults && searchResults.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                      {searchResults.map((q) => (
+                        <button
+                          key={q.symbol}
+                          className="w-full text-left px-3 py-2 hover:bg-accent text-sm flex justify-between items-center"
+                          onClick={() => selectSymbol(q)}
+                        >
+                          <div>
+                            <span className="font-semibold">{q.symbol}</span>
+                            <span className="text-muted-foreground ml-2 text-xs">{q.name}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">{q.exchange}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div>
-                  <Label>สัญลักษณ์ (Symbol)</Label>
-                  <Input value={form.symbol} onChange={e => setForm(f => ({ ...f, symbol: e.target.value }))} placeholder="เช่น PTT, BTC" />
-                </div>
-                <div>
-                  <Label>ประเภทสินทรัพย์</Label>
+                  <Label>ชื่อสินทรัพย์</Label>
+                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="ชื่อจะกรอกอัตโนมัติ" />
                   <Select value={form.asset_type} onValueChange={v => setForm(f => ({ ...f, asset_type: v }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -146,10 +236,14 @@ export function InvestmentDashboard() {
                   </Select>
                 </div>
                 <div>
+                  <Label>ราคาปัจจุบัน</Label>
+                  <Input type="number" value={form.current_price} onChange={e => setForm(f => ({ ...f, current_price: e.target.value }))} placeholder="ดึงอัตโนมัติจาก Yahoo Finance" />
+                </div>
+                <div>
                   <Label>หมายเหตุ</Label>
                   <Input value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} />
                 </div>
-                <Button className="w-full" onClick={handleAdd}>เพิ่มสินทรัพย์</Button>
+                <Button className="w-full" onClick={handleAdd} disabled={!form.symbol && !form.name}>เพิ่มสินทรัพย์</Button>
               </div>
             </DialogContent>
           </Dialog>
