@@ -44,9 +44,11 @@ export function useAccounts() {
 
       setAccounts(data || []);
       
-      // Set current account to default or first account
-      const defaultAccount = data?.find(acc => acc.is_default) || data?.[0];
-      if (defaultAccount && !currentAccount) {
+      // Set current account: try saved, then default, then first
+      const savedAccountId = localStorage.getItem('currentAccountId');
+      const savedAccount = savedAccountId ? data?.find(acc => acc.id === savedAccountId) : null;
+      const defaultAccount = savedAccount || data?.find(acc => acc.is_default) || data?.[0];
+      if (defaultAccount) {
         setCurrentAccount(defaultAccount);
       }
 
@@ -203,19 +205,6 @@ export function useAccounts() {
     setCurrentAccount(account);
     localStorage.setItem('currentAccountId', account.id);
   };
-
-  // Restore saved account after accounts are loaded
-  useEffect(() => {
-    if (accounts.length > 0) {
-      const savedAccountId = localStorage.getItem('currentAccountId');
-      if (savedAccountId) {
-        const savedAccount = accounts.find(acc => acc.id === savedAccountId);
-        if (savedAccount) {
-          setCurrentAccount(savedAccount);
-        }
-      }
-    }
-  }, [accounts]);
 
   useEffect(() => {
     const init = async () => {
