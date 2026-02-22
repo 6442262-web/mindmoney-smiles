@@ -45,8 +45,8 @@ export function useInvestments() {
 
     try {
       const [invRes, txnRes] = await Promise.all([
-        supabase.from('investments').select('*').order('created_at', { ascending: false }),
-        supabase.from('investment_transactions').select('*').order('date', { ascending: false }),
+        supabase.from('investments').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }),
+        supabase.from('investment_transactions').select('*').eq('user_id', session.user.id).order('date', { ascending: false }),
       ]);
 
       if (invRes.error) throw invRes.error;
@@ -106,17 +106,18 @@ export function useInvestments() {
 
     // Update investment quantity and avg_cost
     if (txn.investment_id) {
-      const inv = investments.find(i => i.id === txn.investment_id);
-      if (inv) {
-        let newQty = inv.quantity;
-        let newAvgCost = inv.avg_cost;
+      // Fetch latest investment data to avoid stale state
+      const { data: invData } = await supabase.from('investments').select('*').eq('id', txn.investment_id).single();
+      if (invData) {
+        let newQty = invData.quantity;
+        let newAvgCost = invData.avg_cost;
 
         if (txn.transaction_type === 'buy') {
-          const totalCost = inv.avg_cost * inv.quantity + txn.total_amount;
-          newQty = inv.quantity + txn.quantity;
+          const totalCost = invData.avg_cost * invData.quantity + txn.total_amount;
+          newQty = invData.quantity + txn.quantity;
           newAvgCost = newQty > 0 ? totalCost / newQty : 0;
         } else if (txn.transaction_type === 'sell') {
-          newQty = inv.quantity - txn.quantity;
+          newQty = invData.quantity - txn.quantity;
         }
 
         await supabase.from('investments').update({
