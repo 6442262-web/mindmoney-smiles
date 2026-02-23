@@ -57,7 +57,7 @@ export function InvestmentDashboard() {
   const [editingInv, setEditingInv] = useState<Investment | null>(null);
   const [form, setForm] = useState({
     name: '', symbol: '', asset_type: 'stock_th', currency: 'THB', note: '',
-    current_price: '',
+    current_price: '', quantity: '', buy_price: '',
   });
   const [searchResults, setSearchResults] = useState<YahooQuote[]>([]);
   const [searching, setSearching] = useState(false);
@@ -65,7 +65,7 @@ export function InvestmentDashboard() {
   const searchTimeout = useRef<ReturnType<typeof setTimeout>>();
 
   const resetForm = () => {
-    setForm({ name: '', symbol: '', asset_type: 'stock_th', currency: 'THB', note: '', current_price: '' });
+    setForm({ name: '', symbol: '', asset_type: 'stock_th', currency: 'THB', note: '', current_price: '', quantity: '', buy_price: '' });
     setSearchResults([]);
     setShowResults(false);
   };
@@ -124,17 +124,48 @@ export function InvestmentDashboard() {
   const handleAdd = async () => {
     const assetName = form.name || form.symbol;
     if (!assetName) return;
+    const qty = Number(form.quantity) || 0;
+    const buyPrice = Number(form.buy_price) || 0;
     await createInvestment({
       name: assetName,
       symbol: form.symbol || null,
       asset_type: form.asset_type,
-      quantity: 0,
-      avg_cost: 0,
-      current_price: Number(form.current_price) || 0,
+      quantity: qty,
+      avg_cost: buyPrice,
+      current_price: Number(form.current_price) || buyPrice,
       currency: form.currency,
       note: form.note || null,
       is_active: true,
     });
+    // If quantity & buy_price provided, also create a buy transaction
+    if (qty > 0 && buyPrice > 0) {
+      // We need to get the newly created investment id — refetch will update state
+      // The createInvestment already handles this, but we also want a transaction record
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: newInv } = await supabase
+          .from('investments')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .eq('symbol', form.symbol || assetName)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        if (newInv) {
+          await supabase.from('investment_transactions').insert({
+            user_id: session.user.id,
+            investment_id: newInv.id,
+            transaction_type: 'buy',
+            quantity: qty,
+            price_per_unit: buyPrice,
+            total_amount: qty * buyPrice,
+            fee: 0,
+            tax: 0,
+            date: new Date().toISOString().split('T')[0],
+          });
+        }
+      }
+    }
     resetForm();
     setShowAdd(false);
   };
@@ -235,6 +266,21 @@ export function InvestmentDashboard() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>จำนวน (หน่วย)</Label>
+                    <Input type="number" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} placeholder="0" />
+                  </div>
+                  <div>
+                    <Label>ราคาซื้อต่อหน่วย</Label>
+                    <Input type="number" value={form.buy_price} onChange={e => setForm(f => ({ ...f, buy_price: e.target.value }))} placeholder="0.00" />
+                  </div>
+                </div>
+                {Number(form.quantity) > 0 && Number(form.buy_price) > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    มูลค่ารวม: ฿{(Number(form.quantity) * Number(form.buy_price)).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                  </p>
+                )}
                 <div>
                   <Label>ราคาปัจจุบัน</Label>
                   <Input type="number" value={form.current_price} onChange={e => setForm(f => ({ ...f, current_price: e.target.value }))} placeholder="ดึงอัตโนมัติจาก Yahoo Finance" />
