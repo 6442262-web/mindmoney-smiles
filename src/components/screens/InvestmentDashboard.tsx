@@ -113,7 +113,7 @@ export function InvestmentDashboard() {
         setForm(f => ({ 
           ...f, 
           current_price: String(data.price),
-          currency: data.currency === 'THB' ? 'THB' : 'USD',
+          currency: data.currency || f.currency,
         }));
       }
     } catch (e) {
@@ -261,10 +261,12 @@ export function InvestmentDashboard() {
                   <Select value={form.currency} onValueChange={v => setForm(f => ({ ...f, currency: v }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="THB">THB</SelectItem>
-                      <SelectItem value="USD">USD</SelectItem>
+                      {['THB','USD','EUR','GBP','JPY','CNY','HKD','SGD','KRW','AUD','BTC'].map(c => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground mt-1">เปลี่ยนอัตโนมัติเมื่อเลือก Symbol</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
