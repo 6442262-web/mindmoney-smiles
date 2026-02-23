@@ -63,6 +63,23 @@ export function InvestmentDashboard() {
   const [searching, setSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const searchTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+
+  // Fetch THB/USD exchange rate on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('yahoo-finance', {
+          body: { action: 'quote', symbol: 'THBUSD=X' },
+        });
+        if (!error && data?.price) {
+          setExchangeRate(data.price);
+        }
+      } catch (e) {
+        console.error('Exchange rate fetch error:', e);
+      }
+    })();
+  }, []);
 
   const resetForm = () => {
     setForm({ name: '', symbol: '', asset_type: 'stock_th', currency: 'THB', note: '', current_price: '', quantity: '', buy_price: '' });
@@ -204,7 +221,17 @@ export function InvestmentDashboard() {
           <TrendingUp className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold">พอร์ตการลงทุน</h1>
         </div>
-        <div className="flex gap-2">
+        {exchangeRate && (
+          <div className="text-xs text-muted-foreground text-right">
+            <span className="font-medium">USD/THB</span>{' '}
+            <span className="text-foreground font-semibold">{(1 / exchangeRate).toFixed(2)}</span>
+            <br />
+            <span className="font-medium">THB/USD</span>{' '}
+            <span className="text-foreground font-semibold">{exchangeRate.toFixed(6)}</span>
+          </div>
+        )}
+      </div>
+      <div className="flex justify-end gap-2 mb-4">
           <Link to="/investment/add-transaction">
             <Button size="sm" variant="outline">
               <DollarSign className="h-4 w-4 mr-1" /> ซื้อ/ขาย
@@ -295,7 +322,6 @@ export function InvestmentDashboard() {
               </div>
             </DialogContent>
           </Dialog>
-        </div>
       </div>
 
       {/* Summary Cards */}
