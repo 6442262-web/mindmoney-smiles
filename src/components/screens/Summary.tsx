@@ -783,9 +783,34 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
             {exporting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <FileText className="mr-2 h-5 w-5" />}
             {exporting ? 'กำลังสร้าง...' : 'ดาวน์โหลด PDF'}
           </Button>
-          <Button variant="outline" className="h-12">
+          <Button 
+            variant="outline" 
+            className="h-12"
+            onClick={() => {
+              try {
+                const header = 'วันที่,รายละเอียด,หมวดหมู่,ประเภท,จำนวนเงิน\n';
+                const rows = filteredTransactions.map(t => 
+                  `${new Date(t.date).toLocaleDateString('th-TH')},"${(t.description || '-').replace(/"/g, '""')}","${(t.category || '-').replace(/"/g, '""')}",${t.type === 'income' ? 'รายรับ' : 'รายจ่าย'},${t.type === 'income' ? '' : '-'}${t.amount}`
+                ).join('\n');
+                const bom = '\uFEFF';
+                const blob = new Blob([bom + header + rows], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `moneymind-report-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                toast({ title: "ดาวน์โหลด CSV สำเร็จ" });
+              } catch (e) {
+                console.error(e);
+                toast({ title: "เกิดข้อผิดพลาด", variant: "destructive" });
+              }
+            }}
+          >
             <FileSpreadsheet className="mr-2 h-5 w-5" />
-            ดาวน์โหลด Excel
+            ดาวน์โหลด CSV
           </Button>
         </div>
       </Card>
