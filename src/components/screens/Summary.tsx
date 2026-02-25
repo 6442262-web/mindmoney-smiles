@@ -6,10 +6,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Download, FileText, FileSpreadsheet, CalendarIcon, Filter, X, Palette, TrendingUp } from "lucide-react";
+import { ArrowLeft, Download, FileText, FileSpreadsheet, CalendarIcon, Filter, X, Palette, TrendingUp, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction, RecurringTransaction } from "../MoneyMindApp";
 import { useCategories } from "@/hooks/useCategories";
+import { exportSummaryPdf } from "@/lib/exportPdf";
+import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay } from "date-fns";
 import { th } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -42,7 +44,9 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
   const [showChart, setShowChart] = useState(true);
   const [showColorSettings, setShowColorSettings] = useState(false);
   const [chartColorScheme, setChartColorScheme] = useState<string>("default");
+  const [exporting, setExporting] = useState(false);
   const { categories } = useCategories();
+  const { toast } = useToast();
 
   const colorSchemes = {
     default: {
@@ -743,9 +747,41 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
       <Card className="p-4 mb-6">
         <h3 className="font-semibold mb-3">ส่งออกรายงาน</h3>
         <div className="grid grid-cols-2 gap-4">
-          <Button variant="outline" className="h-12">
-            <FileText className="mr-2 h-5 w-5" />
-            ดาวน์โหลด PDF
+          <Button 
+            variant="outline" 
+            className="h-12" 
+            disabled={exporting}
+            onClick={async () => {
+              setExporting(true);
+              try {
+                const periodLabel = startDate || endDate
+                  ? `${startDate ? format(startDate, 'dd/MM/yyyy') : '...'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '...'}`
+                  : periodLabels[selectedPeriod];
+                await exportSummaryPdf({
+                  title: 'รายงานสรุปการเงิน',
+                  period: periodLabel,
+                  totalIncome,
+                  totalExpense,
+                  balance,
+                  transactions: filteredTransactions.map(t => ({
+                    date: new Date(t.date).toLocaleDateString('th-TH'),
+                    description: t.description || '-',
+                    category: t.category || '-',
+                    type: t.type,
+                    amount: t.amount,
+                  })),
+                });
+                toast({ title: "ดาวน์โหลด PDF สำเร็จ" });
+              } catch (e) {
+                console.error(e);
+                toast({ title: "เกิดข้อผิดพลาด", description: "ไม่สามารถสร้าง PDF ได้", variant: "destructive" });
+              } finally {
+                setExporting(false);
+              }
+            }}
+          >
+            {exporting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <FileText className="mr-2 h-5 w-5" />}
+            {exporting ? 'กำลังสร้าง...' : 'ดาวน์โหลด PDF'}
           </Button>
           <Button variant="outline" className="h-12">
             <FileSpreadsheet className="mr-2 h-5 w-5" />
