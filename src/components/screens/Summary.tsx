@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Download, FileText, FileSpreadsheet, CalendarIcon, Filter, X, Palette, TrendingUp, Loader2 } from "lucide-react";
+import { ArrowLeft, Download, FileText, FileSpreadsheet, CalendarIcon, Filter, X, Palette, TrendingUp, Loader2, PiggyBank, Target, Wallet, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction, RecurringTransaction } from "../MoneyMindApp";
 import { useCategories } from "@/hooks/useCategories";
@@ -188,6 +188,46 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
   const topCategories = Object.entries(expenseByCategory)
     .sort(([,a], [,b]) => b - a)
     .slice(0, 5);
+
+  // === Advanced Analytics ===
+  const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome * 100) : 0;
+
+  const transactionDays = new Set(filteredTransactions.map(t => t.date)).size;
+  const avgDailyExpense = transactionDays > 0 
+    ? filteredTransactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0) / transactionDays 
+    : 0;
+  const avgDailyIncome = transactionDays > 0
+    ? filteredTransactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0) / transactionDays
+    : 0;
+
+  // Top spending days
+  const dailyExpenses: Record<string, number> = {};
+  filteredTransactions.filter(t => t.type === 'expense').forEach(t => {
+    dailyExpenses[t.date] = (dailyExpenses[t.date] || 0) + t.amount;
+  });
+  const topSpendingDays = Object.entries(dailyExpenses)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 3);
+
+  // Income by category
+  const incomeByCategory = filteredTransactions
+    .filter(t => t.type === 'income')
+    .reduce((acc, t) => {
+      acc[t.category] = (acc[t.category] || 0) + t.amount;
+      return acc;
+    }, {} as Record<string, number>);
+  const topIncomeCategories = Object.entries(incomeByCategory)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 5);
+
+  // Transaction counts & stats
+  const incomeCount = filteredTransactions.filter(t => t.type === 'income').length;
+  const expenseCount = filteredTransactions.filter(t => t.type === 'expense').length;
+  const avgTransactionAmount = filteredTransactions.length > 0
+    ? filteredTransactions.reduce((s, t) => s + t.amount, 0) / filteredTransactions.length
+    : 0;
+  const maxExpense = filteredTransactions.filter(t => t.type === 'expense').reduce((max, t) => Math.max(max, t.amount), 0);
+  const maxIncome = filteredTransactions.filter(t => t.type === 'income').reduce((max, t) => Math.max(max, t.amount), 0);
 
   // Get transactions for selected date
   const getTransactionsForDate = (date: Date) => {
@@ -740,6 +780,119 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
               );
             })}
           </div>
+        </Card>
+      )}
+
+      {/* Advanced Analytics */}
+      {filteredTransactions.length > 0 && (
+        <Card className="p-4 mb-6">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            เครื่องมือวิเคราะห์
+          </h3>
+
+          {/* Key Metrics Grid */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {/* Savings Rate */}
+            <div className="p-3 rounded-lg bg-accent/50 border">
+              <div className="flex items-center gap-2 mb-1">
+                <PiggyBank className="h-4 w-4 text-primary" />
+                <p className="text-xs text-muted-foreground">อัตราออม</p>
+              </div>
+              <p className={`text-xl font-bold ${savingsRate >= 20 ? 'text-income' : savingsRate >= 0 ? 'text-foreground' : 'text-expense'}`}>
+                {savingsRate.toFixed(1)}%
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                {savingsRate >= 30 ? '🎉 ดีมาก!' : savingsRate >= 20 ? '👍 ดี' : savingsRate >= 0 ? '⚠️ ควรเพิ่ม' : '🔴 ใช้เกินรายรับ'}
+              </p>
+            </div>
+
+            {/* Average Daily Expense */}
+            <div className="p-3 rounded-lg bg-accent/50 border">
+              <div className="flex items-center gap-2 mb-1">
+                <Wallet className="h-4 w-4 text-expense" />
+                <p className="text-xs text-muted-foreground">จ่ายเฉลี่ย/วัน</p>
+              </div>
+              <p className="text-xl font-bold text-expense">
+                ฿{Math.round(avgDailyExpense).toLocaleString()}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                รับเฉลี่ย ฿{Math.round(avgDailyIncome).toLocaleString()}/วัน
+              </p>
+            </div>
+
+            {/* Max Single Transaction */}
+            <div className="p-3 rounded-lg bg-accent/50 border">
+              <div className="flex items-center gap-2 mb-1">
+                <Target className="h-4 w-4 text-primary" />
+                <p className="text-xs text-muted-foreground">รายจ่ายสูงสุด</p>
+              </div>
+              <p className="text-lg font-bold text-expense">
+                ฿{maxExpense.toLocaleString()}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                รายรับสูงสุด ฿{maxIncome.toLocaleString()}
+              </p>
+            </div>
+
+            {/* Transaction Count */}
+            <div className="p-3 rounded-lg bg-accent/50 border">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                <p className="text-xs text-muted-foreground">จำนวนรายการ</p>
+              </div>
+              <p className="text-xl font-bold">{filteredTransactions.length}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                รับ {incomeCount} / จ่าย {expenseCount}
+              </p>
+            </div>
+          </div>
+
+          {/* Top Spending Days */}
+          {topSpendingDays.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-medium mb-2 text-muted-foreground">📅 วันที่จ่ายมากที่สุด</h4>
+              <div className="space-y-2">
+                {topSpendingDays.map(([date, amount], i) => (
+                  <div key={date} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-muted-foreground w-5">#{i + 1}</span>
+                      <span className="text-sm">{new Date(date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}</span>
+                    </div>
+                    <span className="text-sm font-semibold text-expense">-฿{amount.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top Income Categories */}
+          {topIncomeCategories.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium mb-2 text-muted-foreground">💰 แหล่งรายรับหลัก</h4>
+              <div className="space-y-2">
+                {topIncomeCategories.map(([category, amount]) => {
+                  const pct = totalIncome > 0 ? (amount / totalIncome * 100) : 0;
+                  return (
+                    <div key={category} className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">{category}</span>
+                        <span className="text-sm text-muted-foreground">
+                          ฿{amount.toLocaleString()} ({pct.toFixed(1)}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-muted h-1.5 rounded-full">
+                        <div 
+                          className="bg-income h-1.5 rounded-full transition-all"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </Card>
       )}
 
