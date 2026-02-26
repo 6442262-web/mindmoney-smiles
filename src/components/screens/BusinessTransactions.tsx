@@ -56,8 +56,24 @@ export function BusinessTransactions() {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const handleExport = () => {
-    // TODO: Implement export functionality
-    console.log("Exporting transactions...");
+    try {
+      const header = 'วันที่,รายละเอียด,หมวดหมู่,ประเภท,จำนวนเงิน,หมายเหตุ\n';
+      const rows = filteredTransactions.map(t => 
+        `${new Date(t.date).toLocaleDateString('th-TH')},"${t.description.replace(/"/g, '""')}","${(categoryLabels[t.category as keyof typeof categoryLabels] || t.category).replace(/"/g, '""')}",${t.type === 'income' ? 'รายรับ' : 'รายจ่าย'},${t.type === 'income' ? '' : '-'}${t.amount},"${(t.note || '').replace(/"/g, '""')}"`
+      ).join('\n');
+      const bom = '\uFEFF';
+      const blob = new Blob([bom + header + rows], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `business-transactions-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
