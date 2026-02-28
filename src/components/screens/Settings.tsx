@@ -40,6 +40,48 @@ import { useBackup } from '@/hooks/useBackup';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useAccounts } from '@/hooks/useAccounts';
+import { useColorTheme } from '@/hooks/useColorTheme';
+import { Palette } from 'lucide-react';
+
+function ColorThemePicker() {
+  const { activeThemeId, setTheme, themes } = useColorTheme();
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-3 mb-4">
+        <Palette className="h-5 w-5 text-primary" />
+        <h2 className="text-lg font-semibold">สีธีม</h2>
+      </div>
+      <p className="text-xs text-muted-foreground mb-3">เลือกสีหลักของแอพ</p>
+      <div className="grid grid-cols-4 gap-3">
+        {themes.map((theme) => (
+          <button
+            key={theme.id}
+            onClick={() => setTheme(theme.id)}
+            className={`relative flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 transition-all duration-200 ${
+              activeThemeId === theme.id
+                ? 'border-primary shadow-md scale-105'
+                : 'border-transparent hover:border-muted-foreground/20 hover:scale-102'
+            }`}
+          >
+            <div
+              className="w-10 h-10 rounded-full shadow-sm"
+              style={{ background: theme.preview }}
+            />
+            <span className="text-[10px] font-medium leading-tight text-center">
+              {theme.emoji} {theme.name}
+            </span>
+            {activeThemeId === theme.id && (
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                <span className="text-[8px] text-primary-foreground">✓</span>
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
+    </Card>
+  );
+}
 
 export function Settings() {
   const [investmentMode, setInvestmentMode] = useState(() => {
@@ -433,6 +475,9 @@ export function Settings() {
             </div>
           </div>
         </Card>
+
+        {/* Color Theme Section */}
+        <ColorThemePicker />
 
         {/* About Section */}
         <Card className="p-4">
