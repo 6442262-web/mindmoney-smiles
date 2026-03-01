@@ -1,16 +1,19 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Bell, Wallet, MessageCircle } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Bell, Wallet, MessageCircle, Star, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction, RecurringTransaction } from "../MoneyMindApp";
 import { AccountSelector } from "@/components/ui/AccountSelector";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCategories } from "@/hooks/useCategories";
+import { useFavoriteTransactions } from "@/hooks/useFavoriteTransactions";
 import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/dateUtils";
 import { useMemo } from "react";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { ChartContainer } from "@/components/ui/chart";
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -21,6 +24,7 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
   const { unreadCount } = useNotifications();
   const { t, language } = useLanguage();
   const { categories } = useCategories();
+  const { favorites } = useFavoriteTransactions();
   const dateLocale = language === 'th' ? th : enUS;
 
   const categoryMap = useMemo(() => {
@@ -82,6 +86,41 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
   const projectedBalance = monthlyRecurringIncome - monthlyRecurringExpenses;
   const availableThisMonth = balance - monthlyRecurringExpenses;
 
+  // Previous month comparison
+  const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+  const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+  const prevMonthTransactions = transactions.filter(t => {
+    const d = parseLocalDate(t.date);
+    return d.getMonth() === prevMonth && d.getFullYear() === prevYear;
+  });
+  const prevMonthIncome = prevMonthTransactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const prevMonthExpense = prevMonthTransactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  const incomeChange = prevMonthIncome > 0 ? ((monthlyTotalIncome - prevMonthIncome) / prevMonthIncome * 100) : 0;
+  const expenseChange = prevMonthExpense > 0 ? ((monthlyTotalExpense - prevMonthExpense) / prevMonthExpense * 100) : 0;
+
+  // Mini chart data (last 6 months)
+  const miniChartData = useMemo(() => {
+    const data = [];
+    for (let i = 5; i >= 0; i--) {
+      const m = new Date(currentYear, currentMonth - i, 1);
+      const monthTxns = transactions.filter(t => {
+        const d = parseLocalDate(t.date);
+        return d.getMonth() === m.getMonth() && d.getFullYear() === m.getFullYear();
+      });
+      data.push({
+        name: format(m, 'MMM', { locale: dateLocale }),
+        income: monthTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
+        expense: monthTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
+      });
+    }
+    return data;
+  }, [transactions, currentMonth, currentYear]);
+
+  const chartConfig = {
+    income: { label: language === 'th' ? 'รายรับ' : 'Income', color: 'hsl(var(--chart-2))' },
+    expense: { label: language === 'th' ? 'รายจ่าย' : 'Expense', color: 'hsl(var(--chart-1))' },
+  };
+
   return (
     <div className="pb-20 px-4 pt-6 space-y-6">
       {/* Header */}
@@ -127,20 +166,26 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
         </div>
       </Card>
 
-      {/* Monthly Income & Expense */}
+      {/* Monthly Income & Expense with Comparison */}
       <div className="grid grid-cols-2 gap-4">
         <Card className="p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-income-accent rounded-lg">
               <TrendingUp className="h-5 w-5 text-income" />
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-sm text-muted-foreground">
                 {language === 'th' ? 'รายรับเดือนนี้' : 'Income This Month'}
               </p>
               <p className="text-lg font-bold text-income">
                 ฿{monthlyTotalIncome.toLocaleString()}
               </p>
+              {prevMonthIncome > 0 && (
+                <div className={`flex items-center gap-1 text-xs ${incomeChange >= 0 ? 'text-income' : 'text-expense'}`}>
+                  {incomeChange >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                  {Math.abs(incomeChange).toFixed(0)}% {language === 'th' ? 'จากเดือนก่อน' : 'vs last month'}
+                </div>
+              )}
             </div>
           </div>
         </Card>
@@ -150,17 +195,41 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
             <div className="p-2 bg-expense-accent rounded-lg">
               <TrendingDown className="h-5 w-5 text-expense" />
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-sm text-muted-foreground">
                 {language === 'th' ? 'รายจ่ายเดือนนี้' : 'Expense This Month'}
               </p>
               <p className="text-lg font-bold text-expense">
                 ฿{monthlyTotalExpense.toLocaleString()}
               </p>
+              {prevMonthExpense > 0 && (
+                <div className={`flex items-center gap-1 text-xs ${expenseChange <= 0 ? 'text-income' : 'text-expense'}`}>
+                  {expenseChange >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                  {Math.abs(expenseChange).toFixed(0)}% {language === 'th' ? 'จากเดือนก่อน' : 'vs last month'}
+                </div>
+              )}
             </div>
           </div>
         </Card>
       </div>
+
+      {/* Mini Trend Chart */}
+      {miniChartData.some(d => d.income > 0 || d.expense > 0) && (
+        <Card className="p-4">
+          <h3 className="font-semibold mb-3 text-sm">{language === 'th' ? '📊 เทรนด์ 6 เดือนล่าสุด' : '📊 Last 6 Months Trend'}</h3>
+          <ChartContainer config={chartConfig} className="h-[140px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={miniChartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+                <YAxis hide />
+                <Tooltip formatter={(value: number) => [`฿${value.toLocaleString()}`, '']} />
+                <Bar dataKey="income" fill="hsl(var(--chart-2))" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="expense" fill="hsl(var(--chart-1))" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </Card>
+      )}
 
       {/* Overall Balance */}
       <Card className="p-4">
@@ -243,6 +312,25 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
           </Button>
         </Link>
       </div>
+
+      {/* Quick Favorites */}
+      {favorites.length > 0 && (
+        <Card className="p-4">
+          <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <Star className="h-4 w-4 text-primary" />
+            {language === 'th' ? 'รายการโปรด' : 'Favorites'}
+          </h3>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {favorites.slice(0, 5).map(fav => (
+              <Link key={fav.id} to="/add">
+                <Button variant="outline" size="sm" className="whitespace-nowrap text-xs h-8">
+                  {fav.type === 'income' ? '💰' : '💸'} {fav.name} ฿{fav.amount.toLocaleString()}
+                </Button>
+              </Link>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Recent Transactions */}
       <Card className="p-4">

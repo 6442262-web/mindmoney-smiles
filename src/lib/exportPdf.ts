@@ -9,6 +9,12 @@ interface TransactionRow {
   amount: number;
 }
 
+interface CategoryBreakdown {
+  name: string;
+  amount: number;
+  percentage: number;
+}
+
 interface PdfExportData {
   title: string;
   period: string;
@@ -16,18 +22,39 @@ interface PdfExportData {
   totalExpense: number;
   balance: number;
   transactions: TransactionRow[];
+  savingsRate?: number;
+  avgDailyExpense?: number;
+  topExpenseCategories?: CategoryBreakdown[];
+  topIncomeCategories?: CategoryBreakdown[];
 }
 
-// Encode Thai text to Latin-1 safe characters for jsPDF (fallback)
-// jsPDF standard fonts don't support Thai, so we use a workaround with html rendering
 export async function exportSummaryPdf(data: PdfExportData) {
-  const { title, period, totalIncome, totalExpense, balance, transactions } = data;
+  const { title, period, totalIncome, totalExpense, balance, transactions, savingsRate, avgDailyExpense, topExpenseCategories, topIncomeCategories } = data;
 
-  // Create a hidden HTML element for rendering
   const container = document.createElement('div');
   container.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;font-family:sans-serif;padding:40px;background:white;color:black;';
   
   const formatAmount = (n: number) => `฿${n.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
+
+  const categoryBreakdownHtml = (cats: CategoryBreakdown[] | undefined, label: string, color: string) => {
+    if (!cats || cats.length === 0) return '';
+    return `
+      <div style="margin-bottom:20px;">
+        <h3 style="font-size:15px;font-weight:bold;margin:0 0 10px 0;color:#333;">${label}</h3>
+        ${cats.map(c => `
+          <div style="margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px;">
+              <span>${c.name}</span>
+              <span style="color:#666;">${formatAmount(c.amount)} (${c.percentage.toFixed(1)}%)</span>
+            </div>
+            <div style="background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden;">
+              <div style="background:${color};height:100%;width:${c.percentage}%;border-radius:4px;"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  };
   
   container.innerHTML = `
     <div style="text-align:center;margin-bottom:24px;">
@@ -50,6 +77,29 @@ export async function exportSummaryPdf(data: PdfExportData) {
         <div style="font-size:20px;font-weight:bold;color:${balance >= 0 ? '#2563eb' : '#dc2626'};">${balance >= 0 ? '+' : ''}${formatAmount(balance)}</div>
       </div>
     </div>
+
+    ${(savingsRate !== undefined || avgDailyExpense !== undefined) ? `
+    <div style="display:flex;gap:16px;margin-bottom:24px;">
+      ${savingsRate !== undefined ? `
+      <div style="flex:1;background:#faf5ff;border-radius:8px;padding:16px;text-align:center;">
+        <div style="color:#666;font-size:13px;">อัตราการออม</div>
+        <div style="font-size:20px;font-weight:bold;color:${savingsRate >= 20 ? '#16a34a' : savingsRate >= 0 ? '#f59e0b' : '#dc2626'};">${savingsRate.toFixed(1)}%</div>
+        <div style="font-size:11px;color:#999;">${savingsRate >= 30 ? 'ดีมาก!' : savingsRate >= 20 ? 'ดี' : savingsRate >= 0 ? 'ควรเพิ่ม' : 'ใช้เกินรายรับ'}</div>
+      </div>` : ''}
+      ${avgDailyExpense !== undefined ? `
+      <div style="flex:1;background:#fff7ed;border-radius:8px;padding:16px;text-align:center;">
+        <div style="color:#666;font-size:13px;">ค่าใช้จ่ายเฉลี่ย/วัน</div>
+        <div style="font-size:20px;font-weight:bold;color:#ea580c;">${formatAmount(avgDailyExpense)}</div>
+      </div>` : ''}
+      <div style="flex:1;background:#f0f9ff;border-radius:8px;padding:16px;text-align:center;">
+        <div style="color:#666;font-size:13px;">จำนวนรายการ</div>
+        <div style="font-size:20px;font-weight:bold;color:#0284c7;">${transactions.length}</div>
+      </div>
+    </div>
+    ` : ''}
+
+    ${categoryBreakdownHtml(topExpenseCategories, '📊 หมวดหมู่รายจ่ายสูงสุด', '#ef4444')}
+    ${categoryBreakdownHtml(topIncomeCategories, '💰 แหล่งรายรับหลัก', '#22c55e')}
     
     <table style="width:100%;border-collapse:collapse;font-size:13px;">
       <thead>
@@ -84,7 +134,6 @@ export async function exportSummaryPdf(data: PdfExportData) {
   document.body.appendChild(container);
 
   try {
-    // Use html2canvas approach via jsPDF html method
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     
     await doc.html(container, {

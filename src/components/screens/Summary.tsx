@@ -916,6 +916,18 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
                   totalIncome,
                   totalExpense,
                   balance,
+                  savingsRate,
+                  avgDailyExpense,
+                  topExpenseCategories: topCategories.map(([name, amount]) => ({
+                    name,
+                    amount,
+                    percentage: totalExpense > 0 ? (amount / totalExpense * 100) : 0,
+                  })),
+                  topIncomeCategories: topIncomeCategories.map(([name, amount]) => ({
+                    name,
+                    amount,
+                    percentage: totalIncome > 0 ? (amount / totalIncome * 100) : 0,
+                  })),
                   transactions: filteredTransactions.map(t => ({
                     date: new Date(t.date).toLocaleDateString('th-TH'),
                     description: t.description || '-',
