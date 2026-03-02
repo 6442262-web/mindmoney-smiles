@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Bell, Wallet, MessageCircle, Star, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Bell, Wallet, MessageCircle, Star, ArrowUpRight, ArrowDownRight, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction, RecurringTransaction } from "../MoneyMindApp";
 import { AccountSelector } from "@/components/ui/AccountSelector";
@@ -293,21 +293,27 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         <Link to="/add">
-          <Button className="w-full h-16 text-sm bg-gradient-primary flex-col gap-1">
+          <Button className="w-full h-16 text-xs bg-gradient-primary flex-col gap-1">
             <Plus className="h-5 w-5" />
             {t('dashboard.addNew')}
           </Button>
         </Link>
         <Link to="/chat-transaction">
-          <Button variant="outline" className="w-full h-16 text-sm flex-col gap-1 border-primary/30 text-primary">
+          <Button variant="outline" className="w-full h-16 text-xs flex-col gap-1 border-primary/30 text-primary">
             <MessageCircle className="h-5 w-5" />
-            {language === 'th' ? 'แชทบันทึก' : 'Chat Entry'}
+            {language === 'th' ? 'แชท' : 'Chat'}
+          </Button>
+        </Link>
+        <Link to="/financial-analysis">
+          <Button variant="outline" className="w-full h-16 text-xs flex-col gap-1 border-primary/30 text-primary">
+            <BarChart3 className="h-5 w-5" />
+            {language === 'th' ? 'วิเคราะห์' : 'Analysis'}
           </Button>
         </Link>
         <Link to="/recurring">
-          <Button variant="outline" className="w-full h-16 text-sm flex-col gap-1">
+          <Button variant="outline" className="w-full h-16 text-xs flex-col gap-1">
             {t('dashboard.recurring')}
           </Button>
         </Link>
