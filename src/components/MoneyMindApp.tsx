@@ -39,6 +39,7 @@ const ChatTransaction = lazy(() => import("./screens/ChatTransaction").then(m =>
 const InvestmentDashboard = lazy(() => import("./screens/InvestmentDashboard").then(m => ({ default: m.InvestmentDashboard })));
 const AddInvestmentTransaction = lazy(() => import("./screens/AddInvestmentTransaction").then(m => ({ default: m.AddInvestmentTransaction })));
 const InvestmentTransactions = lazy(() => import("./screens/InvestmentTransactions").then(m => ({ default: m.InvestmentTransactions })));
+const FinancialAnalysis = lazy(() => import("./screens/FinancialAnalysis").then(m => ({ default: m.FinancialAnalysis })));
 
 export type TransactionType = "income" | "expense";
 export type PriorityLevel = 1 | 2 | 3 | 4 | 5;
@@ -228,6 +229,7 @@ function AppContent() {
             <Route path="/investment" element={<InvestmentDashboard />} />
             <Route path="/investment/add-transaction" element={<AddInvestmentTransaction />} />
             <Route path="/investment/transactions" element={<InvestmentTransactions />} />
+            <Route path="/financial-analysis" element={<FinancialAnalysis />} />
           </Routes>
         </Suspense>
         <BottomNavigation />
