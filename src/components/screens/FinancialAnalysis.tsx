@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Target, Flame, PieChart as PieIcon, FileDown } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Target, Flame, PieChart as PieIcon, FileDown, Calendar } from "lucide-react";
 import { exportAnalysisPdf } from "@/lib/exportAnalysisPdf";
 import { Link } from "react-router-dom";
 import { useTransactions } from "@/hooks/useTransactions";
@@ -10,7 +11,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useLiabilities } from "@/hooks/useLiabilities";
 import { useRecurringTransactions } from "@/hooks/useRecurringTransactions";
-import { format, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay } from "date-fns";
+import { format, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, startOfQuarter, endOfQuarter, startOfYear, endOfYear } from "date-fns";
 import { th } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
@@ -242,17 +243,77 @@ export function FinancialAnalysis() {
   }));
 
   const [exporting, setExporting] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [exportPeriod, setExportPeriod] = useState<'month' | 'quarter' | 'year'>('month');
+
+  const getExportRange = (period: 'month' | 'quarter' | 'year') => {
+    const today = new Date();
+    switch (period) {
+      case 'month':
+        return { start: startOfMonth(today), end: endOfMonth(today), label: format(today, 'MMMM yyyy', { locale: th }) };
+      case 'quarter': {
+        const qs = startOfQuarter(today);
+        const qe = endOfQuarter(today);
+        const qNum = Math.floor(today.getMonth() / 3) + 1;
+        return { start: qs, end: qe, label: `ไตรมาส ${qNum}/${today.getFullYear()}` };
+      }
+      case 'year':
+        return { start: startOfYear(today), end: endOfYear(today), label: `ปี ${today.getFullYear()}` };
+    }
+  };
+
+  const buildExportData = (period: 'month' | 'quarter' | 'year') => {
+    const range = getExportRange(period);
+    const filtered = transactions.filter(t => {
+      const d = new Date(t.date);
+      return d >= range.start && d <= range.end;
+    });
+
+    // Pie data for the period
+    const catTotals = new Map<string, { name: string; value: number; color: string }>();
+    filtered.filter(t => t.type === 'expense').forEach(t => {
+      const cat = categories.find(c => c.id === t.category_id);
+      const catName = cat?.name || 'ไม่ระบุ';
+      const catColor = cat?.color || '#94a3b8';
+      const existing = catTotals.get(catName) || { name: catName, value: 0, color: catColor };
+      existing.value += t.amount;
+      catTotals.set(catName, existing);
+    });
+    const periodPie = Array.from(catTotals.values()).sort((a, b) => b.value - a.value).slice(0, 8);
+    const periodPieTotal = periodPie.reduce((s, d) => s + d.value, 0);
+    const periodPieWithPct = periodPie.map(d => ({ ...d, percentage: periodPieTotal > 0 ? (d.value / periodPieTotal) * 100 : 0 }));
+
+    // Budget for period
+    const periodExpenses = filtered.filter(t => t.type === 'expense');
+    const periodCatMap = new Map<string, { name: string; color: string; actual: number }>();
+    categories.filter(c => c.type === 'expense').forEach(c => periodCatMap.set(c.id, { name: c.name, color: c.color || '#6366f1', actual: 0 }));
+    periodExpenses.forEach(t => {
+      if (t.category_id && periodCatMap.has(t.category_id)) periodCatMap.get(t.category_id)!.actual += t.amount;
+    });
+    const periodTotalActual = periodExpenses.reduce((s, t) => s + t.amount, 0);
+    const multiplier = period === 'quarter' ? 3 : period === 'year' ? 12 : 1;
+    const periodTotalBudget = accounts.reduce((s, a) => s + (a.budget_limit || 0), 0) * multiplier;
+
+    return {
+      period: range.label,
+      cashflow: cashflowData,
+      pieData: periodPieWithPct,
+      budget: {
+        totalBudget: periodTotalBudget,
+        totalActual: periodTotalActual,
+        percentUsed: periodTotalBudget > 0 ? (periodTotalActual / periodTotalBudget) * 100 : 0,
+        categories: Array.from(periodCatMap.values()).filter(c => c.actual > 0).sort((a, b) => b.actual - a.actual).slice(0, 10),
+      },
+      netWorth: netWorthData,
+    };
+  };
 
   const handleExportPdf = async () => {
     setExporting(true);
+    setShowExportDialog(false);
     try {
-      await exportAnalysisPdf({
-        period: format(now, 'MMMM yyyy', { locale: th }),
-        cashflow: cashflowData,
-        pieData: pieDataWithPercentage,
-        budget: budgetData,
-        netWorth: netWorthData,
-      });
+      const data = buildExportData(exportPeriod);
+      await exportAnalysisPdf(data);
     } catch (e) {
       console.error('PDF export error:', e);
     } finally {
@@ -289,11 +350,59 @@ export function FinancialAnalysis() {
           </Link>
           <h1 className="text-2xl font-bold">📊 วิเคราะห์การเงิน</h1>
         </div>
-        <Button variant="outline" size="sm" onClick={handleExportPdf} disabled={exporting}>
+        <Button variant="outline" size="sm" onClick={() => setShowExportDialog(true)} disabled={exporting}>
           <FileDown className="h-4 w-4 mr-1" />
           {exporting ? 'กำลังสร้าง...' : 'PDF'}
         </Button>
       </div>
+
+      {/* Export Period Dialog */}
+      <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              เลือกช่วงเวลารายงาน
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            {([
+              { value: 'month' as const, label: '📅 รายเดือน', desc: format(now, 'MMMM yyyy', { locale: th }) },
+              { value: 'quarter' as const, label: '📊 รายไตรมาส', desc: `ไตรมาส ${Math.floor(now.getMonth() / 3) + 1}/${now.getFullYear()}` },
+              { value: 'year' as const, label: '📆 รายปี', desc: `ปี ${now.getFullYear()}` },
+            ]).map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setExportPeriod(opt.value)}
+                className={cn(
+                  "w-full flex items-center justify-between p-3 rounded-lg border transition-colors text-left",
+                  exportPeriod === opt.value
+                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                    : "border-border hover:bg-muted/50"
+                )}
+              >
+                <div>
+                  <div className="font-medium text-sm">{opt.label}</div>
+                  <div className="text-xs text-muted-foreground">{opt.desc}</div>
+                </div>
+                <div className={cn(
+                  "w-4 h-4 rounded-full border-2 flex items-center justify-center",
+                  exportPeriod === opt.value ? "border-primary" : "border-muted-foreground/30"
+                )}>
+                  {exportPeriod === opt.value && <div className="w-2 h-2 rounded-full bg-primary" />}
+                </div>
+              </button>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowExportDialog(false)}>ยกเลิก</Button>
+            <Button onClick={handleExportPdf}>
+              <FileDown className="h-4 w-4 mr-1" />
+              ส่งออก PDF
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
