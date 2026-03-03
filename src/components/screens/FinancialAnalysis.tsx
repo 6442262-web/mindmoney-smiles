@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Target, Flame, PieChart as PieIcon } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Target, Flame, PieChart as PieIcon, FileDown } from "lucide-react";
+import { exportAnalysisPdf } from "@/lib/exportAnalysisPdf";
 import { Link } from "react-router-dom";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useCategories } from "@/hooks/useCategories";
@@ -235,6 +236,30 @@ export function FinancialAnalysis() {
 
   const totalPie = pieData.reduce((s, d) => s + d.value, 0);
 
+  const pieDataWithPercentage = pieData.map(d => ({
+    ...d,
+    percentage: totalPie > 0 ? (d.value / totalPie) * 100 : 0,
+  }));
+
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportPdf = async () => {
+    setExporting(true);
+    try {
+      await exportAnalysisPdf({
+        period: format(now, 'MMMM yyyy', { locale: th }),
+        cashflow: cashflowData,
+        pieData: pieDataWithPercentage,
+        budget: budgetData,
+        netWorth: netWorthData,
+      });
+    } catch (e) {
+      console.error('PDF export error:', e);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const chartConfig = {
     income: { label: 'รายรับ', color: 'hsl(var(--chart-2))' },
     expense: { label: 'รายจ่าย', color: 'hsl(var(--chart-1))' },
@@ -255,13 +280,19 @@ export function FinancialAnalysis() {
   return (
     <div className="pb-20 px-4 pt-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link to="/">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-bold">📊 วิเคราะห์การเงิน</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link to="/">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <h1 className="text-2xl font-bold">📊 วิเคราะห์การเงิน</h1>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleExportPdf} disabled={exporting}>
+          <FileDown className="h-4 w-4 mr-1" />
+          {exporting ? 'กำลังสร้าง...' : 'PDF'}
+        </Button>
       </div>
 
       {/* Tabs */}
