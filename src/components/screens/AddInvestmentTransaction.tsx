@@ -115,7 +115,7 @@ export function AddInvestmentTransaction() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>จำนวน (หน่วย) *</Label>
-                <Input type="number" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} placeholder="0" />
+                <Input type="number" min="0" max="999999999" step="any" value={form.quantity} onChange={e => { const v = e.target.value; if (v === '' || Number(v) >= 0) setForm(f => ({ ...f, quantity: v })); }} placeholder="0" />
               </div>
               <div>
                 <Label>ราคาต่อหน่วย *</Label>
