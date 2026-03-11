@@ -70,13 +70,15 @@ export function EditTransactionDialog({
   };
 
   const handleSave = async () => {
-    if (!transaction || !amount || !category) return;
+    const parsedAmount = parseFloat(amount);
+    if (!transaction || !amount || !category || isNaN(parsedAmount) || parsedAmount <= 0) return;
+    if (parsedAmount > 999999999) return;
     
     setSaving(true);
     try {
       await onSave(transaction.id, {
         type,
-        amount: parseFloat(amount),
+        amount: parsedAmount,
         category,
         description,
         priority,
