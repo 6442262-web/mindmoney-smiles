@@ -311,8 +311,16 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
             id="amount"
             type="number"
             placeholder="0.00"
+            min="0"
+            max="999999999"
+            step="0.01"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '' || (Number(val) >= 0 && Number(val) <= 999999999)) {
+                setAmount(val);
+              }
+            }}
             className="mt-2 text-lg"
           />
         </Card>

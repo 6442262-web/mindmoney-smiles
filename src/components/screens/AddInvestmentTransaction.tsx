@@ -119,7 +119,7 @@ export function AddInvestmentTransaction() {
               </div>
               <div>
                 <Label>ราคาต่อหน่วย *</Label>
-                <Input type="number" value={form.price_per_unit} onChange={e => setForm(f => ({ ...f, price_per_unit: e.target.value }))} placeholder="0.00" />
+                <Input type="number" min="0" max="999999999" step="0.01" value={form.price_per_unit} onChange={e => { const v = e.target.value; if (v === '' || Number(v) >= 0) setForm(f => ({ ...f, price_per_unit: v })); }} placeholder="0.00" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
