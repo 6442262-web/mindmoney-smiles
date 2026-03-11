@@ -189,8 +189,10 @@ export function LiabilitiesManagement() {
                     <Input 
                       type="number"
                       placeholder="0"
+                      min="0"
+                      max="999999999"
                       value={formData.principal_amount}
-                      onChange={(e) => setFormData({...formData, principal_amount: e.target.value})}
+                      onChange={(e) => { const v = e.target.value; if (v === '' || Number(v) >= 0) setFormData({...formData, principal_amount: v}); }}
                     />
                   </div>
                   <div className="space-y-2">
