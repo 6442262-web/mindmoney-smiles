@@ -137,10 +137,22 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!amount || !category) {
+    const parsedAmount = parseFloat(amount);
+    if (!amount || !category || isNaN(parsedAmount) || parsedAmount <= 0) {
       toast({
         title: t('transaction.validation.required'),
-        description: t('transaction.validation.check'),
+        description: !amount || isNaN(parsedAmount) || parsedAmount <= 0 
+          ? (language === 'th' ? 'กรุณากรอกจำนวนเงินที่มากกว่า 0' : 'Please enter an amount greater than 0')
+          : t('transaction.validation.check'),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (parsedAmount > 999999999) {
+      toast({
+        title: language === 'th' ? 'จำนวนเงินมากเกินไป' : 'Amount too large',
+        description: language === 'th' ? 'จำนวนเงินต้องไม่เกิน 999,999,999' : 'Amount must not exceed 999,999,999',
         variant: "destructive",
       });
       return;
@@ -299,8 +311,16 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
             id="amount"
             type="number"
             placeholder="0.00"
+            min="0"
+            max="999999999"
+            step="0.01"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '' || (Number(val) >= 0 && Number(val) <= 999999999)) {
+                setAmount(val);
+              }
+            }}
             className="mt-2 text-lg"
           />
         </Card>

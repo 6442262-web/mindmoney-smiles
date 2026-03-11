@@ -28,16 +28,19 @@ export function AddInvestmentTransaction() {
   const totalWithFees = totalAmount + (Number(form.fee) || 0) + (Number(form.tax) || 0);
 
   const handleSubmit = async () => {
+    const qty = Number(form.quantity);
+    const price = Number(form.price_per_unit);
     if (!form.investment_id || !form.quantity || !form.price_per_unit) return;
+    if (qty <= 0 || price <= 0 || qty > 999999999 || price > 999999999) return;
 
     await createInvestmentTransaction({
       investment_id: form.investment_id,
       transaction_type: form.transaction_type,
-      quantity: Number(form.quantity),
-      price_per_unit: Number(form.price_per_unit),
+      quantity: qty,
+      price_per_unit: price,
       total_amount: totalAmount,
-      fee: Number(form.fee) || 0,
-      tax: Number(form.tax) || 0,
+      fee: Math.max(0, Number(form.fee) || 0),
+      tax: Math.max(0, Number(form.tax) || 0),
       date: form.date,
       note: form.note || null,
     });
@@ -112,11 +115,11 @@ export function AddInvestmentTransaction() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>จำนวน (หน่วย) *</Label>
-                <Input type="number" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} placeholder="0" />
+                <Input type="number" min="0" max="999999999" step="any" value={form.quantity} onChange={e => { const v = e.target.value; if (v === '' || Number(v) >= 0) setForm(f => ({ ...f, quantity: v })); }} placeholder="0" />
               </div>
               <div>
                 <Label>ราคาต่อหน่วย *</Label>
-                <Input type="number" value={form.price_per_unit} onChange={e => setForm(f => ({ ...f, price_per_unit: e.target.value }))} placeholder="0.00" />
+                <Input type="number" min="0" max="999999999" step="0.01" value={form.price_per_unit} onChange={e => { const v = e.target.value; if (v === '' || Number(v) >= 0) setForm(f => ({ ...f, price_per_unit: v })); }} placeholder="0.00" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
