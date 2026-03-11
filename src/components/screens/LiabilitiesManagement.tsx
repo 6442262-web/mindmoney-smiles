@@ -200,8 +200,10 @@ export function LiabilitiesManagement() {
                     <Input 
                       type="number"
                       placeholder="0"
+                      min="0"
+                      max="999999999"
                       value={formData.current_balance}
-                      onChange={(e) => setFormData({...formData, current_balance: e.target.value})}
+                      onChange={(e) => { const v = e.target.value; if (v === '' || Number(v) >= 0) setFormData({...formData, current_balance: v}); }}
                     />
                   </div>
                 </div>
