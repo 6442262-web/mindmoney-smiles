@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { getLocalDateString, getLocalTimeString } from "@/lib/dateUtils";
+import { sanitizeText, getAmountError } from "@/lib/validation";
 import { SlipScanner, SlipScanResult } from "../SlipScanner";
 import { TransactionSearch } from "../TransactionSearch";
 import { useTransactions } from "@/hooks/useTransactions";
