@@ -71,9 +71,10 @@ export function EditTransactionDialog({
   };
 
   const handleSave = async () => {
-    const parsedAmount = parseFloat(amount);
-    if (!transaction || !amount || !category || isNaN(parsedAmount) || parsedAmount <= 0) return;
-    if (parsedAmount > 999999999) return;
+    const amountError = getAmountError(amount);
+    if (!transaction || !category || amountError) return;
+    const sanitizedDesc = sanitizeText(description);
+    if (sanitizedDesc.length > 500) return;
     
     setSaving(true);
     try {
