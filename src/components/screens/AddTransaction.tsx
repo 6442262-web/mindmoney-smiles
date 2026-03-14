@@ -48,6 +48,7 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [showScanner, setShowScanner] = useState(false);
   const [transactionTime, setTransactionTime] = useState(getLocalTimeString());
+  const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
   const { t, language } = useLanguage();
   const dateLocale = language === 'th' ? th : enUS;
