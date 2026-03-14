@@ -1,21 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { isValidAmount, sanitizeText, clampAmountInput, isValidDescription } from "../validation";
 
-// Validation helpers matching the app logic
-function isValidAmount(value: string): boolean {
-  if (!value) return false;
-  const num = parseFloat(value);
-  if (isNaN(num)) return false;
-  if (num <= 0) return false;
-  if (num > 999999999) return false;
-  return true;
-}
-
-function sanitizeDescription(value: string): string {
-  // Strip HTML tags to prevent XSS
-  return value.replace(/<[^>]*>/g, '').trim();
-}
-
-describe("Amount Validation", () => {
+describe("isValidAmount", () => {
   it("rejects empty string", () => {
     expect(isValidAmount("")).toBe(false);
   });
@@ -33,8 +19,6 @@ describe("Amount Validation", () => {
 
   it("rejects non-numeric input", () => {
     expect(isValidAmount("abc")).toBe(false);
-    // Note: parseFloat("12abc") returns 12, which is valid per JS behavior
-    // The HTML input type="number" prevents this at the UI level
     expect(isValidAmount("NaN")).toBe(false);
   });
 
@@ -54,23 +38,76 @@ describe("Amount Validation", () => {
     expect(isValidAmount("100.50")).toBe(true);
     expect(isValidAmount("0.99")).toBe(true);
   });
+
+  it("handles scientific notation", () => {
+    expect(isValidAmount("1e10")).toBe(false);
+    expect(isValidAmount("1e2")).toBe(true);
+  });
 });
 
-describe("Description Sanitization (XSS Prevention)", () => {
+describe("sanitizeText (XSS Prevention)", () => {
   it("strips HTML script tags", () => {
-    expect(sanitizeDescription('<script>alert("xss")</script>')).toBe('alert("xss")');
+    expect(sanitizeText('<script>alert("xss")</script>')).toBe('alert("xss")');
   });
 
   it("strips HTML tags but keeps text", () => {
-    expect(sanitizeDescription("<b>bold</b> text")).toBe("bold text");
+    expect(sanitizeText("<b>bold</b> text")).toBe("bold text");
   });
 
-  it("handles normal text unchanged", () => {
-    expect(sanitizeDescription("ค่าอาหาร")).toBe("ค่าอาหาร");
+  it("handles normal Thai text unchanged", () => {
+    expect(sanitizeText("ค่าอาหาร")).toBe("ค่าอาหาร");
   });
 
   it("trims whitespace", () => {
-    expect(sanitizeDescription("  test  ")).toBe("test");
+    expect(sanitizeText("  test  ")).toBe("test");
+  });
+
+  it("strips nested tags", () => {
+    expect(sanitizeText('<div><img src=x onerror=alert(1)></div>')).toBe("");
+  });
+
+  it("handles event handler attributes", () => {
+    expect(sanitizeText('<a onclick="evil()">click</a>')).toBe("click");
+  });
+});
+
+describe("clampAmountInput", () => {
+  it("allows empty string (clearing input)", () => {
+    expect(clampAmountInput("")).toBe("");
+  });
+
+  it("rejects negative numbers", () => {
+    expect(clampAmountInput("-5")).toBe(null);
+  });
+
+  it("rejects over-limit numbers", () => {
+    expect(clampAmountInput("1000000000")).toBe(null);
+  });
+
+  it("passes valid numbers through", () => {
+    expect(clampAmountInput("500")).toBe("500");
+    expect(clampAmountInput("0.01")).toBe("0.01");
+  });
+});
+
+describe("isValidDescription", () => {
+  it("accepts normal text", () => {
+    expect(isValidDescription("ค่าอาหาร")).toBe(true);
+  });
+
+  it("rejects text exceeding max length", () => {
+    const longText = "a".repeat(501);
+    expect(isValidDescription(longText)).toBe(false);
+  });
+
+  it("accepts text at max length", () => {
+    const text = "a".repeat(500);
+    expect(isValidDescription(text)).toBe(true);
+  });
+
+  it("strips HTML before checking length", () => {
+    const htmlText = "<b>" + "a".repeat(499) + "</b>";
+    expect(isValidDescription(htmlText)).toBe(true);
   });
 });
 
@@ -79,9 +116,11 @@ describe("Edge Cases", () => {
     expect(isValidAmount("0.001")).toBe(true);
   });
 
-  it("handles scientific notation input", () => {
-    // parseFloat handles this - 1e10 > 999999999
-    expect(isValidAmount("1e10")).toBe(false);
-    expect(isValidAmount("1e2")).toBe(true); // 100
+  it("handles Infinity", () => {
+    expect(isValidAmount("Infinity")).toBe(false);
+  });
+
+  it("handles whitespace-only descriptions", () => {
+    expect(sanitizeText("   ")).toBe("");
   });
 });
