@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { parseLocalDate } from "@/lib/dateUtils";
+import { sanitizeText, getAmountError } from "@/lib/validation";
 
 interface EditTransactionDialogProps {
   transaction: Transaction | null;
