@@ -23,7 +23,11 @@ const businessTransactionSchema = z.object({
   }),
   amount: z.string()
     .min(1, "กรุณากรอกจำนวนเงิน")
-    .regex(/^\d+(\.\d{1,2})?$/, "จำนวนเงินต้องเป็นตัวเลขเท่านั้น"),
+    .regex(/^\d+(\.\d{1,2})?$/, "จำนวนเงินต้องเป็นตัวเลขเท่านั้น")
+    .refine(val => {
+      const num = parseFloat(val);
+      return num > 0 && num <= 999999999;
+    }, "จำนวนเงินต้องมากกว่า 0 และไม่เกิน 999,999,999"),
   description: z.string()
     .max(100, "รายละเอียดต้องไม่เกิน 100 ตัวอักษร")
     .optional(),

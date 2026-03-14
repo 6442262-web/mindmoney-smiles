@@ -169,8 +169,16 @@ export function useTransactions() {
         title: "ลบรายการสำเร็จ",
         description: "รายการถูกลบแล้ว",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in deleteTransaction:', error);
+      const isNetworkError = !navigator.onLine || error?.message?.includes('fetch');
+      toast({
+        title: isNetworkError ? "ไม่มีการเชื่อมต่อ" : "เกิดข้อผิดพลาด",
+        description: isNetworkError
+          ? "กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่"
+          : "ไม่สามารถลบรายการได้",
+        variant: "destructive",
+      });
     }
   };
 
