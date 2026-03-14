@@ -14,6 +14,7 @@ import { useLiabilities, Liability } from "@/hooks/useLiabilities";
 import { format } from "date-fns";
 import { getLocalDateString } from "@/lib/dateUtils";
 import { Textarea } from "@/components/ui/textarea";
+import { sanitizeText, getAmountError } from "@/lib/validation";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const liabilityTypeLabels: Record<string, string> = {
