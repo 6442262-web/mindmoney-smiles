@@ -80,9 +80,9 @@ export function EditTransactionDialog({
     try {
       await onSave(transaction.id, {
         type,
-        amount: parsedAmount,
+        amount: parseFloat(amount),
         category,
-        description,
+        description: sanitizedDesc,
         priority,
         date: format(date, 'yyyy-MM-dd'),
       });
