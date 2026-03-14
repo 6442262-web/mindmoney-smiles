@@ -201,6 +201,9 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
     setIsRecurring(false);
     setStartDate(new Date());
     setTransactionTime(getLocalTimeString());
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
