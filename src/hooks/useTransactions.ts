@@ -91,8 +91,16 @@ export function useTransactions() {
       });
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in createTransaction:', error);
+      const isNetworkError = !navigator.onLine || error?.message?.includes('fetch');
+      toast({
+        title: isNetworkError ? "ไม่มีการเชื่อมต่อ" : "เกิดข้อผิดพลาด",
+        description: isNetworkError 
+          ? "กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่" 
+          : "ไม่สามารถเพิ่มรายการได้",
+        variant: "destructive",
+      });
       return null;
     }
   };
