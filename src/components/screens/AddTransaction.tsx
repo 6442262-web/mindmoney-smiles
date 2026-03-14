@@ -418,8 +418,8 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
         </div>
 
         {/* Submit */}
-        <Button type="submit" className="w-full h-12 text-lg bg-gradient-primary">
-          {t('transaction.save')}
+        <Button type="submit" className="w-full h-12 text-lg bg-gradient-primary" disabled={submitting}>
+          {submitting ? (language === 'th' ? 'กำลังบันทึก...' : 'Saving...') : t('transaction.save')}
         </Button>
       </form>
 
