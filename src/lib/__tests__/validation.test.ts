@@ -235,7 +235,7 @@ describe("Edge Cases - Financial Safety", () => {
     expect(clampAmountInput("007")).toBe("007");
   });
 
-  it("handles amounts with trailing dots", () => {
-    expect(isValidAmount("100.")).toBe(true); // parseFloat("100.") = 100
+  it("rejects amounts with trailing dots (strict validation)", () => {
+    expect(isValidAmount("100.")).toBe(false); // strict: trailing dot is invalid format
   });
 });
