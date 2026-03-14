@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Search, Trash2, Pencil } from "lucide-react";
+import { ArrowLeft, Search, Trash2, Pencil, Download, FileSpreadsheet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction } from "../MoneyMindApp";
 import { useLanguage } from "@/hooks/useLanguage";
 import { toast } from "sonner";
 import { EditTransactionDialog } from "./EditTransactionDialog";
+import { exportTransactionsCsv } from "@/lib/exportCsv";
 
 interface TransactionListProps {
   transactions: Transaction[];
