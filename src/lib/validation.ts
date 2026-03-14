@@ -7,7 +7,7 @@
 export function isValidAmount(value: string): boolean {
   if (!value) return false;
   const num = parseFloat(value);
-  if (isNaN(num) || num <= 0 || num > 999999999) return false;
+  if (isNaN(num) || !isFinite(num) || num <= 0 || num > 999999999) return false;
   return true;
 }
 

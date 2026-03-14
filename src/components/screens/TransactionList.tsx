@@ -89,7 +89,32 @@ export function TransactionList({ transactions, onDelete, onUpdate }: Transactio
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">{t('transaction.all')}</h1>
+        <h1 className="text-2xl font-bold flex-1">{t('transaction.all')}</h1>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            if (filteredTransactions.length === 0) {
+              toast.error(language === 'th' ? 'ไม่มีรายการให้ส่งออก' : 'No transactions to export');
+              return;
+            }
+            exportTransactionsCsv(
+              filteredTransactions.map(t => ({
+                date: t.date,
+                time: (t as any).time,
+                type: t.type,
+                amount: t.amount,
+                category: t.category,
+                description: t.description || '',
+              })),
+              'transactions'
+            );
+            toast.success(language === 'th' ? 'ส่งออก CSV สำเร็จ' : 'CSV exported');
+          }}
+        >
+          <FileSpreadsheet className="h-4 w-4 mr-1" />
+          CSV
+        </Button>
       </div>
 
       {/* Search and Filters */}
