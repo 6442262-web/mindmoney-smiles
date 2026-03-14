@@ -206,7 +206,7 @@ describe("formatAmount", () => {
 
   it("formats with custom currency", () => {
     const result = formatAmount(1000, "$");
-    expect(result).toStartWith("$");
+    expect(result.startsWith("$")).toBe(true);
   });
 
   it("handles decimal amounts", () => {
