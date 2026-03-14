@@ -6,6 +6,8 @@
 /** Validate that amount is a positive number within limits */
 export function isValidAmount(value: string): boolean {
   if (!value || value.trim() === '') return false;
+  // Strict numeric check: only digits, optional dot, optional leading sign
+  if (!/^\d+(\.\d+)?(e\d+)?$/i.test(value.trim())) return false;
   const num = parseFloat(value);
   if (isNaN(num) || !isFinite(num) || num <= 0 || num > 999999999) return false;
   return true;
