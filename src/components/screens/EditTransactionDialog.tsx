@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { parseLocalDate } from "@/lib/dateUtils";
+import { sanitizeText, getAmountError } from "@/lib/validation";
 
 interface EditTransactionDialogProps {
   transaction: Transaction | null;
@@ -70,17 +71,18 @@ export function EditTransactionDialog({
   };
 
   const handleSave = async () => {
-    const parsedAmount = parseFloat(amount);
-    if (!transaction || !amount || !category || isNaN(parsedAmount) || parsedAmount <= 0) return;
-    if (parsedAmount > 999999999) return;
+    const amountError = getAmountError(amount);
+    if (!transaction || !category || amountError) return;
+    const sanitizedDesc = sanitizeText(description);
+    if (sanitizedDesc.length > 500) return;
     
     setSaving(true);
     try {
       await onSave(transaction.id, {
         type,
-        amount: parsedAmount,
+        amount: parseFloat(amount),
         category,
-        description,
+        description: sanitizedDesc,
         priority,
         date: format(date, 'yyyy-MM-dd'),
       });

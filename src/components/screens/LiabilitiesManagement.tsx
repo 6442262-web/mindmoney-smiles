@@ -14,6 +14,7 @@ import { useLiabilities, Liability } from "@/hooks/useLiabilities";
 import { format } from "date-fns";
 import { getLocalDateString } from "@/lib/dateUtils";
 import { Textarea } from "@/components/ui/textarea";
+import { sanitizeText, getAmountError } from "@/lib/validation";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const liabilityTypeLabels: Record<string, string> = {
@@ -86,21 +87,25 @@ export function LiabilitiesManagement() {
   const paidOff = totalPrincipal > 0 ? ((totalPrincipal - totalDebt) / totalPrincipal) * 100 : 0;
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.principal_amount || !formData.current_balance) {
+    if (!formData.name.trim() || !formData.principal_amount || !formData.current_balance) {
       return;
     }
 
+    const principalErr = getAmountError(formData.principal_amount, 'จำนวนเงินต้น');
+    const balanceErr = getAmountError(formData.current_balance, 'ยอดคงเหลือ');
+    if (principalErr || balanceErr) return;
+
     const liabilityData = {
-      name: formData.name,
+      name: sanitizeText(formData.name),
       type: formData.type,
-      creditor: formData.creditor || null,
+      creditor: formData.creditor ? sanitizeText(formData.creditor) : null,
       principal_amount: parseFloat(formData.principal_amount),
       current_balance: parseFloat(formData.current_balance),
       interest_rate: formData.interest_rate ? parseFloat(formData.interest_rate) : null,
       monthly_payment: formData.monthly_payment ? parseFloat(formData.monthly_payment) : null,
       start_date: formData.start_date || null,
       end_date: formData.end_date || null,
-      note: formData.note || null,
+      note: formData.note ? sanitizeText(formData.note) : null,
       is_active: formData.is_active,
     };
 

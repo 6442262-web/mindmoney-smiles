@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { getLocalDateString, getLocalTimeString } from "@/lib/dateUtils";
+import { sanitizeText, getAmountError } from "@/lib/validation";
 import { SlipScanner, SlipScanResult } from "../SlipScanner";
 import { TransactionSearch } from "../TransactionSearch";
 import { useTransactions } from "@/hooks/useTransactions";
@@ -47,6 +48,7 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [showScanner, setShowScanner] = useState(false);
   const [transactionTime, setTransactionTime] = useState(getLocalTimeString());
+  const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
   const { t, language } = useLanguage();
   const dateLocale = language === 'th' ? th : enUS;
@@ -134,35 +136,37 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
     5: t('priority.5')
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     
-    const parsedAmount = parseFloat(amount);
-    if (!amount || !category || isNaN(parsedAmount) || parsedAmount <= 0) {
+    const amountError = getAmountError(amount);
+    if (amountError || !category) {
       toast({
         title: t('transaction.validation.required'),
-        description: !amount || isNaN(parsedAmount) || parsedAmount <= 0 
-          ? (language === 'th' ? 'กรุณากรอกจำนวนเงินที่มากกว่า 0' : 'Please enter an amount greater than 0')
-          : t('transaction.validation.check'),
+        description: amountError || t('transaction.validation.check'),
         variant: "destructive",
       });
       return;
     }
 
-    if (parsedAmount > 999999999) {
+    const sanitizedDesc = sanitizeText(description);
+    if (sanitizedDesc.length > 500) {
       toast({
-        title: language === 'th' ? 'จำนวนเงินมากเกินไป' : 'Amount too large',
-        description: language === 'th' ? 'จำนวนเงินต้องไม่เกิน 999,999,999' : 'Amount must not exceed 999,999,999',
+        title: language === 'th' ? 'รายละเอียดยาวเกินไป' : 'Description too long',
+        description: language === 'th' ? 'รายละเอียดต้องไม่เกิน 500 ตัวอักษร' : 'Description must not exceed 500 characters',
         variant: "destructive",
       });
       return;
     }
 
+    setSubmitting(true);
+    try {
     const baseData = {
       type,
       amount: parseFloat(amount),
       category,
-      description,
+      description: sanitizedDesc,
       priority,
     };
 
@@ -197,6 +201,9 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
     setIsRecurring(false);
     setStartDate(new Date());
     setTransactionTime(getLocalTimeString());
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -411,8 +418,8 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
         </div>
 
         {/* Submit */}
-        <Button type="submit" className="w-full h-12 text-lg bg-gradient-primary">
-          {t('transaction.save')}
+        <Button type="submit" className="w-full h-12 text-lg bg-gradient-primary" disabled={submitting}>
+          {submitting ? (language === 'th' ? 'กำลังบันทึก...' : 'Saving...') : t('transaction.save')}
         </Button>
       </form>
 
