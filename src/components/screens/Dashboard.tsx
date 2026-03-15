@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Bell, Wallet, MessageCircle, Star, ArrowUpRight, ArrowDownRight, BarChart3 } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Bell, Wallet, MessageCircle, Star, ArrowUpRight, ArrowDownRight, BarChart3, Target } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction, RecurringTransaction } from "../MoneyMindApp";
 import { AccountSelector } from "@/components/ui/AccountSelector";
@@ -8,12 +8,15 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCategories } from "@/hooks/useCategories";
 import { useFavoriteTransactions } from "@/hooks/useFavoriteTransactions";
+import { useAccounts } from "@/hooks/useAccounts";
 import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/dateUtils";
 import { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
+import { SavingsWidget } from "@/components/widgets/SavingsWidget";
+import { SmartAlerts } from "@/components/widgets/SmartAlerts";
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -25,6 +28,7 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
   const { t, language } = useLanguage();
   const { categories } = useCategories();
   const { favorites } = useFavoriteTransactions();
+  const { currentAccount } = useAccounts();
   const dateLocale = language === 'th' ? th : enUS;
 
   const categoryMap = useMemo(() => {
@@ -231,7 +235,12 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
         </Card>
       )}
 
-      {/* Overall Balance */}
+      {/* Smart Alerts Widget */}
+      <SmartAlerts transactions={transactions} budgetLimit={currentAccount?.budget_limit ?? undefined} />
+
+      {/* Savings Goals Widget */}
+      <SavingsWidget />
+
       <Card className="p-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-lg">
@@ -293,7 +302,7 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-5 gap-2">
         <Link to="/add">
           <Button className="w-full h-16 text-xs bg-gradient-primary flex-col gap-1">
             <Plus className="h-5 w-5" />
@@ -310,6 +319,12 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
           <Button variant="outline" className="w-full h-16 text-xs flex-col gap-1 border-primary/30 text-primary">
             <BarChart3 className="h-5 w-5" />
             {language === 'th' ? 'วิเคราะห์' : 'Analysis'}
+          </Button>
+        </Link>
+        <Link to="/savings-goals">
+          <Button variant="outline" className="w-full h-16 text-xs flex-col gap-1 border-primary/30 text-primary">
+            <Target className="h-5 w-5" />
+            {language === 'th' ? 'ออม' : 'Save'}
           </Button>
         </Link>
         <Link to="/recurring">
