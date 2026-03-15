@@ -1,4 +1,4 @@
-import { Home, Plus, List, BarChart3, User, Bell, Settings, Store } from "lucide-react";
+import { Home, Plus, List, BarChart3, User, Bell, Settings, Store, LineChart } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAppMode } from "@/hooks/useAppMode";
@@ -7,7 +7,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 export function BottomNavigation() {
   const location = useLocation();
   const { mode } = useAppMode();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const navItems = mode === "business" ? [
     { path: "/business", icon: Store, label: t('nav.store') },
@@ -17,7 +17,7 @@ export function BottomNavigation() {
     { path: "/settings", icon: Settings, label: t('nav.settings') },
   ] : [
     { path: "/", icon: Home, label: t('nav.home') },
-    { path: "/notifications", icon: Bell, label: t('nav.notifications') },
+    { path: "/investment", icon: LineChart, label: language === 'th' ? 'ลงทุน' : 'Invest' },
     { path: "/add", icon: Plus, label: t('nav.add'), isCenter: true },
     { path: "/summary", icon: BarChart3, label: t('nav.summary') },
     { path: "/settings", icon: Settings, label: t('nav.settings') },
