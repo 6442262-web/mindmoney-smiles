@@ -231,6 +231,7 @@ function AppContent() {
             <Route path="/investment/add-transaction" element={<AddInvestmentTransaction />} />
             <Route path="/investment/transactions" element={<InvestmentTransactions />} />
             <Route path="/financial-analysis" element={<FinancialAnalysis />} />
+            <Route path="/savings-goals" element={<SavingsGoals />} />
           </Routes>
         </Suspense>
         <BottomNavigation />
