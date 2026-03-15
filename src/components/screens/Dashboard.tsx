@@ -28,6 +28,7 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
   const { t, language } = useLanguage();
   const { categories } = useCategories();
   const { favorites } = useFavoriteTransactions();
+  const { currentAccount } = useAccounts();
   const dateLocale = language === 'th' ? th : enUS;
 
   const categoryMap = useMemo(() => {
