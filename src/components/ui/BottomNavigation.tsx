@@ -1,4 +1,4 @@
-import { Home, Plus, List, BarChart3, User, Bell, Settings, Store } from "lucide-react";
+import { Home, Plus, List, BarChart3, User, Bell, Settings, Store, LineChart } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAppMode } from "@/hooks/useAppMode";
