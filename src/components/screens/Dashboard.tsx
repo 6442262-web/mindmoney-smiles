@@ -319,7 +319,7 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <Link to="/add">
           <Button className="w-full h-16 text-xs bg-gradient-primary flex-col gap-1 shadow-soft hover:shadow-medium transition-shadow">
             <Plus className="h-5 w-5" />
@@ -332,20 +332,28 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
             {language === 'th' ? 'แชท' : 'Chat'}
           </Button>
         </Link>
-        <Link to="/financial-analysis">
+        <Link to="/investment">
           <Button variant="outline" className="w-full h-16 text-xs flex-col gap-1 border-primary/30 text-primary hover:bg-primary/10 transition-colors">
-            <BarChart3 className="h-5 w-5" />
+            <LineChart className="h-5 w-5" />
+            {language === 'th' ? 'ลงทุน' : 'Invest'}
+          </Button>
+        </Link>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <Link to="/financial-analysis">
+          <Button variant="outline" className="w-full h-14 text-xs flex-col gap-1 border-primary/30 text-primary hover:bg-primary/10 transition-colors">
+            <BarChart3 className="h-4 w-4" />
             {language === 'th' ? 'วิเคราะห์' : 'Analysis'}
           </Button>
         </Link>
         <Link to="/savings-goals">
-          <Button variant="outline" className="w-full h-16 text-xs flex-col gap-1 border-primary/30 text-primary hover:bg-primary/10 transition-colors">
-            <Target className="h-5 w-5" />
+          <Button variant="outline" className="w-full h-14 text-xs flex-col gap-1 border-primary/30 text-primary hover:bg-primary/10 transition-colors">
+            <Target className="h-4 w-4" />
             {language === 'th' ? 'ออม' : 'Save'}
           </Button>
         </Link>
         <Link to="/recurring">
-          <Button variant="outline" className="w-full h-16 text-xs flex-col gap-1 hover:bg-accent transition-colors">
+          <Button variant="outline" className="w-full h-14 text-xs flex-col gap-1 hover:bg-accent transition-colors">
             {t('dashboard.recurring')}
           </Button>
         </Link>

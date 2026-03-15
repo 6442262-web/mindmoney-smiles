@@ -17,7 +17,7 @@ export function BottomNavigation() {
     { path: "/settings", icon: Settings, label: t('nav.settings') },
   ] : [
     { path: "/", icon: Home, label: t('nav.home') },
-    { path: "/notifications", icon: Bell, label: t('nav.notifications') },
+    { path: "/investment", icon: LineChart, label: language === 'th' ? 'ลงทุน' : 'Invest' },
     { path: "/add", icon: Plus, label: t('nav.add'), isCenter: true },
     { path: "/summary", icon: BarChart3, label: t('nav.summary') },
     { path: "/settings", icon: Settings, label: t('nav.settings') },
