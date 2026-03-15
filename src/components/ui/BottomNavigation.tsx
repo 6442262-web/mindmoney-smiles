@@ -7,7 +7,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 export function BottomNavigation() {
   const location = useLocation();
   const { mode } = useAppMode();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const navItems = mode === "business" ? [
     { path: "/business", icon: Store, label: t('nav.store') },
