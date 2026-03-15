@@ -302,7 +302,7 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-5 gap-2">
         <Link to="/add">
           <Button className="w-full h-16 text-xs bg-gradient-primary flex-col gap-1">
             <Plus className="h-5 w-5" />
@@ -319,6 +319,12 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
           <Button variant="outline" className="w-full h-16 text-xs flex-col gap-1 border-primary/30 text-primary">
             <BarChart3 className="h-5 w-5" />
             {language === 'th' ? 'วิเคราะห์' : 'Analysis'}
+          </Button>
+        </Link>
+        <Link to="/savings-goals">
+          <Button variant="outline" className="w-full h-16 text-xs flex-col gap-1 border-primary/30 text-primary">
+            <Target className="h-5 w-5" />
+            {language === 'th' ? 'ออม' : 'Save'}
           </Button>
         </Link>
         <Link to="/recurring">
