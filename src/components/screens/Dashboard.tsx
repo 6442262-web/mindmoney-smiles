@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Bell, Wallet, MessageCircle, Star, ArrowUpRight, ArrowDownRight, BarChart3 } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Bell, Wallet, MessageCircle, Star, ArrowUpRight, ArrowDownRight, BarChart3, Target } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction, RecurringTransaction } from "../MoneyMindApp";
 import { AccountSelector } from "@/components/ui/AccountSelector";
@@ -8,12 +8,15 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCategories } from "@/hooks/useCategories";
 import { useFavoriteTransactions } from "@/hooks/useFavoriteTransactions";
+import { useAccounts } from "@/hooks/useAccounts";
 import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/dateUtils";
 import { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
+import { SavingsWidget } from "@/components/widgets/SavingsWidget";
+import { SmartAlerts } from "@/components/widgets/SmartAlerts";
 
 interface DashboardProps {
   transactions: Transaction[];
