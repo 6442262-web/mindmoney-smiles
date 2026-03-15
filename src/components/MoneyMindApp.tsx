@@ -40,6 +40,7 @@ const InvestmentDashboard = lazy(() => import("./screens/InvestmentDashboard").t
 const AddInvestmentTransaction = lazy(() => import("./screens/AddInvestmentTransaction").then(m => ({ default: m.AddInvestmentTransaction })));
 const InvestmentTransactions = lazy(() => import("./screens/InvestmentTransactions").then(m => ({ default: m.InvestmentTransactions })));
 const FinancialAnalysis = lazy(() => import("./screens/FinancialAnalysis").then(m => ({ default: m.FinancialAnalysis })));
+const SavingsGoals = lazy(() => import("./screens/SavingsGoals").then(m => ({ default: m.SavingsGoals })));
 
 export type TransactionType = "income" | "expense";
 export type PriorityLevel = 1 | 2 | 3 | 4 | 5;
