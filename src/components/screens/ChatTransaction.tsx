@@ -64,10 +64,16 @@ export function ChatTransaction() {
     setIsLoading(true);
 
     try {
+      const history = messages
+        .filter((m) => m.id !== "welcome")
+        .slice(-10)
+        .map((m) => ({ role: m.role, content: m.content }));
+
       const { data, error } = await supabase.functions.invoke("chat-transaction", {
         body: {
           message: text,
           categories: categories.map((c) => ({ id: c.id, name: c.name, type: c.type })),
+          history,
         },
       });
 
