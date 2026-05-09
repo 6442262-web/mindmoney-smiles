@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, TrendingDown, Flame, Snowflake, AlertTriangle, Trophy, Calendar } from "lucide-react";
+import { ArrowLeft, TrendingDown, Flame, Snowflake, AlertTriangle, Trophy, Calendar, RefreshCw, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ const fmt = (n: number) =>
 interface DebtRow {
   id: string;
   name: string;
+  type: string;
   balance: number;
   rate: number;
   monthlyPayment: number;
@@ -21,6 +22,33 @@ interface DebtRow {
   yearlyInterest: number;
   payoffMonths: number | null;
   totalInterest: number | null;
+  refinanceTargetRate: number | null;
+  refinanceReason: string | null;
+  potentialYearlySaving: number;
+}
+
+// Suggested "good" refinance rate by debt type (annual %)
+const REFINANCE_TARGET: Record<string, number> = {
+  credit_card: 12,
+  personal_loan: 8,
+  car_loan: 5,
+  mortgage: 4,
+  student_loan: 4,
+  loan: 7,
+  other: 8,
+};
+
+function getRefinanceSuggestion(type: string, rate: number, balance: number) {
+  const key = (type || "loan").toLowerCase();
+  const target = REFINANCE_TARGET[key] ?? REFINANCE_TARGET.loan;
+  // Only suggest if current rate is meaningfully higher than target (>= 2% gap)
+  if (rate <= 0 || rate - target < 2) {
+    return { targetRate: null, reason: null, saving: 0 };
+  }
+  const saving = ((rate - target) / 100) * balance; // yearly interest saved
+  let reason = `อัตราปัจจุบัน ${rate}% สูงกว่าค่าเฉลี่ยตลาด (~${target}%)`;
+  if (key === "credit_card" && rate >= 16) reason = `บัตรเครดิตดอกเบี้ย ${rate}% — ควรรวมหนี้/สินเชื่อส่วนบุคคลแทน`;
+  return { targetRate: target, reason, saving };
 }
 
 function computePayoff(balance: number, annualRate: number, monthlyPayment: number) {
@@ -55,9 +83,12 @@ export function DebtAnalyzer() {
           rate,
           monthlyPayment
         );
+        const type = l.type || "loan";
+        const refi = getRefinanceSuggestion(type, rate, l.current_balance);
         return {
           id: l.id,
           name: l.name,
+          type,
           balance: l.current_balance,
           rate,
           monthlyPayment,
@@ -65,6 +96,9 @@ export function DebtAnalyzer() {
           yearlyInterest: monthlyInterest * 12,
           payoffMonths: months,
           totalInterest,
+          refinanceTargetRate: refi.targetRate,
+          refinanceReason: refi.reason,
+          potentialYearlySaving: refi.saving,
         };
       });
   }, [liabilities]);
@@ -156,6 +190,55 @@ export function DebtAnalyzer() {
                 </div>
               </Card>
             )}
+
+            {/* Refinance suggestions */}
+            {(() => {
+              const refiList = rows.filter((r) => r.refinanceTargetRate != null);
+              if (refiList.length === 0) return null;
+              const totalSaving = refiList.reduce((s, r) => s + r.potentialYearlySaving, 0);
+              return (
+                <Card className="p-4 border-primary/30 bg-primary/5">
+                  <div className="flex items-start gap-3">
+                    <RefreshCw className="h-5 w-5 text-primary mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-primary flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" /> แนะนำให้รีไฟแนนซ์ ({refiList.length} รายการ)
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        ประหยัดได้สูงสุด ~{fmt(totalSaving)} / ปี ถ้ารีไฟแนนซ์สำเร็จ
+                      </p>
+                      <div className="mt-3 space-y-2">
+                        {refiList
+                          .sort((a, b) => b.potentialYearlySaving - a.potentialYearlySaving)
+                          .map((r) => (
+                            <div
+                              key={r.id}
+                              className="rounded-md bg-background/60 border border-border p-2"
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="font-semibold text-sm truncate">{r.name}</p>
+                                <Badge variant="outline" className="shrink-0 text-xs">
+                                  {r.rate}% → ~{r.refinanceTargetRate}%
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {r.refinanceReason}
+                              </p>
+                              <p className="text-xs mt-1">
+                                ประหยัด ~
+                                <span className="font-semibold text-primary">
+                                  {fmt(r.potentialYearlySaving)}
+                                </span>{" "}
+                                / ปี
+                              </p>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })()}
 
             {/* Strategy tabs */}
             <Tabs value={strategy} onValueChange={(v) => setStrategy(v as any)}>
