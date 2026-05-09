@@ -191,6 +191,55 @@ export function DebtAnalyzer() {
               </Card>
             )}
 
+            {/* Refinance suggestions */}
+            {(() => {
+              const refiList = rows.filter((r) => r.refinanceTargetRate != null);
+              if (refiList.length === 0) return null;
+              const totalSaving = refiList.reduce((s, r) => s + r.potentialYearlySaving, 0);
+              return (
+                <Card className="p-4 border-primary/30 bg-primary/5">
+                  <div className="flex items-start gap-3">
+                    <RefreshCw className="h-5 w-5 text-primary mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-primary flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" /> แนะนำให้รีไฟแนนซ์ ({refiList.length} รายการ)
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        ประหยัดได้สูงสุด ~{fmt(totalSaving)} / ปี ถ้ารีไฟแนนซ์สำเร็จ
+                      </p>
+                      <div className="mt-3 space-y-2">
+                        {refiList
+                          .sort((a, b) => b.potentialYearlySaving - a.potentialYearlySaving)
+                          .map((r) => (
+                            <div
+                              key={r.id}
+                              className="rounded-md bg-background/60 border border-border p-2"
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="font-semibold text-sm truncate">{r.name}</p>
+                                <Badge variant="outline" className="shrink-0 text-xs">
+                                  {r.rate}% → ~{r.refinanceTargetRate}%
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {r.refinanceReason}
+                              </p>
+                              <p className="text-xs mt-1">
+                                ประหยัด ~
+                                <span className="font-semibold text-primary">
+                                  {fmt(r.potentialYearlySaving)}
+                                </span>{" "}
+                                / ปี
+                              </p>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })()}
+
             {/* Strategy tabs */}
             <Tabs value={strategy} onValueChange={(v) => setStrategy(v as any)}>
               <TabsList className="grid grid-cols-2 w-full">
