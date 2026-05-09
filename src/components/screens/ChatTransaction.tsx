@@ -32,7 +32,7 @@ export function ChatTransaction() {
     {
       id: "welcome",
       role: "assistant",
-      content: "สวัสดีครับ! 👋 พิมพ์บอกรายรับรายจ่ายได้เลย เช่น\n• \"กินข้าว 50 บาท\"\n• \"เงินเดือน 30,000\"\n• \"ค่าแท็กซี่ 150\"\nผมจะช่วยจัดหมวดหมู่และบันทึกให้อัตโนมัติครับ",
+      content: "สวัสดีครับ! 👋 ผมเป็นผู้ช่วยการเงินส่วนตัว สามารถ:\n\n📝 บันทึกรายการ เช่น\n• \"กินข้าว 50 บาท\"\n• \"เงินเดือน 30,000\"\n\n💬 ตอบคำถามจากข้อมูลของคุณ เช่น\n• \"เดือนนี้ใช้เงินไปเท่าไหร่\"\n• \"หมวดไหนใช้เยอะสุด\"\n• \"หนี้บัตรเครดิตเหลือเท่าไหร่\"\n• \"พอร์ตลงทุนกำไรเท่าไหร่\"\n• \"เป้าหมายการออมไปถึงไหนแล้ว\"",
     },
   ]);
   const [input, setInput] = useState("");
@@ -64,10 +64,16 @@ export function ChatTransaction() {
     setIsLoading(true);
 
     try {
+      const history = messages
+        .filter((m) => m.id !== "welcome")
+        .slice(-10)
+        .map((m) => ({ role: m.role, content: m.content }));
+
       const { data, error } = await supabase.functions.invoke("chat-transaction", {
         body: {
           message: text,
           categories: categories.map((c) => ({ id: c.id, name: c.name, type: c.type })),
+          history,
         },
       });
 
