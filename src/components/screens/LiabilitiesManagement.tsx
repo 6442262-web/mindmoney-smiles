@@ -140,7 +140,13 @@ export function LiabilitiesManagement() {
           </Button>
         </Link>
         <h1 className="text-2xl font-bold">จัดการหนี้สิน</h1>
-        <div className="ml-auto">
+        <div className="ml-auto flex gap-2">
+          <Link to="/debt-analyzer">
+            <Button variant="outline" size="sm">
+              <TrendingDown className="h-4 w-4 mr-2" />
+              วิเคราะห์
+            </Button>
+          </Link>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
             if (!open) resetForm();
