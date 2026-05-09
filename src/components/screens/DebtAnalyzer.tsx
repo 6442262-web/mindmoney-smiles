@@ -83,9 +83,12 @@ export function DebtAnalyzer() {
           rate,
           monthlyPayment
         );
+        const type = l.type || "loan";
+        const refi = getRefinanceSuggestion(type, rate, l.current_balance);
         return {
           id: l.id,
           name: l.name,
+          type,
           balance: l.current_balance,
           rate,
           monthlyPayment,
@@ -93,6 +96,9 @@ export function DebtAnalyzer() {
           yearlyInterest: monthlyInterest * 12,
           payoffMonths: months,
           totalInterest,
+          refinanceTargetRate: refi.targetRate,
+          refinanceReason: refi.reason,
+          potentialYearlySaving: refi.saving,
         };
       });
   }, [liabilities]);
