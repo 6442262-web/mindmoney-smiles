@@ -14,6 +14,7 @@ const fmt = (n: number) =>
 interface DebtRow {
   id: string;
   name: string;
+  type: string;
   balance: number;
   rate: number;
   monthlyPayment: number;
@@ -21,6 +22,33 @@ interface DebtRow {
   yearlyInterest: number;
   payoffMonths: number | null;
   totalInterest: number | null;
+  refinanceTargetRate: number | null;
+  refinanceReason: string | null;
+  potentialYearlySaving: number;
+}
+
+// Suggested "good" refinance rate by debt type (annual %)
+const REFINANCE_TARGET: Record<string, number> = {
+  credit_card: 12,
+  personal_loan: 8,
+  car_loan: 5,
+  mortgage: 4,
+  student_loan: 4,
+  loan: 7,
+  other: 8,
+};
+
+function getRefinanceSuggestion(type: string, rate: number, balance: number) {
+  const key = (type || "loan").toLowerCase();
+  const target = REFINANCE_TARGET[key] ?? REFINANCE_TARGET.loan;
+  // Only suggest if current rate is meaningfully higher than target (>= 2% gap)
+  if (rate <= 0 || rate - target < 2) {
+    return { targetRate: null, reason: null, saving: 0 };
+  }
+  const saving = ((rate - target) / 100) * balance; // yearly interest saved
+  let reason = `อัตราปัจจุบัน ${rate}% สูงกว่าค่าเฉลี่ยตลาด (~${target}%)`;
+  if (key === "credit_card" && rate >= 16) reason = `บัตรเครดิตดอกเบี้ย ${rate}% — ควรรวมหนี้/สินเชื่อส่วนบุคคลแทน`;
+  return { targetRate: target, reason, saving };
 }
 
 function computePayoff(balance: number, annualRate: number, monthlyPayment: number) {
