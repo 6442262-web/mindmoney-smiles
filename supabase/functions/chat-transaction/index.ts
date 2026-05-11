@@ -65,6 +65,7 @@ serve(async (req) => {
       { data: investments },
       { data: savingsGoals },
       { data: recurring },
+      { data: liabPayments },
     ] = await Promise.all([
       supabaseClient.from('transactions')
         .select('id,type,amount,description,date,category_id,account_id,currency')
@@ -72,10 +73,11 @@ serve(async (req) => {
         .order('date', { ascending: false })
         .limit(300),
       supabaseClient.from('accounts').select('id,name,type,balance,currency').eq('is_active', true),
-      supabaseClient.from('liabilities').select('id,name,type,current_balance,interest_rate,monthly_payment,creditor').eq('is_active', true),
+      supabaseClient.from('liabilities').select('id,name,type,principal_amount,current_balance,interest_rate,monthly_payment,creditor,start_date,end_date,note').eq('is_active', true),
       supabaseClient.from('investments').select('id,name,symbol,asset_type,quantity,avg_cost,current_price,currency').eq('is_active', true),
       supabaseClient.from('savings_goals').select('id,name,target_amount,current_amount,deadline,is_completed'),
       supabaseClient.from('recurring_transactions').select('id,type,amount,description,frequency,next_execution').eq('is_active', true),
+      supabaseClient.from('liability_payments').select('liability_id,amount,principal_amount,interest_amount,payment_date,note').order('payment_date', { ascending: false }).limit(100),
     ]);
 
     const catMap = new Map<string, string>();
