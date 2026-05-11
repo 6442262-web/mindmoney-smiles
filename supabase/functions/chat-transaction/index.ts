@@ -65,6 +65,7 @@ serve(async (req) => {
       { data: investments },
       { data: savingsGoals },
       { data: recurring },
+      { data: liabPayments },
     ] = await Promise.all([
       supabaseClient.from('transactions')
         .select('id,type,amount,description,date,category_id,account_id,currency')
@@ -72,10 +73,11 @@ serve(async (req) => {
         .order('date', { ascending: false })
         .limit(300),
       supabaseClient.from('accounts').select('id,name,type,balance,currency').eq('is_active', true),
-      supabaseClient.from('liabilities').select('id,name,type,current_balance,interest_rate,monthly_payment,creditor').eq('is_active', true),
+      supabaseClient.from('liabilities').select('id,name,type,principal_amount,current_balance,interest_rate,monthly_payment,creditor,start_date,end_date,note').eq('is_active', true),
       supabaseClient.from('investments').select('id,name,symbol,asset_type,quantity,avg_cost,current_price,currency').eq('is_active', true),
       supabaseClient.from('savings_goals').select('id,name,target_amount,current_amount,deadline,is_completed'),
       supabaseClient.from('recurring_transactions').select('id,type,amount,description,frequency,next_execution').eq('is_active', true),
+      supabaseClient.from('liability_payments').select('liability_id,amount,principal_amount,interest_amount,payment_date,note').order('payment_date', { ascending: false }).limit(100),
     ]);
 
     const catMap = new Map<string, string>();
@@ -111,7 +113,33 @@ serve(async (req) => {
     const portfolioCost = (investments ?? []).reduce((s, i) => s + Number(i.quantity || 0) * Number(i.avg_cost || 0), 0);
 
     const accountsTxt = (accounts ?? []).map(a => `  - ${a.name} (${a.type}): ${Number(a.balance).toLocaleString()} ${a.currency}`).join('\n') || '  ไม่มี';
-    const liabilitiesTxt = (liabilities ?? []).map(l => `  - ${l.name} (${l.type}): ยอดคงเหลือ ${Number(l.current_balance).toLocaleString()} ฿, ดอก ${l.interest_rate}%, จ่าย/ด ${Number(l.monthly_payment||0).toLocaleString()}`).join('\n') || '  ไม่มี';
+    const REFINANCE_TARGET: Record<string, number> = { credit_card: 12, personal_loan: 8, car_loan: 5, mortgage: 4, loan: 7 };
+    const liabList = liabilities ?? [];
+    const totalMonthlyDebtPayment = liabList.reduce((s, l) => s + Number(l.monthly_payment || 0), 0);
+    const totalYearlyInterest = liabList.reduce((s, l) => s + (Number(l.current_balance || 0) * Number(l.interest_rate || 0) / 100), 0);
+    const paymentsByLiab: Record<string, { count: number; total: number; lastDate?: string }> = {};
+    for (const p of (liabPayments ?? [])) {
+      const k = p.liability_id;
+      if (!paymentsByLiab[k]) paymentsByLiab[k] = { count: 0, total: 0 };
+      paymentsByLiab[k].count++;
+      paymentsByLiab[k].total += Number(p.amount || 0);
+      if (!paymentsByLiab[k].lastDate || p.payment_date > paymentsByLiab[k].lastDate!) paymentsByLiab[k].lastDate = p.payment_date;
+    }
+    const refinanceList: string[] = [];
+    const liabilitiesTxt = liabList.map(l => {
+      const rate = Number(l.interest_rate || 0);
+      const bal = Number(l.current_balance || 0);
+      const yearlyInt = bal * rate / 100;
+      const target = REFINANCE_TARGET[l.type] ?? 7;
+      const pay = paymentsByLiab[l.id];
+      const payInfo = pay ? `, จ่ายมาแล้ว ${pay.count} ครั้ง รวม ${pay.total.toLocaleString()} ฿ (ล่าสุด ${pay.lastDate})` : ', ยังไม่มีประวัติจ่าย';
+      if (rate >= target + 2) {
+        const saving = ((rate - target) / 100) * bal;
+        refinanceList.push(`  - ${l.name}: ดอกปัจจุบัน ${rate}% สูงกว่าเรตตลาด ${target}% — ประหยัดได้ราว ${saving.toLocaleString(undefined,{maximumFractionDigits:0})} ฿/ปี`);
+      }
+      return `  - ${l.name} (${l.type})${l.creditor?` [${l.creditor}]`:''}: ยอดคงเหลือ ${bal.toLocaleString()} ฿ จากต้น ${Number(l.principal_amount||0).toLocaleString()}, ดอก ${rate}%/ปี (~${yearlyInt.toLocaleString(undefined,{maximumFractionDigits:0})} ฿/ปี), จ่าย/ด ${Number(l.monthly_payment||0).toLocaleString()} ฿${l.end_date?`, ครบกำหนด ${l.end_date}`:''}${payInfo}`;
+    }).join('\n') || '  ไม่มี';
+    const refinanceTxt = refinanceList.length ? refinanceList.join('\n') : '  ไม่มีหนี้ที่ควรรีไฟแนนซ์ในตอนนี้';
     const investmentsTxt = (investments ?? []).map(i => {
       const v = Number(i.quantity)*Number(i.current_price||0);
       const c = Number(i.quantity)*Number(i.avg_cost||0);
@@ -136,7 +164,7 @@ serve(async (req) => {
 
 == ภาพรวมการเงินของผู้ใช้ ==
 - ยอดเงินรวมในบัญชีทั้งหมด: ${totalBalance.toLocaleString()} ฿
-- หนี้สินรวม: ${totalDebt.toLocaleString()} ฿
+- หนี้สินรวม: ${totalDebt.toLocaleString()} ฿ (จ่าย/เดือนรวม ${totalMonthlyDebtPayment.toLocaleString()} ฿, ดอกเบี้ยรวม ~${totalYearlyInterest.toLocaleString(undefined,{maximumFractionDigits:0})} ฿/ปี)
 - มูลค่าพอร์ตลงทุน: ${portfolioValue.toLocaleString()} ฿ (ต้นทุน ${portfolioCost.toLocaleString()} ฿)
 - รายรับ 30 วันล่าสุด: ${income30.toLocaleString()} ฿
 - รายจ่าย 30 วันล่าสุด: ${expense30.toLocaleString()} ฿
@@ -146,8 +174,11 @@ serve(async (req) => {
 == บัญชี ==
 ${accountsTxt}
 
-== หนี้สิน ==
+== หนี้สิน (รายละเอียด + ประวัติการจ่าย) ==
 ${liabilitiesTxt}
+
+== แนะนำให้รีไฟแนนซ์ ==
+${refinanceTxt}
 
 == การลงทุน ==
 ${investmentsTxt}
