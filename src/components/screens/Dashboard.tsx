@@ -19,6 +19,7 @@ import { SavingsWidget } from "@/components/widgets/SavingsWidget";
 import { SmartAlerts } from "@/components/widgets/SmartAlerts";
 import { SpendingBreakdown } from "@/components/widgets/SpendingBreakdown";
 import { NetWorthWidget } from "@/components/widgets/NetWorthWidget";
+import { DebtWidget } from "@/components/widgets/DebtWidget";
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -283,6 +284,9 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
 
       {/* Net Worth Overview */}
       <NetWorthWidget />
+
+      {/* Debt Overview */}
+      <DebtWidget />
 
       {/* Savings Goals Widget */}
       <SavingsWidget />
