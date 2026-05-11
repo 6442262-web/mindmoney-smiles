@@ -285,6 +285,9 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
       {/* Net Worth Overview */}
       <NetWorthWidget />
 
+      {/* Debt Overview */}
+      <DebtWidget />
+
       {/* Savings Goals Widget */}
       <SavingsWidget />
 
