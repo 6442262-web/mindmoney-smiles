@@ -87,10 +87,9 @@ serve(async (req) => {
     const txList = txns ?? [];
     let income30 = 0, expense30 = 0, income90 = 0, expense90 = 0;
     const byCat: Record<string, number> = {};
-    const cutoff30 = new Date(); cutoff30.setDate(cutoff30.getDate() - 30);
     for (const t of txList) {
       const amt = Number(t.amount) || 0;
-      const isRecent = new Date(t.date) >= cutoff30;
+      const isRecent = t.date >= cutoff30Str;
       if (t.type === 'income') { income90 += amt; if (isRecent) income30 += amt; }
       else if (t.type === 'expense') {
         expense90 += amt; if (isRecent) expense30 += amt;
