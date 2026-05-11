@@ -48,9 +48,15 @@ serve(async (req) => {
     }
 
     // ===== Load user's full financial context (RLS-protected) =====
-    const since = new Date();
-    since.setDate(since.getDate() - 90); // last 90 days
+    // Use Thailand time (UTC+7)
+    const tzNow = new Date(Date.now() + 7 * 60 * 60 * 1000);
+    const todayStr = tzNow.toISOString().slice(0, 10);
+    const since = new Date(tzNow);
+    since.setUTCDate(since.getUTCDate() - 90);
     const sinceStr = since.toISOString().slice(0, 10);
+    const cutoff30Date = new Date(tzNow);
+    cutoff30Date.setUTCDate(cutoff30Date.getUTCDate() - 30);
+    const cutoff30Str = cutoff30Date.toISOString().slice(0, 10);
 
     const [
       { data: txns },
@@ -81,10 +87,9 @@ serve(async (req) => {
     const txList = txns ?? [];
     let income30 = 0, expense30 = 0, income90 = 0, expense90 = 0;
     const byCat: Record<string, number> = {};
-    const cutoff30 = new Date(); cutoff30.setDate(cutoff30.getDate() - 30);
     for (const t of txList) {
       const amt = Number(t.amount) || 0;
-      const isRecent = new Date(t.date) >= cutoff30;
+      const isRecent = t.date >= cutoff30Str;
       if (t.type === 'income') { income90 += amt; if (isRecent) income30 += amt; }
       else if (t.type === 'expense') {
         expense90 += amt; if (isRecent) expense30 += amt;
@@ -123,7 +128,7 @@ serve(async (req) => {
       ? categories.map((c: { name: string; id: string; type: string }) => `  - ${c.name} (id: ${c.id}, type: ${c.type})`).join('\n')
       : '  ไม่มีหมวดหมู่ที่กำหนด';
 
-    const todayStr = new Date().toISOString().slice(0, 10);
+    
 
     const systemPrompt = `คุณเป็นผู้ช่วยการเงินส่วนตัวของผู้ใช้ คุณสามารถ (1) บันทึกรายรับ/รายจ่ายใหม่ และ (2) ตอบคำถามเกี่ยวกับข้อมูลการเงินทั้งหมดของผู้ใช้ที่เคยบันทึก
 
