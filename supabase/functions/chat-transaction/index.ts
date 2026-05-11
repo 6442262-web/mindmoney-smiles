@@ -128,7 +128,7 @@ serve(async (req) => {
       ? categories.map((c: { name: string; id: string; type: string }) => `  - ${c.name} (id: ${c.id}, type: ${c.type})`).join('\n')
       : '  ไม่มีหมวดหมู่ที่กำหนด';
 
-    const todayStr = new Date().toISOString().slice(0, 10);
+    
 
     const systemPrompt = `คุณเป็นผู้ช่วยการเงินส่วนตัวของผู้ใช้ คุณสามารถ (1) บันทึกรายรับ/รายจ่ายใหม่ และ (2) ตอบคำถามเกี่ยวกับข้อมูลการเงินทั้งหมดของผู้ใช้ที่เคยบันทึก
 
