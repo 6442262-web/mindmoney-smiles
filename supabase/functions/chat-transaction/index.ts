@@ -48,9 +48,15 @@ serve(async (req) => {
     }
 
     // ===== Load user's full financial context (RLS-protected) =====
-    const since = new Date();
-    since.setDate(since.getDate() - 90); // last 90 days
+    // Use Thailand time (UTC+7)
+    const tzNow = new Date(Date.now() + 7 * 60 * 60 * 1000);
+    const todayStr = tzNow.toISOString().slice(0, 10);
+    const since = new Date(tzNow);
+    since.setUTCDate(since.getUTCDate() - 90);
     const sinceStr = since.toISOString().slice(0, 10);
+    const cutoff30Date = new Date(tzNow);
+    cutoff30Date.setUTCDate(cutoff30Date.getUTCDate() - 30);
+    const cutoff30Str = cutoff30Date.toISOString().slice(0, 10);
 
     const [
       { data: txns },
