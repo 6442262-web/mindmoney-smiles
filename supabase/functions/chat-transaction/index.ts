@@ -164,7 +164,7 @@ serve(async (req) => {
 
 == ภาพรวมการเงินของผู้ใช้ ==
 - ยอดเงินรวมในบัญชีทั้งหมด: ${totalBalance.toLocaleString()} ฿
-- หนี้สินรวม: ${totalDebt.toLocaleString()} ฿
+- หนี้สินรวม: ${totalDebt.toLocaleString()} ฿ (จ่าย/เดือนรวม ${totalMonthlyDebtPayment.toLocaleString()} ฿, ดอกเบี้ยรวม ~${totalYearlyInterest.toLocaleString(undefined,{maximumFractionDigits:0})} ฿/ปี)
 - มูลค่าพอร์ตลงทุน: ${portfolioValue.toLocaleString()} ฿ (ต้นทุน ${portfolioCost.toLocaleString()} ฿)
 - รายรับ 30 วันล่าสุด: ${income30.toLocaleString()} ฿
 - รายจ่าย 30 วันล่าสุด: ${expense30.toLocaleString()} ฿
@@ -174,8 +174,11 @@ serve(async (req) => {
 == บัญชี ==
 ${accountsTxt}
 
-== หนี้สิน ==
+== หนี้สิน (รายละเอียด + ประวัติการจ่าย) ==
 ${liabilitiesTxt}
+
+== แนะนำให้รีไฟแนนซ์ ==
+${refinanceTxt}
 
 == การลงทุน ==
 ${investmentsTxt}
