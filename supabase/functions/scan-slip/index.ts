@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+const googleAiKey = Deno.env.get('GOOGLE_AI_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -71,8 +71,8 @@ serve(async (req) => {
       });
     }
 
-    if (!lovableApiKey) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    if (!googleAiKey) {
+      throw new Error('GOOGLE_AI_KEY not configured');
     }
 
     // Use Gemini vision model to analyze the slip
@@ -123,24 +123,24 @@ serve(async (req) => {
       cleanBase64 = imageBase64.split(',')[1];
     }
     
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${googleAiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gemini-2.5-flash',
         messages: [
-          { 
-            role: 'user', 
+          {
+            role: 'user',
             content: [
               { type: 'text', text: systemPrompt },
-              { 
-                type: 'image_url', 
-                image_url: { 
-                  url: `data:image/jpeg;base64,${cleanBase64}` 
-                } 
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:image/jpeg;base64,${cleanBase64}`
+                }
               }
             ]
           }
@@ -158,13 +158,13 @@ serve(async (req) => {
       }
       if (response.status === 402) {
         console.error('Payment required');
-        return new Response(JSON.stringify({ error: 'Please add credits to your Lovable workspace' }), {
+        return new Response(JSON.stringify({ error: 'API payment required' }), {
           status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       const errorData = await response.text();
-      console.error('Lovable AI API error:', response.status, errorData);
+      console.error('Google AI API error:', response.status, errorData);
       throw new Error(`AI API error: ${response.status}`);
     }
 

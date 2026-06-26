@@ -42,9 +42,9 @@ serve(async (req) => {
       });
     }
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const googleAiKey = Deno.env.get('GOOGLE_AI_KEY');
+    if (!googleAiKey) {
+      throw new Error('GOOGLE_AI_KEY not configured');
     }
 
     // ===== Load user's full financial context (RLS-protected) =====
@@ -234,14 +234,14 @@ ${categoryList}
     }
     chatMessages.push({ role: 'user', content: message });
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${googleAiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gemini-2.5-flash',
         messages: chatMessages,
         response_format: { type: 'json_object' },
       }),

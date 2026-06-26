@@ -42,6 +42,8 @@ const InvestmentTransactions = lazy(() => import("./screens/InvestmentTransactio
 const FinancialAnalysis = lazy(() => import("./screens/FinancialAnalysis").then(m => ({ default: m.FinancialAnalysis })));
 const SavingsGoals = lazy(() => import("./screens/SavingsGoals").then(m => ({ default: m.SavingsGoals })));
 const DebtAnalyzer = lazy(() => import("./screens/DebtAnalyzer").then(m => ({ default: m.DebtAnalyzer })));
+const ExpenseForecast = lazy(() => import("./screens/ExpenseForecast").then(m => ({ default: m.ExpenseForecast })));
+const ImportTransactions = lazy(() => import("./screens/ImportTransactions").then(m => ({ default: m.ImportTransactions })));
 
 export type TransactionType = "income" | "expense";
 export type PriorityLevel = 1 | 2 | 3 | 4 | 5;
@@ -234,6 +236,8 @@ function AppContent() {
             <Route path="/financial-analysis" element={<FinancialAnalysis />} />
             <Route path="/savings-goals" element={<SavingsGoals />} />
             <Route path="/debt-analyzer" element={<DebtAnalyzer />} />
+            <Route path="/expense-forecast" element={<ExpenseForecast />} />
+            <Route path="/import-csv" element={<ImportTransactions />} />
           </Routes>
         </Suspense>
         <BottomNavigation />

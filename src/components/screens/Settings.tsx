@@ -31,7 +31,8 @@ import {
   LogOut,
   Database,
   Ticket,
-  TrendingUp
+  TrendingUp,
+  Upload
 } from 'lucide-react';
 import { InviteCodeDialog } from '@/components/InviteCodeDialog';
 import { Link } from 'react-router-dom';
@@ -364,6 +365,13 @@ export function Settings() {
               <Download className="h-4 w-4 mr-2" />
               ส่งออกข้อมูลเป็น JSON
             </Button>
+
+            <Link to="/import-csv" className="block">
+              <Button variant="outline" className="w-full justify-start">
+                <Upload className="h-4 w-4 mr-2" />
+                นำเข้าข้อมูลจาก CSV
+              </Button>
+            </Link>
 
             <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
               <div className="flex items-center gap-3">

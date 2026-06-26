@@ -105,6 +105,40 @@ export function useTransactions() {
     }
   };
 
+  // Bulk create transactions (e.g. CSV import). Inserts in chunks and refreshes once.
+  const createTransactionsBulk = async (
+    items: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]
+  ): Promise<{ inserted: number; failed: number }> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast({
+        title: "กรุณาเข้าสู่ระบบ",
+        description: "คุณต้องเข้าสู่ระบบก่อนนำเข้ารายการ",
+        variant: "destructive",
+      });
+      return { inserted: 0, failed: items.length };
+    }
+
+    const userId = session.user.id;
+    const CHUNK = 200;
+    let inserted = 0;
+    let failed = 0;
+
+    for (let i = 0; i < items.length; i += CHUNK) {
+      const chunk = items.slice(i, i + CHUNK).map((item) => ({ ...item, user_id: userId }));
+      const { data, error } = await supabase.from('transactions').insert(chunk).select();
+      if (error) {
+        console.error('Error in bulk insert:', error);
+        failed += chunk.length;
+      } else {
+        inserted += data?.length ?? chunk.length;
+      }
+    }
+
+    if (inserted > 0) await loadTransactions();
+    return { inserted, failed };
+  };
+
   // Update transaction
   const updateTransaction = async (transactionId: string, updates: Partial<Transaction>) => {
     try {
@@ -207,6 +241,7 @@ export function useTransactions() {
     transactions,
     loading,
     createTransaction,
+    createTransactionsBulk,
     updateTransaction,
     deleteTransaction,
     refreshTransactions: loadTransactions,

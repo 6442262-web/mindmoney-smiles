@@ -1,73 +1,57 @@
-# Welcome to your Lovable project
+# MoneyMind - จัดการการเงินอัจฉริยะ
 
-## Project info
+เว็บแอปพลิเคชันจัดการรายรับรายจ่ายอัจฉริยะ พร้อมระบบ AI วิเคราะห์การเงิน
 
-**URL**: https://lovable.dev/projects/b29b98ad-e2df-40cf-9d83-87beea8210b5
+## เทคโนโลยีที่ใช้
 
-## How can I edit this code?
+- **Frontend:** React 18 + TypeScript + Vite
+- **UI:** Tailwind CSS + shadcn-ui
+- **Backend:** Supabase (PostgreSQL + Auth + Edge Functions)
+- **AI:** Google Gemini 2.5 Flash (ผ่าน Google AI Studio)
+- **State Management:** TanStack React Query
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/b29b98ad-e2df-40cf-9d83-87beea8210b5) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## วิธีรันโปรเจค
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# 1. Clone repository
+git clone https://github.com/6442262-web/mindmoney-smiles.git
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# 2. เข้าโฟลเดอร์
+cd mindmoney-smiles
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 3. ติดตั้ง dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 4. สร้างไฟล์ .env แล้วใส่ค่า
+# VITE_SUPABASE_URL=your-supabase-url
+# VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+
+# 5. รันเซิร์ฟเวอร์
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## การ Deploy
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Frontend (Vercel / Netlify)
+1. เชื่อม GitHub repo
+2. ตั้ง Build Command: `npm run build`
+3. ตั้ง Output Directory: `dist`
+4. เพิ่ม Environment Variables
 
-**Use GitHub Codespaces**
+### Edge Functions (Supabase)
+```sh
+supabase secrets set GOOGLE_AI_KEY=your-google-ai-key
+supabase functions deploy chat-transaction
+supabase functions deploy scan-slip
+supabase functions deploy analyze-expense
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## ฟีเจอร์หลัก
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/b29b98ad-e2df-40cf-9d83-87beea8210b5) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- 📊 บันทึกรายรับ-รายจ่าย
+- 🤖 AI Chatbot ช่วยบันทึกและวิเคราะห์
+- 📸 สแกนสลิปโอนเงินอัตโนมัติ
+- 📈 กราฟและรายงานการเงิน
+- 🎯 ตั้งเป้าหมายการออม
+- 💰 จัดการหนี้สินและการลงทุน
+- 🔒 ระบบ PIN ล็อคความปลอดภัย

@@ -407,12 +407,20 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
           </Link>
           <h1 className="text-2xl font-bold">สรุปรายงาน</h1>
         </div>
-        <Link to="/financial-insights">
-          <Button variant="outline" size="sm">
-            <TrendingUp className="h-4 w-4 mr-2" />
-            วิเคราะห์
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link to="/expense-forecast">
+            <Button variant="outline" size="sm">
+              <span className="mr-1">🔮</span>
+              คาดการณ์
+            </Button>
+          </Link>
+          <Link to="/financial-insights">
+            <Button variant="outline" size="sm">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              วิเคราะห์
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Filter Section */}
