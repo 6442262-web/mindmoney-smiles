@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage } from '@/lib/getErrorMessage';
 
 export interface Transaction {
   id: string;
@@ -91,9 +92,9 @@ export function useTransactions() {
       });
 
       return data;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error in createTransaction:', error);
-      const isNetworkError = !navigator.onLine || error?.message?.includes('fetch');
+      const isNetworkError = !navigator.onLine || getErrorMessage(error).includes('fetch');
       toast({
         title: isNetworkError ? "ไม่มีการเชื่อมต่อ" : "เกิดข้อผิดพลาด",
         description: isNetworkError 
@@ -167,9 +168,9 @@ export function useTransactions() {
         title: "อัพเดทสำเร็จ",
         description: "รายการได้รับการอัพเดทแล้ว",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error in updateTransaction:', error);
-      const isNetworkError = !navigator.onLine || error?.message?.includes('fetch');
+      const isNetworkError = !navigator.onLine || getErrorMessage(error).includes('fetch');
       toast({
         title: isNetworkError ? "ไม่มีการเชื่อมต่อ" : "เกิดข้อผิดพลาด",
         description: isNetworkError
@@ -203,9 +204,9 @@ export function useTransactions() {
         title: "ลบรายการสำเร็จ",
         description: "รายการถูกลบแล้ว",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error in deleteTransaction:', error);
-      const isNetworkError = !navigator.onLine || error?.message?.includes('fetch');
+      const isNetworkError = !navigator.onLine || getErrorMessage(error).includes('fetch');
       toast({
         title: isNetworkError ? "ไม่มีการเชื่อมต่อ" : "เกิดข้อผิดพลาด",
         description: isNetworkError

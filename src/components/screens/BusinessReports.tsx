@@ -16,6 +16,24 @@ import { ArrowLeft, Download, TrendingUp, TrendingDown, DollarSign, PieChart, Pe
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
+// One report section's editable fields at a time (revenue / expenses / cashFlow / balanceSheet).
+interface EditForm {
+  sales?: number;
+  services?: number;
+  other?: number;
+  cogs?: number;
+  rent?: number;
+  utilities?: number;
+  marketing?: number;
+  salaries?: number;
+  operating?: number;
+  investing?: number;
+  financing?: number;
+  equity?: number;
+  assets?: { current?: number; fixed?: number; intangible?: number };
+  liabilities?: { current?: number; longTerm?: number };
+}
+
 interface ReportData {
   revenue: {
     sales: number;
@@ -86,7 +104,7 @@ export function BusinessReports() {
   const [reportData, setReportData] = useState<ReportData>(defaultData);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingSection, setEditingSection] = useState<'revenue' | 'expenses' | 'cashFlow' | 'balanceSheet'>('revenue');
-  const [editForm, setEditForm] = useState<any>({});
+  const [editForm, setEditForm] = useState<EditForm>({});
   const { toast } = useToast();
 
   const totalRevenue = Object.values(reportData.revenue).reduce((sum, val) => sum + val, 0);
@@ -126,13 +144,13 @@ export function BusinessReports() {
 
   const handleSaveEdit = () => {
     if (editingSection === 'revenue') {
-      setReportData(prev => ({ ...prev, revenue: editForm }));
+      setReportData(prev => ({ ...prev, revenue: editForm as ReportData['revenue'] }));
     } else if (editingSection === 'expenses') {
-      setReportData(prev => ({ ...prev, expenses: editForm }));
+      setReportData(prev => ({ ...prev, expenses: editForm as ReportData['expenses'] }));
     } else if (editingSection === 'cashFlow') {
-      setReportData(prev => ({ ...prev, cashFlow: editForm }));
+      setReportData(prev => ({ ...prev, cashFlow: editForm as ReportData['cashFlow'] }));
     } else if (editingSection === 'balanceSheet') {
-      setReportData(prev => ({ ...prev, balanceSheet: editForm }));
+      setReportData(prev => ({ ...prev, balanceSheet: editForm as ReportData['balanceSheet'] }));
     }
     setEditDialogOpen(false);
     toast({

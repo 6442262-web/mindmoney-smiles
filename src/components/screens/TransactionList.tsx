@@ -101,7 +101,7 @@ export function TransactionList({ transactions, onDelete, onUpdate }: Transactio
             exportTransactionsCsv(
               filteredTransactions.map(t => ({
                 date: t.date,
-                time: (t as any).time,
+                time: t.time,
                 type: t.type,
                 amount: t.amount,
                 category: t.category,
@@ -179,7 +179,7 @@ export function TransactionList({ transactions, onDelete, onUpdate }: Transactio
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {formatDate(transaction.date)}
-                    {(transaction as any).time && ` ${(transaction as any).time} น.`}
+                    {transaction.time && ` ${transaction.time} น.`}
                   </p>
                 </div>
                 <div className="flex items-start gap-2">

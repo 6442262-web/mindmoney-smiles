@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+
+// `favorite_transactions` isn't in the generated DB types yet,
+// so access it through an untyped view of the client.
+const sb = supabase as unknown as SupabaseClient;
 
 export interface FavoriteTransaction {
   id: string;
@@ -20,13 +25,13 @@ export function useFavoriteTransactions() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
 
-    const { data } = await supabase
-      .from('favorite_transactions' as any)
+    const { data } = await sb
+      .from('favorite_transactions')
       .select('*')
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false });
 
-    setFavorites((data as any as FavoriteTransaction[]) || []);
+    setFavorites((data as FavoriteTransaction[]) || []);
     setLoading(false);
   };
 
@@ -34,21 +39,21 @@ export function useFavoriteTransactions() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return null;
 
-    const { data, error } = await supabase
-      .from('favorite_transactions' as any)
-      .insert({ ...fav, user_id: session.user.id } as any)
+    const { data, error } = await sb
+      .from('favorite_transactions')
+      .insert({ ...fav, user_id: session.user.id })
       .select()
       .single();
 
     if (!error && data) {
-      setFavorites(prev => [data as any as FavoriteTransaction, ...prev]);
-      return data as any as FavoriteTransaction;
+      setFavorites(prev => [data as FavoriteTransaction, ...prev]);
+      return data as FavoriteTransaction;
     }
     return null;
   };
 
   const removeFavorite = async (id: string) => {
-    await supabase.from('favorite_transactions' as any).delete().eq('id', id);
+    await sb.from('favorite_transactions').delete().eq('id', id);
     setFavorites(prev => prev.filter(f => f.id !== id));
   };
 

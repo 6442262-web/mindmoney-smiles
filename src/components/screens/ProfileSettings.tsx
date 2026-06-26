@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 
 const profileSchema = z.object({
   fullName: z.string()
@@ -110,11 +111,11 @@ export function ProfileSettings() {
           description: "ข้อมูลส่วนตัวได้รับการอัปเดตแล้ว",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating profile:', error);
       toast({
         title: "เกิดข้อผิดพลาด",
-        description: error.message || "ไม่สามารถบันทึกข้อมูลได้",
+        description: getErrorMessage(error) || "ไม่สามารถบันทึกข้อมูลได้",
         variant: "destructive",
       });
     } finally {
@@ -151,11 +152,11 @@ export function ProfileSettings() {
       });
       setShowPasswordForm(false);
       passwordForm.reset();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error changing password:', error);
       toast({
         title: "เกิดข้อผิดพลาด",
-        description: error.message || "ไม่สามารถเปลี่ยนรหัสผ่านได้",
+        description: getErrorMessage(error) || "ไม่สามารถเปลี่ยนรหัสผ่านได้",
         variant: "destructive",
       });
     } finally {

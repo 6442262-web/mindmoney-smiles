@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
+// `savings_goals` isn't in the generated DB types yet,
+// so access it through an untyped view of the client.
+const sb = supabase as unknown as SupabaseClient;
 
 export interface SavingsGoal {
   id: string;
@@ -26,8 +31,8 @@ export function useSavingsGoals() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
-      const { data, error } = await supabase
-        .from('savings_goals' as any)
+      const { data, error } = await sb
+        .from('savings_goals')
         .select('*')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
@@ -36,7 +41,7 @@ export function useSavingsGoals() {
         console.error('Error loading savings goals:', error);
         return;
       }
-      setGoals((data as any[]) || []);
+      setGoals((data as SavingsGoal[]) || []);
     } catch (error) {
       console.error('Error in loadGoals:', error);
     }
@@ -47,9 +52,9 @@ export function useSavingsGoals() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return null;
 
-      const { data, error } = await supabase
-        .from('savings_goals' as any)
-        .insert({ ...goalData, user_id: session.user.id } as any)
+      const { data, error } = await sb
+        .from('savings_goals')
+        .insert({ ...goalData, user_id: session.user.id })
         .select()
         .single();
 
@@ -57,7 +62,7 @@ export function useSavingsGoals() {
         toast({ title: "เกิดข้อผิดพลาด", description: "ไม่สามารถสร้างเป้าหมายได้", variant: "destructive" });
         return null;
       }
-      setGoals(prev => [data as any, ...prev]);
+      setGoals(prev => [data as SavingsGoal, ...prev]);
       toast({ title: "สร้างเป้าหมายสำเร็จ", description: `"${goalData.name}" ถูกเพิ่มแล้ว` });
       return data;
     } catch (error) {
@@ -68,9 +73,9 @@ export function useSavingsGoals() {
 
   const updateGoal = async (id: string, updates: Partial<SavingsGoal>) => {
     try {
-      const { data, error } = await supabase
-        .from('savings_goals' as any)
-        .update(updates as any)
+      const { data, error } = await sb
+        .from('savings_goals')
+        .update(updates)
         .eq('id', id)
         .select()
         .single();
@@ -79,7 +84,7 @@ export function useSavingsGoals() {
         toast({ title: "เกิดข้อผิดพลาด", description: "ไม่สามารถอัพเดทเป้าหมายได้", variant: "destructive" });
         return;
       }
-      setGoals(prev => prev.map(g => g.id === id ? (data as any) : g));
+      setGoals(prev => prev.map(g => g.id === id ? (data as SavingsGoal) : g));
     } catch (error) {
       console.error('Error updating goal:', error);
     }
@@ -98,8 +103,8 @@ export function useSavingsGoals() {
 
   const deleteGoal = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('savings_goals' as any)
+      const { error } = await sb
+        .from('savings_goals')
         .delete()
         .eq('id', id);
 
