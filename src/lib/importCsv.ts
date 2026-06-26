@@ -48,7 +48,7 @@ const HEADER_ALIASES: Record<Field, string[]> = {
 
 /** Tokenise CSV text into rows of fields (RFC-4180-ish: quotes, "" escapes, CRLF). */
 export function parseCsvRows(text: string): string[][] {
-  const s = text.replace(/^﻿/, ""); // strip BOM
+  const s = text.replace(/^\uFEFF/, ""); // strip BOM
   const rows: string[][] = [];
   let field = "";
   let row: string[] = [];
