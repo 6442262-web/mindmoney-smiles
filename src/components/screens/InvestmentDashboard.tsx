@@ -160,14 +160,14 @@ export function InvestmentDashboard() {
       // The createInvestment already handles this, but we also want a transaction record
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        const { data: newInv } = await supabase
+        const { data: newInvList } = await supabase
           .from('investments')
           .select('id')
           .eq('user_id', session.user.id)
           .eq('symbol', form.symbol || assetName)
           .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+          .limit(1);
+        const newInv = newInvList?.[0];
         if (newInv) {
           await supabase.from('investment_transactions').insert({
             user_id: session.user.id,
@@ -383,8 +383,8 @@ export function InvestmentDashboard() {
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">{getAssetLabel(type)}</h3>
             <div className="space-y-2">
               {items.map(inv => {
-                const value = (inv.current_price || inv.avg_cost) * inv.quantity;
-                const cost = inv.avg_cost * inv.quantity;
+                const value = ((inv.current_price || inv.avg_cost) || 0) * (inv.quantity || 0);
+                const cost = (inv.avg_cost || 0) * (inv.quantity || 0);
                 const pnl = value - cost;
                 const pnlPct = cost > 0 ? (pnl / cost) * 100 : 0;
 

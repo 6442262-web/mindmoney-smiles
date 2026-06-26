@@ -180,7 +180,11 @@ export const AIExpenseAnalyzer: React.FC<AIExpenseAnalyzerProps> = ({ onBack }) 
     }
 
     const filtered = transactions
-      .filter(t => t.type === 'expense' && new Date(t.date) >= startDate)
+      .filter(t => {
+        if (t.type !== 'expense') return false;
+        const d = new Date(t.date);
+        return !isNaN(d.getTime()) && d >= startDate;
+      })
       .slice(0, 50); // Limit to 50 for AI analysis
 
     if (filtered.length === 0) {

@@ -183,11 +183,11 @@ export function useAccounts() {
         return;
       }
 
-      setAccounts(prev => prev.filter(acc => acc.id !== accountId));
-      
+      const remainingAccounts = accounts.filter(acc => acc.id !== accountId);
+      setAccounts(remainingAccounts);
+
       // If deleted account was current, switch to first available
       if (currentAccount?.id === accountId) {
-        const remainingAccounts = accounts.filter(acc => acc.id !== accountId);
         setCurrentAccount(remainingAccounts[0] || null);
       }
 

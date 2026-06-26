@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -38,6 +38,12 @@ export function useInvestments() {
   const [transactions, setTransactions] = useState<InvestmentTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const fetchInvestments = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -52,12 +58,16 @@ export function useInvestments() {
       if (invRes.error) throw invRes.error;
       if (txnRes.error) throw txnRes.error;
 
-      setInvestments((invRes.data || []) as Investment[]);
-      setTransactions((txnRes.data || []) as InvestmentTransaction[]);
+      if (mountedRef.current) {
+        setInvestments((invRes.data || []) as Investment[]);
+        setTransactions((txnRes.data || []) as InvestmentTransaction[]);
+      }
     } catch (error) {
       console.error('Error fetching investments:', error);
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -146,14 +156,17 @@ export function useInvestments() {
     fetchInvestments();
   }, [fetchInvestments]);
 
-  // Portfolio calculations
-  const totalInvested = investments.reduce((sum, inv) => sum + inv.avg_cost * inv.quantity, 0);
-  const totalCurrentValue = investments.reduce((sum, inv) => sum + (inv.current_price || inv.avg_cost) * inv.quantity, 0);
-  const totalPnL = totalCurrentValue - totalInvested;
-  const totalPnLPercent = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
-  const totalDividends = transactions
-    .filter(t => t.transaction_type === 'dividend' || t.transaction_type === 'interest')
-    .reduce((sum, t) => sum + t.total_amount, 0);
+  // Portfolio calculations — memoized to avoid recalculating on every render
+  const { totalInvested, totalCurrentValue, totalPnL, totalPnLPercent, totalDividends } = useMemo(() => {
+    const totalInvested = investments.reduce((sum, inv) => sum + (inv.avg_cost || 0) * (inv.quantity || 0), 0);
+    const totalCurrentValue = investments.reduce((sum, inv) => sum + ((inv.current_price || inv.avg_cost || 0)) * (inv.quantity || 0), 0);
+    const totalPnL = totalCurrentValue - totalInvested;
+    const totalPnLPercent = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
+    const totalDividends = transactions
+      .filter(t => t.transaction_type === 'dividend' || t.transaction_type === 'interest')
+      .reduce((sum, t) => sum + t.total_amount, 0);
+    return { totalInvested, totalCurrentValue, totalPnL, totalPnLPercent, totalDividends };
+  }, [investments, transactions]);
 
   return {
     investments,

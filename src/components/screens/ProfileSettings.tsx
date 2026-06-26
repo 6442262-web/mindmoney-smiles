@@ -75,7 +75,7 @@ export function ProfileSettings() {
     };
 
     loadUserData();
-  }, []);
+  }, [profileForm]);
 
   const onProfileSubmit = async (data: ProfileFormData) => {
     setLoading(true);
