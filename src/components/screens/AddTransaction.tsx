@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft, Camera, Receipt, CalendarIcon, Clock, Zap } from "lucide-react";
+import { ArrowLeft, Camera, Receipt, CalendarIcon, Clock, Zap, Settings2, ChevronDown, ChevronUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction, RecurringTransaction, TransactionType, PriorityLevel } from "../MoneyMindApp";
 import { useToast } from "@/hooks/use-toast";
@@ -21,7 +21,9 @@ import { sanitizeText, getAmountError } from "@/lib/validation";
 import { SlipScanner, SlipScanResult } from "../SlipScanner";
 import { TransactionSearch } from "../TransactionSearch";
 import { useTransactions } from "@/hooks/useTransactions";
-import { useFrequentExpenses } from "@/hooks/useFrequentExpenses";
+import { useGroupedFrequentExpenses } from "@/hooks/useFrequentExpenses";
+import { useExpenseGroups } from "@/hooks/useExpenseGroups";
+import { ExpenseGroupManagerDialog } from "./ExpenseGroupManagerDialog";
 import { SearchableTransaction } from "@/hooks/useTransactionSearch";
 
 interface AddTransactionProps {
@@ -54,7 +56,10 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
   const { t, language } = useLanguage();
   const dateLocale = language === 'th' ? th : enUS;
   const { transactions } = useTransactions();
-  const frequentExpenses = useFrequentExpenses(transactions);
+  const { groups: expenseGroups, addGroup, removeGroup } = useExpenseGroups();
+  const grouped = useGroupedFrequentExpenses(transactions, expenseGroups);
+  const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
+  const [manageGroupsOpen, setManageGroupsOpen] = useState(false);
 
   // Handle selection from transaction search
   const handleTransactionSelect = (selected: SearchableTransaction) => {
@@ -250,16 +255,49 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
         </Card>
 
         {/* Frequent Expense Tags */}
-        {type === "expense" && frequentExpenses.length > 0 && (
+        {type === "expense" && (grouped.groups.length > 0 || grouped.ungrouped.length > 0 || expenseGroups.length > 0) && (
           <Card className="p-4">
-            <Label className="text-base font-semibold">
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary" />
-                {language === 'th' ? 'รายการที่ใช้บ่อย' : 'Frequent expenses'}
-              </div>
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-semibold">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-primary" />
+                  {language === 'th' ? 'รายการที่ใช้บ่อย' : 'Frequent expenses'}
+                </div>
+              </Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-muted-foreground"
+                onClick={() => setManageGroupsOpen(true)}
+              >
+                <Settings2 className="h-3.5 w-3.5 mr-1" />
+                {language === 'th' ? 'จัดการกลุ่ม' : 'Manage groups'}
+              </Button>
+            </div>
             <div className="flex flex-wrap gap-2 mt-3">
-              {frequentExpenses.map((fe) => (
+              {grouped.groups.map((g) => (
+                <Button
+                  key={g.id}
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="rounded-full h-8"
+                  onClick={() => setExpandedGroupId(prev => prev === g.id ? null : g.id)}
+                >
+                  {g.name}
+                  <span className="ml-1.5 text-xs text-muted-foreground">
+                    ฿{g.minAmount === g.maxAmount
+                      ? g.minAmount.toLocaleString('th-TH')
+                      : `${g.minAmount.toLocaleString('th-TH')}–${g.maxAmount.toLocaleString('th-TH')}`}
+                    {' · '}{g.totalCount}{language === 'th' ? ' ครั้ง' : 'x'}
+                  </span>
+                  {expandedGroupId === g.id
+                    ? <ChevronUp className="h-3.5 w-3.5 ml-1" />
+                    : <ChevronDown className="h-3.5 w-3.5 ml-1" />}
+                </Button>
+              ))}
+              {grouped.ungrouped.map((fe) => (
                 <Button
                   key={fe.description}
                   type="button"
@@ -278,6 +316,33 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
                 </Button>
               ))}
             </div>
+            {expandedGroupId && (() => {
+              const g = grouped.groups.find(x => x.id === expandedGroupId);
+              if (!g) return null;
+              return (
+                <div className="mt-2 p-2 rounded-lg bg-muted/50 border flex flex-wrap gap-2">
+                  {g.variants.map((v) => (
+                    <Button
+                      key={v.description}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full h-8 bg-background"
+                      onClick={() => {
+                        setDescription(v.description);
+                        setAmount(v.typicalAmount.toString());
+                        setExpandedGroupId(null);
+                      }}
+                    >
+                      {v.description}
+                      <span className="ml-1.5 text-xs text-muted-foreground">
+                        ฿{v.typicalAmount.toLocaleString('th-TH')} · {v.count}{language === 'th' ? ' ครั้ง' : 'x'}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+              );
+            })()}
             <p className="text-xs text-muted-foreground mt-2">
               {language === 'th' ? 'แตะเพื่อกรอกรายละเอียดและจำนวนเงินอัตโนมัติ' : 'Tap to autofill description and amount'}
             </p>
@@ -466,6 +531,17 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
         onOpenChange={setShowScanner}
         onScanComplete={handleScanComplete}
         onQuickSave={handleQuickSave}
+      />
+
+      {/* Expense Group Manager Dialog */}
+      <ExpenseGroupManagerDialog
+        open={manageGroupsOpen}
+        onOpenChange={setManageGroupsOpen}
+        groups={expenseGroups}
+        matchedGroups={grouped.groups}
+        addGroup={addGroup}
+        removeGroup={removeGroup}
+        language={language}
       />
     </div>
   );
