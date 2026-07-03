@@ -160,13 +160,19 @@ export function InvestmentDashboard() {
       // The createInvestment already handles this, but we also want a transaction record
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        const { data: newInvList } = await supabase
+        let lookup = supabase
           .from('investments')
           .select('id')
           .eq('user_id', session.user.id)
-          .eq('symbol', form.symbol || assetName)
           .order('created_at', { ascending: false })
           .limit(1);
+        lookup = form.symbol
+          ? lookup.eq('symbol', form.symbol)
+          : lookup.is('symbol', null).eq('name', assetName);
+        const { data: newInvList, error: lookupError } = await lookup;
+        if (lookupError) {
+          console.error('Error looking up new investment:', lookupError);
+        }
         const newInv = newInvList?.[0];
         if (newInv) {
           await supabase.from('investment_transactions').insert({

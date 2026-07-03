@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -184,12 +184,10 @@ export function useAccounts() {
       }
 
       const remainingAccounts = accounts.filter(acc => acc.id !== accountId);
-      setAccounts(remainingAccounts);
+      setAccounts(prev => prev.filter(acc => acc.id !== accountId));
 
       // If deleted account was current, switch to first available
-      if (currentAccount?.id === accountId) {
-        setCurrentAccount(remainingAccounts[0] || null);
-      }
+      setCurrentAccount(cur => cur?.id === accountId ? (remainingAccounts[0] || null) : cur);
 
       toast({
         title: "ลบบัญชีสำเร็จ",
