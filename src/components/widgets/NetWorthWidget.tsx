@@ -9,9 +9,9 @@ import { Link } from "react-router-dom";
 
 export function NetWorthWidget() {
   const { language } = useLanguage();
-  const { accounts } = useAccounts();
-  const { goals } = useSavingsGoals();
-  const { liabilities } = useLiabilities();
+  const { accounts, loading: accountsLoading } = useAccounts();
+  const { goals, loading: goalsLoading } = useSavingsGoals();
+  const { liabilities, loading: liabilitiesLoading } = useLiabilities();
 
   const stats = useMemo(() => {
     const totalAccounts = accounts
@@ -24,6 +24,10 @@ export function NetWorthWidget() {
     const netWorth = totalAccounts + totalSavings - totalLiabilities;
     return { totalAccounts, totalSavings, totalLiabilities, netWorth };
   }, [accounts, goals, liabilities]);
+
+  // ซ่อนวิดเจ็ตจนกว่าจะมีข้อมูลจริง — ผู้ใช้ใหม่ไม่ควรเห็นการ์ดทรัพย์สิน ฿0 ก่อนเริ่มใช้ฟีเจอร์
+  if (accountsLoading || goalsLoading || liabilitiesLoading) return null;
+  if (stats.totalAccounts === 0 && stats.totalSavings === 0 && stats.totalLiabilities === 0) return null;
 
   return (
     <Card className="p-4">
