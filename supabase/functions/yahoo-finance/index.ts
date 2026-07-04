@@ -25,7 +25,13 @@ serve(async (req) => {
       }
       
       const data = await res.json();
-      const quotes = (data.quotes || []).map((q: any) => ({
+      const quotes = (data.quotes || []).map((q: {
+        symbol: string;
+        shortname?: string;
+        longname?: string;
+        quoteType?: string;
+        exchange?: string;
+      }) => ({
         symbol: q.symbol,
         name: q.shortname || q.longname || q.symbol,
         type: q.quoteType,

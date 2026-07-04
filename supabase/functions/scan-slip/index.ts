@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+const geminiApiKey = Deno.env.get('GEMINI_API_KEY') ?? Deno.env.get('GOOGLE_AI_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -72,7 +72,7 @@ serve(async (req) => {
     }
 
     if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY not configured');
+      throw new Error('GEMINI_API_KEY (or GOOGLE_AI_KEY) not configured');
     }
 
     // Use Gemini vision model to analyze the slip
@@ -132,15 +132,15 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gemini-2.5-flash',
         messages: [
-          { 
-            role: 'user', 
+          {
+            role: 'user',
             content: [
               { type: 'text', text: systemPrompt },
-              { 
-                type: 'image_url', 
-                image_url: { 
-                  url: `data:image/jpeg;base64,${cleanBase64}` 
-                } 
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:image/jpeg;base64,${cleanBase64}`
+                }
               }
             ]
           }
@@ -158,13 +158,13 @@ serve(async (req) => {
       }
       if (response.status === 402) {
         console.error('Payment required');
-        return new Response(JSON.stringify({ error: 'Please add credits to your Lovable workspace' }), {
+        return new Response(JSON.stringify({ error: 'API payment required' }), {
           status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       const errorData = await response.text();
-      console.error('Lovable AI API error:', response.status, errorData);
+      console.error('Google AI API error:', response.status, errorData);
       throw new Error(`AI API error: ${response.status}`);
     }
 

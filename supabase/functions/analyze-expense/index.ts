@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+const geminiApiKey = Deno.env.get('GEMINI_API_KEY') ?? Deno.env.get('GOOGLE_AI_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -64,7 +64,7 @@ serve(async (req) => {
     if (!validation.valid) return new Response(JSON.stringify({ error: validation.error }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     const validatedExpenses = validation.data!;
-    if (!geminiApiKey) throw new Error('GEMINI_API_KEY not configured');
+    if (!geminiApiKey) throw new Error('GEMINI_API_KEY (or GOOGLE_AI_KEY) not configured');
 
     const totalAmount = validatedExpenses.reduce((s, e) => s + (e.amount || 0), 0);
     const avgAmount = totalAmount / validatedExpenses.length;

@@ -53,6 +53,10 @@ const translations = {
     'auth.signup.error': 'สมัครสมาชิกไม่สำเร็จ',
     'auth.signout.error': 'ออกจากระบบไม่สำเร็จ',
     'auth.signout': 'ออกจากระบบ',
+    'auth.or': 'หรือ',
+    'auth.guestLogin': 'ทดลองใช้ฟรี (Guest)',
+    'auth.guestWarning': 'คุณกำลังใช้งานแบบ Guest - ข้อมูลจะไม่ถูกบันทึกถาวร กรุณาสมัครสมาชิกเพื่อเก็บข้อมูล',
+    'category.select': 'เลือกหมวดหมู่',
 
     // Dashboard
     'dashboard.accounts': 'บัญชี',
@@ -315,6 +319,10 @@ const translations = {
     'auth.signup.error': 'Sign Up Failed',
     'auth.signout.error': 'Sign Out Failed',
     'auth.signout': 'Sign Out',
+    'auth.or': 'or',
+    'auth.guestLogin': 'Try for Free (Guest)',
+    'auth.guestWarning': 'You are using Guest mode - data will not be saved permanently. Please sign up to keep your data.',
+    'category.select': 'Select category',
 
     // Dashboard
     'dashboard.accounts': 'Accounts',

@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { usePin } from '@/hooks/usePin';
 import { isValidPinFormat } from '@/lib/pinUtils';
+import { getErrorMessage } from '@/lib/getErrorMessage';
 
 interface PinResetProps {
   onBack: () => void;
@@ -53,10 +54,10 @@ export function PinReset({ onBack }: PinResetProps) {
       });
       
       setStep('otp');
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "เกิดข้อผิดพลาด",
-        description: error.message || "ไม่สามารถส่ง OTP ได้",
+        description: getErrorMessage(error) || "ไม่สามารถส่ง OTP ได้",
         variant: "destructive",
       });
     } finally {
@@ -90,7 +91,7 @@ export function PinReset({ onBack }: PinResetProps) {
       });
       
       setStep('create');
-    } catch (error: any) {
+    } catch {
       toast({
         title: "OTP ไม่ถูกต้อง",
         description: "กรุณาตรวจสอบ OTP และลองอีกครั้ง",

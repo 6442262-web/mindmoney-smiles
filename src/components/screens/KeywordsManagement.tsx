@@ -135,7 +135,7 @@ export function KeywordsManagement() {
     setIsDialogOpen(false);
   };
 
-  const handleKeywordClick = (keyword: any) => {
+  const handleKeywordClick = (keyword: Keyword) => {
     incrementUsage(keyword.id);
   };
 

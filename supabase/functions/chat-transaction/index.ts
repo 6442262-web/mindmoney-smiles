@@ -42,9 +42,9 @@ serve(async (req) => {
       });
     }
 
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY') ?? Deno.env.get('GOOGLE_AI_KEY');
     if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY not configured');
+      throw new Error('GEMINI_API_KEY (or GOOGLE_AI_KEY) not configured');
     }
 
     // ===== Load user's full financial context (RLS-protected) =====

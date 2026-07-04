@@ -241,7 +241,7 @@ export function DebtAnalyzer() {
             })()}
 
             {/* Strategy tabs */}
-            <Tabs value={strategy} onValueChange={(v) => setStrategy(v as any)}>
+            <Tabs value={strategy} onValueChange={(v) => setStrategy(v as "avalanche" | "snowball")}>
               <TabsList className="grid grid-cols-2 w-full">
                 <TabsTrigger value="avalanche" className="gap-2">
                   <Flame className="h-4 w-4" /> Avalanche

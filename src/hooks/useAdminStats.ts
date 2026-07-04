@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage } from '@/lib/getErrorMessage';
+
+interface AdminUserRole {
+  id: string;
+  user_id: string;
+  role: string;
+  created_at: string;
+}
 
 // Demo mode toggle - set to true for mock data
 const DEMO_MODE = true;
@@ -64,9 +72,9 @@ interface AdminData {
   stats: AdminStats;
   users: UserDetail[];
   feedback: Feedback[];
-  userRoles: any[];
+  userRoles: AdminUserRole[];
   inviteCodes: InviteCode[];
-  recentTransactions: any[];
+  recentTransactions: unknown[];
 }
 
 // Generate mock users data
@@ -201,12 +209,12 @@ export function useAdminStats() {
       }
       
       setData(response);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error fetching admin stats:', err);
-      setError(err.message);
+      setError(getErrorMessage(err));
       toast({
         title: "ไม่สามารถดึงข้อมูลได้",
-        description: err.message,
+        description: getErrorMessage(err),
         variant: "destructive",
       });
     } finally {

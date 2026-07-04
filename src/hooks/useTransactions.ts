@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage } from '@/lib/getErrorMessage';
 
 export interface Transaction {
   id: string;
@@ -92,9 +93,9 @@ export function useTransactions() {
       });
 
       return data;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error in createTransaction:', error);
-      const isNetworkError = !navigator.onLine || error?.message?.includes('fetch');
+      const isNetworkError = !navigator.onLine || getErrorMessage(error).includes('fetch');
       toast({
         title: isNetworkError ? "ไม่มีการเชื่อมต่อ" : "เกิดข้อผิดพลาด",
         description: isNetworkError 
@@ -104,6 +105,40 @@ export function useTransactions() {
       });
       return null;
     }
+  };
+
+  // Bulk create transactions (e.g. CSV import). Inserts in chunks and refreshes once.
+  const createTransactionsBulk = async (
+    items: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]
+  ): Promise<{ inserted: number; failed: number }> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast({
+        title: "กรุณาเข้าสู่ระบบ",
+        description: "คุณต้องเข้าสู่ระบบก่อนนำเข้ารายการ",
+        variant: "destructive",
+      });
+      return { inserted: 0, failed: items.length };
+    }
+
+    const userId = session.user.id;
+    const CHUNK = 200;
+    let inserted = 0;
+    let failed = 0;
+
+    for (let i = 0; i < items.length; i += CHUNK) {
+      const chunk = items.slice(i, i + CHUNK).map((item) => ({ ...item, user_id: userId }));
+      const { data, error } = await supabase.from('transactions').insert(chunk).select();
+      if (error) {
+        console.error('Error in bulk insert:', error);
+        failed += chunk.length;
+      } else {
+        inserted += data?.length ?? chunk.length;
+      }
+    }
+
+    if (inserted > 0) await loadTransactions();
+    return { inserted, failed };
   };
 
   // Update transaction
@@ -134,9 +169,9 @@ export function useTransactions() {
         title: "อัพเดทสำเร็จ",
         description: "รายการได้รับการอัพเดทแล้ว",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error in updateTransaction:', error);
-      const isNetworkError = !navigator.onLine || error?.message?.includes('fetch');
+      const isNetworkError = !navigator.onLine || getErrorMessage(error).includes('fetch');
       toast({
         title: isNetworkError ? "ไม่มีการเชื่อมต่อ" : "เกิดข้อผิดพลาด",
         description: isNetworkError
@@ -170,9 +205,9 @@ export function useTransactions() {
         title: "ลบรายการสำเร็จ",
         description: "รายการถูกลบแล้ว",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error in deleteTransaction:', error);
-      const isNetworkError = !navigator.onLine || error?.message?.includes('fetch');
+      const isNetworkError = !navigator.onLine || getErrorMessage(error).includes('fetch');
       toast({
         title: isNetworkError ? "ไม่มีการเชื่อมต่อ" : "เกิดข้อผิดพลาด",
         description: isNetworkError
@@ -208,6 +243,7 @@ export function useTransactions() {
     transactions,
     loading,
     createTransaction,
+    createTransactionsBulk,
     updateTransaction,
     deleteTransaction,
     refreshTransactions: loadTransactions,

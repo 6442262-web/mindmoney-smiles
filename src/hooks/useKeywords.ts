@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage } from '@/lib/getErrorMessage';
 
 export interface Keyword {
   id: string;
@@ -32,10 +33,10 @@ export const useKeywords = () => {
 
       if (error) throw error;
       setKeywords(data || []);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error fetching keywords",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -84,10 +85,10 @@ export const useKeywords = () => {
         title: "Success",
         description: existing ? "Keyword usage updated" : "New keyword added",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }
@@ -107,10 +108,10 @@ export const useKeywords = () => {
         title: "Success",
         description: "Keyword deleted successfully",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error deleting keyword",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }
@@ -129,10 +130,10 @@ export const useKeywords = () => {
       if (error) throw error;
 
       await fetchKeywords();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error updating usage",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }
