@@ -10,7 +10,6 @@ import { ArrowLeft, Download, FileText, FileSpreadsheet, CalendarIcon, Filter, X
 import { Link } from "react-router-dom";
 import { Transaction, RecurringTransaction } from "../MoneyMindApp";
 import { useCategories } from "@/hooks/useCategories";
-import { exportSummaryPdf } from "@/lib/exportPdf";
 import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay, endOfDay } from "date-fns";
 import { th } from "date-fns/locale";
@@ -920,6 +919,8 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
                 const periodLabel = startDate || endDate
                   ? `${startDate ? format(startDate, 'dd/MM/yyyy') : '...'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '...'}`
                   : periodLabels[selectedPeriod];
+                // โหลดไลบรารี PDF (~750K) เฉพาะตอนกด export — ไม่ให้ถ่วงตอนเปิดหน้าสรุป
+                const { exportSummaryPdf } = await import("@/lib/exportPdf");
                 await exportSummaryPdf({
                   title: 'รายงานสรุปการเงิน',
                   period: periodLabel,
