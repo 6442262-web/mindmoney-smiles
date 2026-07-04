@@ -72,6 +72,52 @@ export function useCategories() {
     }
   };
 
+  // หา category ตามชื่อ+ประเภท ถ้าไม่มีก็สร้างแบบเงียบ (ไม่ toast) — ใช้ตอน map ชื่อหมวด → category_id
+  const findOrCreateCategory = async (name: string, type: string): Promise<Category | null> => {
+    const trimmed = name.trim();
+    if (!trimmed) return null;
+
+    const existing = categories.find(c => c.name === trimmed && c.type === type);
+    if (existing) return existing;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return null;
+
+      // เช็คใน DB อีกชั้นเผื่อ state ยังไม่ได้โหลด
+      const { data: dbExisting } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .eq('name', trimmed)
+        .eq('type', type)
+        .limit(1);
+      if (dbExisting && dbExisting.length > 0) {
+        const found = dbExisting[0] as Category;
+        setCategories(prev => prev.some(c => c.id === found.id) ? prev : [...prev, found]);
+        return found;
+      }
+
+      const { data, error } = await supabase
+        .from('categories')
+        .insert({ name: trimmed, type, user_id: session.user.id })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating category in findOrCreateCategory:', error);
+        return null;
+      }
+
+      const created = data as Category;
+      setCategories(prev => [...prev, created]);
+      return created;
+    } catch (error) {
+      console.error('Error in findOrCreateCategory:', error);
+      return null;
+    }
+  };
+
   const updateCategory = async (categoryId: string, updates: Partial<Category>) => {
     try {
       const { data, error } = await supabase
@@ -140,6 +186,7 @@ export function useCategories() {
     categories,
     loading,
     createCategory,
+    findOrCreateCategory,
     updateCategory,
     deleteCategory,
     refreshCategories: loadCategories,

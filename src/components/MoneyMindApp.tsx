@@ -5,6 +5,7 @@ import { LanguageProvider } from "@/hooks/useLanguage";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useRecurringTransactions } from "@/hooks/useRecurringTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useCategories } from "@/hooks/useCategories";
 import { BottomNavigation } from "./ui/BottomNavigation";
 import { Toaster } from "./ui/toaster";
 import { AuthGuard } from "./AuthGuard";
@@ -99,13 +100,19 @@ function AppContent() {
   } = useRecurringTransactions();
 
   const { currentAccount } = useAccounts();
+  const { categories, findOrCreateCategory } = useCategories();
 
   const addTransaction = async (transaction: Omit<Transaction, "id">) => {
     if (!currentAccount) return;
-    
+
+    const category = transaction.category
+      ? await findOrCreateCategory(transaction.category, transaction.type)
+      : null;
+
     await createTransaction({
       type: transaction.type,
       amount: transaction.amount,
+      category_id: category?.id || null,
       description: transaction.description,
       date: transaction.date,
       time: transaction.time || null,
@@ -115,10 +122,15 @@ function AppContent() {
 
   const addRecurringTransaction = async (transaction: Omit<RecurringTransaction, "id">) => {
     if (!currentAccount) return;
-    
+
+    const category = transaction.category
+      ? await findOrCreateCategory(transaction.category, transaction.type)
+      : null;
+
     await createRecurringTransaction({
       type: transaction.type,
       amount: transaction.amount,
+      category_id: category?.id || null,
       description: transaction.description,
       frequency: transaction.frequency,
       start_date: transaction.nextDate,
@@ -128,28 +140,47 @@ function AppContent() {
     });
   };
 
+  // แปลงข้อมูลแก้ไขจาก UI (category เป็นชื่อ, มี priority ที่ไม่มีคอลัมน์ใน DB) เป็น DB shape
+  const updateLegacyTransaction = async (id: string, updates: Partial<Transaction>) => {
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.type !== undefined) dbUpdates.type = updates.type;
+    if (updates.amount !== undefined) dbUpdates.amount = updates.amount;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.date !== undefined) dbUpdates.date = updates.date;
+    if (updates.category !== undefined) {
+      const category = updates.category
+        ? await findOrCreateCategory(updates.category, updates.type || 'expense')
+        : null;
+      dbUpdates.category_id = category?.id || null;
+    }
+    await updateTransaction(id, dbUpdates);
+  };
+
   // Transform transactions for legacy components
-  const legacyTransactions = transactions.map(t => ({ 
-    id: t.id, 
-    type: t.type as TransactionType, 
-    amount: t.amount, 
-    category: t.category_id || '', 
-    description: t.description || '', 
-    date: t.date, 
-    priority: 3 as PriorityLevel, 
-    isRecurring: false 
+  const categoryNameById = new Map(categories.map(c => [c.id, c.name]));
+
+  const legacyTransactions = transactions.map(t => ({
+    id: t.id,
+    type: t.type as TransactionType,
+    amount: t.amount,
+    category: (t.category_id && categoryNameById.get(t.category_id)) || '',
+    description: t.description || '',
+    date: t.date,
+    time: t.time || undefined,
+    priority: 3 as PriorityLevel,
+    isRecurring: false
   }));
 
-  const legacyRecurringTransactions = recurringTransactions.map(rt => ({ 
-    id: rt.id, 
-    type: rt.type as TransactionType, 
-    amount: rt.amount, 
-    category: rt.category_id || '', 
-    description: rt.description || '', 
-    priority: 3 as PriorityLevel, 
-    frequency: rt.frequency as "monthly" | "weekly" | "daily", 
-    nextDate: rt.next_execution || rt.start_date, 
-    isActive: rt.is_active ?? true 
+  const legacyRecurringTransactions = recurringTransactions.map(rt => ({
+    id: rt.id,
+    type: rt.type as TransactionType,
+    amount: rt.amount,
+    category: (rt.category_id && categoryNameById.get(rt.category_id)) || '',
+    description: rt.description || '',
+    priority: 3 as PriorityLevel,
+    frequency: rt.frequency as "monthly" | "weekly" | "daily",
+    nextDate: rt.next_execution || rt.start_date,
+    isActive: rt.is_active ?? true
   }));
 
   return (
@@ -180,10 +211,10 @@ function AppContent() {
             <Route 
               path="/transactions" 
               element={
-                <TransactionList 
+                <TransactionList
                   transactions={legacyTransactions}
                   onDelete={deleteTransaction}
-                  onUpdate={updateTransaction}
+                  onUpdate={updateLegacyTransaction}
                 />
               }
             />
@@ -223,7 +254,7 @@ function AppContent() {
             <Route path="/keywords" element={<KeywordsManagement />} />
             <Route path="/ai-expense-analyzer" element={<AIExpenseAnalyzer onBack={() => window.history.back()} />} />
             <Route path="/pin-settings" element={<PinSettings onBack={() => window.history.back()} />} />
-            <Route path="/transaction-filter" element={<TransactionFilter onBack={() => window.history.back()} />} />
+            <Route path="/transaction-filter" element={<TransactionFilter onBack={() => window.history.back()} transactions={legacyTransactions} />} />
             <Route path="/financial-insights" element={<FinancialInsights />} />
             <Route path="/admin" element={<AdminDashboard onBack={() => window.history.back()} />} />
             <Route path="/feedback" element={<Feedback />} />

@@ -12,15 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/dateUtils';
-// Sample transaction data - in real app this would come from props or context
-const sampleTransactions = [
-  { id: '1', date: '2024-01-15', description: 'ยอดขาย', category: 'income', amount: 15000, type: 'income' as const },
-  { id: '2', date: '2024-01-16', description: 'ค่าสินค้า', category: 'expense', amount: 8000, type: 'expense' as const },
-  { id: '3', date: '2024-01-17', description: 'ค่าเช่า', category: 'expense', amount: 5000, type: 'expense' as const },
-  { id: '4', date: '2024-01-18', description: 'ยอดขาย', category: 'income', amount: 12000, type: 'income' as const },
-  { id: '5', date: '2024-01-20', description: 'ค่าไฟฟ้า', category: 'expense', amount: 2500, type: 'expense' as const },
-];
-
 interface Transaction {
   id: string;
   date: string;
@@ -35,7 +26,7 @@ interface TransactionFilterProps {
   transactions?: Transaction[];
 }
 
-export function TransactionFilter({ onBack, transactions = sampleTransactions }: TransactionFilterProps) {
+export function TransactionFilter({ onBack, transactions = [] }: TransactionFilterProps) {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [transactionType, setTransactionType] = useState<string>('all');
