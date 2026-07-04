@@ -239,6 +239,7 @@ export const AIExpenseAnalyzer: React.FC<AIExpenseAnalyzerProps> = ({ onBack }) 
       });
 
       if (error) throw error;
+      if (!data) throw new Error('Empty response from analyze-expense');
 
       setAnalysisProgress(100);
       setAnalysisResult(data);

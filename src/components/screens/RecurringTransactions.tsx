@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import RecurringExecutionHistory from "./RecurringExecutionHistory";
+import { getMonthlyAmount } from "@/lib/recurringUtils";
 
 interface RecurringTransactionsProps {
   recurringTransactions: RecurringTransaction[];
@@ -62,19 +63,6 @@ export function RecurringTransactions({
     }
   };
 
-  // Calculate monthly totals based on frequency
-  const getMonthlyAmount = (amount: number, frequency: string) => {
-    switch (frequency) {
-      case 'daily':
-        return amount * 30;
-      case 'weekly':
-        return amount * 4;
-      case 'monthly':
-        return amount;
-      default:
-        return amount;
-    }
-  };
 
   const activeIncomeTotal = filteredTransactions
     .filter(t => t.type === "income" && t.isActive)

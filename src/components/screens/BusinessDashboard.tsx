@@ -140,15 +140,17 @@ export function BusinessDashboard() {
           </Card>
         </Link>
 
-        <Card className="p-4 hover:bg-accent transition-colors cursor-pointer">
-          <div className="flex items-center gap-3">
-            <PlusCircle className="h-6 w-6 text-primary" />
-            <div>
-              <h3 className="font-medium">โอนเงิน</h3>
-              <p className="text-sm text-muted-foreground">ระหว่างบัญชี</p>
+        <Link to="/accounts">
+          <Card className="p-4 hover:bg-accent transition-colors cursor-pointer">
+            <div className="flex items-center gap-3">
+              <PlusCircle className="h-6 w-6 text-primary" />
+              <div>
+                <h3 className="font-medium">โอนเงิน</h3>
+                <p className="text-sm text-muted-foreground">ระหว่างบัญชี</p>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </Link>
       </div>
 
       {/* Recent Transactions */}

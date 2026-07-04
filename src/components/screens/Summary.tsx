@@ -12,9 +12,11 @@ import { Transaction, RecurringTransaction } from "../MoneyMindApp";
 import { useCategories } from "@/hooks/useCategories";
 import { exportSummaryPdf } from "@/lib/exportPdf";
 import { useToast } from "@/hooks/use-toast";
-import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay } from "date-fns";
+import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay, endOfDay } from "date-fns";
 import { th } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { parseLocalDate } from "@/lib/dateUtils";
+import { getMonthlyAmount } from "@/lib/recurringUtils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 
@@ -103,8 +105,9 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
     const currentMonth = now.getMonth();
 
     return transactions.filter(transaction => {
-      const transactionDate = new Date(transaction.date);
-      
+      // parse เป็น local date — new Date("YYYY-MM-DD") ตีความเป็น UTC ทำให้วันเพี้ยนในเขตเวลาไทย
+      const transactionDate = parseLocalDate(transaction.date);
+
       switch (period) {
         case "day":
           return transactionDate.toDateString() === now.toDateString();
@@ -138,15 +141,12 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
 
   // Filter by custom date range
   if (startDate || endDate) {
+    const rangeStart = startDate ? startOfDay(startDate) : undefined;
+    const rangeEnd = endDate ? endOfDay(endDate) : undefined;
     filteredTransactions = filteredTransactions.filter(transaction => {
-      const transactionDate = new Date(transaction.date);
-      if (startDate && endDate) {
-        return transactionDate >= startDate && transactionDate <= endDate;
-      } else if (startDate) {
-        return transactionDate >= startDate;
-      } else if (endDate) {
-        return transactionDate <= endDate;
-      }
+      const transactionDate = parseLocalDate(transaction.date);
+      if (rangeStart && transactionDate < rangeStart) return false;
+      if (rangeEnd && transactionDate > rangeEnd) return false;
       return true;
     });
   }
@@ -168,14 +168,14 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
   
   const balance = totalIncome - totalExpense;
 
-  // Recurring transactions summary
+  // Recurring transactions summary — แปลงเป็นยอดต่อเดือนตาม frequency ให้ตรงกับ Dashboard
   const monthlyRecurringIncome = recurringTransactions
     .filter(t => t.type === "income" && t.isActive)
-    .reduce((sum, t) => sum + t.amount, 0);
-  
+    .reduce((sum, t) => sum + getMonthlyAmount(t.amount, t.frequency), 0);
+
   const monthlyRecurringExpense = recurringTransactions
     .filter(t => t.type === "expense" && t.isActive)
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + getMonthlyAmount(t.amount, t.frequency), 0);
 
   // Category breakdown
   const expenseByCategory = filteredTransactions
@@ -231,7 +231,7 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
 
   // Get transactions for selected date
   const getTransactionsForDate = (date: Date) => {
-    return transactions.filter(t => isSameDay(new Date(t.date), date));
+    return transactions.filter(t => isSameDay(parseLocalDate(t.date), date));
   };
 
   // Get daily totals for calendar
@@ -253,7 +253,7 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
     if (selectedPeriod === 'day') {
       // For day view, calculate from all transactions for today
       const todayTransactions = transactions.filter(t => {
-        const tDate = new Date(t.date);
+        const tDate = parseLocalDate(t.date);
         return tDate.toDateString() === now.toDateString();
       });
       
@@ -278,7 +278,7 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
       
       return days.map(day => {
         const dayTransactions = transactions.filter(t => 
-          isSameDay(new Date(t.date), day)
+          isSameDay(parseLocalDate(t.date), day)
         );
         
         const dayIncome = dayTransactions
@@ -303,7 +303,7 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
       for (let i = quarterStart; i < quarterStart + 3; i++) {
         const monthDate = new Date(now.getFullYear(), i, 1);
         const monthTransactions = transactions.filter(t => {
-          const tDate = new Date(t.date);
+          const tDate = parseLocalDate(t.date);
           return tDate.getFullYear() === now.getFullYear() && 
                  tDate.getMonth() === i;
         });
@@ -331,7 +331,7 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
       for (let i = 5; i >= 0; i--) {
         const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const monthTransactions = transactions.filter(t => {
-          const tDate = new Date(t.date);
+          const tDate = parseLocalDate(t.date);
           return tDate.getFullYear() === monthDate.getFullYear() && 
                  tDate.getMonth() === monthDate.getMonth();
         });
@@ -359,7 +359,7 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
       for (let i = 0; i < 12; i++) {
         const monthDate = new Date(now.getFullYear(), i, 1);
         const monthTransactions = transactions.filter(t => {
-          const tDate = new Date(t.date);
+          const tDate = parseLocalDate(t.date);
           return tDate.getFullYear() === now.getFullYear() && 
                  tDate.getMonth() === i;
         });
@@ -658,10 +658,12 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
                               <p className="font-medium text-sm">{transaction.description || transaction.category}</p>
                               <div className="flex items-center gap-2 mt-1">
                                 <p className="text-xs text-muted-foreground">{transaction.category}</p>
-                                <span className="text-xs text-muted-foreground">•</span>
-                                <p className="text-xs text-muted-foreground">
-                                  {format(new Date(transaction.date), "HH:mm", { locale: th })} น.
-                                </p>
+                                {transaction.time && (
+                                  <>
+                                    <span className="text-xs text-muted-foreground">•</span>
+                                    <p className="text-xs text-muted-foreground">{transaction.time} น.</p>
+                                  </>
+                                )}
                               </div>
                             </div>
                             <p className={cn(
@@ -929,7 +931,7 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
                     percentage: totalIncome > 0 ? (amount / totalIncome * 100) : 0,
                   })),
                   transactions: filteredTransactions.map(t => ({
-                    date: new Date(t.date).toLocaleDateString('th-TH'),
+                    date: parseLocalDate(t.date).toLocaleDateString('th-TH'),
                     description: t.description || '-',
                     category: t.category || '-',
                     type: t.type,
@@ -955,7 +957,7 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
               try {
                 const header = 'วันที่,รายละเอียด,หมวดหมู่,ประเภท,จำนวนเงิน\n';
                 const rows = filteredTransactions.map(t => 
-                  `${new Date(t.date).toLocaleDateString('th-TH')},"${(t.description || '-').replace(/"/g, '""')}","${(t.category || '-').replace(/"/g, '""')}",${t.type === 'income' ? 'รายรับ' : 'รายจ่าย'},${t.type === 'income' ? '' : '-'}${t.amount}`
+                  `${parseLocalDate(t.date).toLocaleDateString('th-TH')},"${(t.description || '-').replace(/"/g, '""')}","${(t.category || '-').replace(/"/g, '""')}",${t.type === 'income' ? 'รายรับ' : 'รายจ่าย'},${t.type === 'income' ? '' : '-'}${t.amount}`
                 ).join('\n');
                 const bom = '\uFEFF';
                 const blob = new Blob([bom + header + rows], { type: 'text/csv;charset=utf-8;' });

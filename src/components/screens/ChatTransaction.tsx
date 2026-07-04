@@ -26,6 +26,22 @@ interface ChatMessage {
   transactionAdded?: boolean;
 }
 
+// validate transaction ที่ AI ส่งกลับก่อนเชื่อ — กัน amount เป็น string/undefined ทำให้ render crash หรือบันทึกข้อมูลเสีย
+function parseAITransaction(raw: unknown): ChatMessage["transaction"] {
+  if (!raw || typeof raw !== "object") return null;
+  const t = raw as Record<string, unknown>;
+  const amount = Number(t.amount);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  if (t.type !== "income" && t.type !== "expense") return null;
+  return {
+    type: t.type,
+    amount,
+    description: typeof t.description === "string" ? t.description : "",
+    category_id: typeof t.category_id === "string" ? t.category_id : null,
+    category_name: typeof t.category_name === "string" ? t.category_name : "",
+  };
+}
+
 export function ChatTransaction() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -82,8 +98,8 @@ export function ChatTransaction() {
       const assistantMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.reply || "ไม่สามารถวิเคราะห์ได้",
-        transaction: data.transaction || null,
+        content: data?.reply || "ไม่สามารถวิเคราะห์ได้",
+        transaction: parseAITransaction(data?.transaction),
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {

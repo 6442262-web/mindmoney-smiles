@@ -5,6 +5,7 @@ import { Calendar, DollarSign, Trash2, CheckCircle, Clock, XCircle } from "lucid
 import { useRecurringExecutions } from "@/hooks/useRecurringExecutions";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
+import { formatDateSafe } from "@/lib/dateUtils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,9 +25,11 @@ interface RecurringExecutionHistoryProps {
 export default function RecurringExecutionHistory({ recurringTransactionId }: RecurringExecutionHistoryProps) {
   const { executions, loading, deleteExecution } = useRecurringExecutions(recurringTransactionId);
 
+  // edge function บันทึก status เป็น 'success' ส่วนข้อมูลเก่าบางส่วนเป็น 'completed' — รองรับทั้งคู่
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
+      case 'success':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       case 'pending':
         return <Clock className="w-4 h-4 text-yellow-600" />;
@@ -40,6 +43,7 @@ export default function RecurringExecutionHistory({ recurringTransactionId }: Re
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'completed':
+      case 'success':
         return 'เสร็จสิ้น';
       case 'pending':
         return 'รอดำเนินการ';
@@ -53,6 +57,7 @@ export default function RecurringExecutionHistory({ recurringTransactionId }: Re
   const getStatusVariant = (status: string): "default" | "secondary" | "destructive" => {
     switch (status) {
       case 'completed':
+      case 'success':
         return 'default';
       case 'pending':
         return 'secondary';
@@ -102,7 +107,7 @@ export default function RecurringExecutionHistory({ recurringTransactionId }: Re
                     
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="w-4 h-4" />
-                      {format(new Date(execution.execution_date), 'dd MMM yyyy', { locale: th })}
+                      {formatDateSafe(execution.execution_date, (d) => format(d, 'dd MMM yyyy', { locale: th }))}
                     </div>
 
                     {execution.error_message && (

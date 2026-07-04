@@ -12,6 +12,7 @@ import { useAccounts } from "@/hooks/useAccounts";
 import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/dateUtils";
+import { getMonthlyAmount } from "@/lib/recurringUtils";
 import { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
@@ -39,15 +40,6 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
     categories.forEach(c => { map[c.id] = c.name; });
     return map;
   }, [categories]);
-  
-  const getMonthlyAmount = (amount: number, frequency: string) => {
-    switch (frequency) {
-      case 'daily': return amount * 30;
-      case 'weekly': return amount * 4;
-      case 'monthly': return amount;
-      default: return amount;
-    }
-  };
   
   const now = new Date();
   const currentMonth = now.getMonth();

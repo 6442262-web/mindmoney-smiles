@@ -12,7 +12,7 @@ import { ArrowLeft, Plus, CreditCard, Building2, TrendingDown, Calendar, Percent
 import { Link } from "react-router-dom";
 import { useLiabilities, Liability } from "@/hooks/useLiabilities";
 import { format } from "date-fns";
-import { getLocalDateString } from "@/lib/dateUtils";
+import { getLocalDateString, formatDateSafe } from "@/lib/dateUtils";
 import { Textarea } from "@/components/ui/textarea";
 import { sanitizeText, getAmountError } from "@/lib/validation";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -84,7 +84,10 @@ export function LiabilitiesManagement() {
   const totalDebt = activeLiabilities.reduce((sum, l) => sum + l.current_balance, 0);
   const totalMonthlyPayment = activeLiabilities.reduce((sum, l) => sum + (l.monthly_payment || 0), 0);
   const totalPrincipal = activeLiabilities.reduce((sum, l) => sum + l.principal_amount, 0);
-  const paidOff = totalPrincipal > 0 ? ((totalPrincipal - totalDebt) / totalPrincipal) * 100 : 0;
+  // clamp 0-100 กันกรณียอดค้าง (ดอกเบี้ยทบ) โตเกินเงินต้น แล้วโชว์เปอร์เซ็นต์ติดลบ
+  const paidOff = totalPrincipal > 0
+    ? Math.min(100, Math.max(0, ((totalPrincipal - totalDebt) / totalPrincipal) * 100))
+    : 0;
 
   const handleSubmit = async () => {
     if (!formData.name.trim() || !formData.principal_amount || !formData.current_balance) {
@@ -355,8 +358,8 @@ export function LiabilitiesManagement() {
                 </div>
               ) : (
                 activeLiabilities.map((liability) => {
-                  const progressPercent = liability.principal_amount > 0 
-                    ? ((liability.principal_amount - liability.current_balance) / liability.principal_amount) * 100 
+                  const progressPercent = liability.principal_amount > 0
+                    ? Math.min(100, Math.max(0, ((liability.principal_amount - liability.current_balance) / liability.principal_amount) * 100))
                     : 0;
                   
                   return (
@@ -443,7 +446,7 @@ export function LiabilitiesManagement() {
                           <span>ดอกเบี้ย: {liability.interest_rate}%</span>
                         )}
                         {liability.end_date && (
-                          <span>ครบกำหนด: {format(new Date(liability.end_date), 'dd/MM/yyyy')}</span>
+                          <span>ครบกำหนด: {formatDateSafe(liability.end_date, (d) => format(d, 'dd/MM/yyyy'))}</span>
                         )}
                       </div>
 
@@ -510,7 +513,7 @@ export function LiabilitiesManagement() {
                   </p>
                   {liability.end_date && (
                     <p className="text-sm text-muted-foreground">
-                      ครบกำหนด: {format(new Date(liability.end_date), 'dd/MM/yyyy')}
+                      ครบกำหนด: {formatDateSafe(liability.end_date, (d) => format(d, 'dd/MM/yyyy'))}
                     </p>
                   )}
                 </div>

@@ -23,3 +23,22 @@ export function getLocalTimeString(date: Date = new Date()): string {
   const minutes = String(date.getMinutes()).padStart(2, "0");
   return `${hours}:${minutes}`;
 }
+
+/**
+ * Format a date string safely — returns fallback ('-') instead of throwing
+ * when the value is missing or unparseable (date-fns format throws RangeError on Invalid Date)
+ */
+export function formatDateSafe(
+  dateStr: string | null | undefined,
+  formatFn: (date: Date) => string,
+  fallback = "-",
+): string {
+  if (!dateStr) return fallback;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return fallback;
+  try {
+    return formatFn(d);
+  } catch {
+    return fallback;
+  }
+}
