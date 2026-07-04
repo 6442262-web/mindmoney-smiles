@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { th, enUS } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/dateUtils";
 import { getMonthlyAmount } from "@/lib/recurringUtils";
+import { useInvestmentMode } from "@/hooks/useInvestmentMode";
 import { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
@@ -33,6 +34,7 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
   const { categories } = useCategories();
   const { favorites } = useFavoriteTransactions();
   const { currentAccount } = useAccounts();
+  const { investmentMode } = useInvestmentMode();
   const dateLocale = language === 'th' ? th : enUS;
 
   const categoryMap = useMemo(() => {
@@ -328,12 +330,14 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
             {language === 'th' ? 'แชท' : 'Chat'}
           </Button>
         </Link>
-        <Link to="/investment">
-          <Button variant="outline" className="w-full h-16 text-xs flex-col gap-1 border-primary/30 text-primary hover:bg-primary/10 transition-colors">
-            <LineChart className="h-5 w-5" />
-            {language === 'th' ? 'ลงทุน' : 'Invest'}
-          </Button>
-        </Link>
+        {investmentMode && (
+          <Link to="/investment">
+            <Button variant="outline" className="w-full h-16 text-xs flex-col gap-1 border-primary/30 text-primary hover:bg-primary/10 transition-colors">
+              <LineChart className="h-5 w-5" />
+              {language === 'th' ? 'ลงทุน' : 'Invest'}
+            </Button>
+          </Link>
+        )}
       </div>
       <div className="grid grid-cols-3 gap-2">
         <Link to="/financial-analysis">

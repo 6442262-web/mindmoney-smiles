@@ -40,6 +40,7 @@ import { useBackup } from '@/hooks/useBackup';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useAccounts } from '@/hooks/useAccounts';
+import { useInvestmentMode } from '@/hooks/useInvestmentMode';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { Palette } from 'lucide-react';
 
@@ -84,15 +85,12 @@ function ColorThemePicker() {
 }
 
 export function Settings() {
-  const [investmentMode, setInvestmentMode] = useState(() => {
-    return localStorage.getItem('investment-mode') === 'true';
-  });
+  const { investmentMode, setInvestmentMode } = useInvestmentMode();
 
   const { accounts, createAccount } = useAccounts();
 
   const handleInvestmentModeToggle = async (checked: boolean) => {
     setInvestmentMode(checked);
-    localStorage.setItem('investment-mode', String(checked));
 
     if (checked) {
       // Auto-create investment account if none exists

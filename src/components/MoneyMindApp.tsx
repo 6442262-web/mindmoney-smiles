@@ -1,11 +1,12 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { AppModeProvider, useAppMode } from "@/hooks/useAppMode";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useRecurringTransactions } from "@/hooks/useRecurringTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useCategories } from "@/hooks/useCategories";
+import { useInvestmentMode } from "@/hooks/useInvestmentMode";
 import { BottomNavigation } from "./ui/BottomNavigation";
 import { Toaster } from "./ui/toaster";
 import { AuthGuard } from "./AuthGuard";
@@ -101,6 +102,7 @@ function AppContent() {
 
   const { currentAccount } = useAccounts();
   const { categories, findOrCreateCategory } = useCategories();
+  const { investmentMode } = useInvestmentMode();
 
   const addTransaction = async (transaction: Omit<Transaction, "id">) => {
     if (!currentAccount) return;
@@ -263,9 +265,10 @@ function AppContent() {
             <Route path="/admin" element={<AdminDashboard onBack={() => window.history.back()} />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/chat-transaction" element={<ChatTransaction />} />
-            <Route path="/investment" element={<InvestmentDashboard />} />
-            <Route path="/investment/add-transaction" element={<AddInvestmentTransaction />} />
-            <Route path="/investment/transactions" element={<InvestmentTransactions />} />
+            {/* เข้าได้เฉพาะเมื่อเปิดโหมดการลงทุนใน Settings — ปิดอยู่จะพาไปหน้าตั้งค่าที่มีสวิตช์ */}
+            <Route path="/investment" element={investmentMode ? <InvestmentDashboard /> : <Navigate to="/settings" replace />} />
+            <Route path="/investment/add-transaction" element={investmentMode ? <AddInvestmentTransaction /> : <Navigate to="/settings" replace />} />
+            <Route path="/investment/transactions" element={investmentMode ? <InvestmentTransactions /> : <Navigate to="/settings" replace />} />
             <Route path="/financial-analysis" element={<FinancialAnalysis />} />
             <Route path="/savings-goals" element={<SavingsGoals />} />
             <Route path="/debt-analyzer" element={<DebtAnalyzer />} />
