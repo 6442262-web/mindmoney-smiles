@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { PinGuard } from './PinGuard';
 import { PasswordReset } from './screens/PasswordReset';
+import { APP_VERSION } from '@/lib/version';
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -31,8 +32,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3">
         <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="text-[10px] text-muted-foreground">v{APP_VERSION}</span>
       </div>
     );
   }
@@ -216,6 +218,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
                 {t('auth.guestLogin') || 'เข้าใช้งานแบบ Guest'}
               </Button>
             </div>
+
+            <p className="text-center text-[10px] text-muted-foreground mt-4">v{APP_VERSION}</p>
           </div>
         </Card>
       </div>
