@@ -3,11 +3,13 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAppMode } from "@/hooks/useAppMode";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useInvestmentMode } from "@/hooks/useInvestmentMode";
 
 export function BottomNavigation() {
   const location = useLocation();
   const { mode } = useAppMode();
   const { t, language } = useLanguage();
+  const { investmentMode } = useInvestmentMode();
 
   const navItems = mode === "business" ? [
     { path: "/business", icon: Store, label: t('nav.store') },
@@ -17,7 +19,10 @@ export function BottomNavigation() {
     { path: "/settings", icon: Settings, label: t('nav.settings') },
   ] : [
     { path: "/", icon: Home, label: t('nav.home') },
-    { path: "/investment", icon: LineChart, label: language === 'th' ? 'ลงทุน' : 'Invest' },
+    // แท็บลงทุนโชว์เฉพาะเมื่อเปิดโหมดการลงทุน — ปิดอยู่ให้เป็นแท็บรายการแทน
+    investmentMode
+      ? { path: "/investment", icon: LineChart, label: language === 'th' ? 'ลงทุน' : 'Invest' }
+      : { path: "/transactions", icon: List, label: t('nav.transactions') },
     { path: "/add", icon: Plus, label: t('nav.add'), isCenter: true },
     { path: "/summary", icon: BarChart3, label: t('nav.summary') },
     { path: "/settings", icon: Settings, label: t('nav.settings') },
