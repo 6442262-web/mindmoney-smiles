@@ -10,6 +10,8 @@ import { ArrowLeft, Plus, Target, Trash2, PiggyBank, CalendarDays, TrendingUp } 
 import { Link } from "react-router-dom";
 import { format, differenceInDays, parseISO } from "date-fns";
 import { th, enUS } from "date-fns/locale";
+import { RequiredMark } from "@/components/ui/required-mark";
+import { useToast } from "@/hooks/use-toast";
 
 const GOAL_ICONS = ["🎯", "🏠", "🚗", "✈️", "💻", "📱", "💍", "🎓", "🏥", "🎮"];
 const GOAL_COLORS = [
@@ -33,9 +35,17 @@ export function SavingsGoals() {
   const [depositAmount, setDepositAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const dateLocale = language === "th" ? th : enUS;
+  const { toast } = useToast();
 
   const handleCreate = async () => {
-    if (!name.trim() || !targetAmount || parseFloat(targetAmount) <= 0) return;
+    if (!name.trim() || !targetAmount || parseFloat(targetAmount) <= 0) {
+      toast({
+        title: language === "th" ? "กรอกข้อมูลไม่ครบ" : "Missing information",
+        description: language === "th" ? "กรุณากรอกชื่อเป้าหมายและจำนวนเงินที่มากกว่า 0" : "Please enter a goal name and an amount greater than 0",
+        variant: "destructive",
+      });
+      return;
+    }
     setSubmitting(true);
     await createGoal({
       name: name.trim(),
@@ -52,7 +62,14 @@ export function SavingsGoals() {
   };
 
   const handleDeposit = async () => {
-    if (!showDeposit || !depositAmount || parseFloat(depositAmount) <= 0) return;
+    if (!showDeposit || !depositAmount || parseFloat(depositAmount) <= 0) {
+      toast({
+        title: language === "th" ? "จำนวนเงินไม่ถูกต้อง" : "Invalid amount",
+        description: language === "th" ? "กรุณากรอกจำนวนเงินที่มากกว่า 0" : "Please enter an amount greater than 0",
+        variant: "destructive",
+      });
+      return;
+    }
     setSubmitting(true);
     await addAmount(showDeposit, parseFloat(depositAmount));
     setDepositAmount("");
@@ -95,9 +112,27 @@ export function SavingsGoals() {
                   ))}
                 </div>
               </div>
-              <Input placeholder={language === "th" ? "ชื่อเป้าหมาย" : "Goal name"} value={name} onChange={e => setName(e.target.value)} />
-              <Input type="number" placeholder={language === "th" ? "จำนวนเงินเป้าหมาย" : "Target amount"} value={targetAmount} onChange={e => setTargetAmount(e.target.value)} min="1" />
-              <Input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} />
+              <div>
+                <label htmlFor="goal-name" className="text-sm font-medium mb-1 block">
+                  {language === "th" ? "ชื่อเป้าหมาย" : "Goal name"}<RequiredMark />
+                </label>
+                <Input id="goal-name" placeholder={language === "th" ? "เช่น เที่ยวญี่ปุ่น, ซื้อโน้ตบุ๊ก" : "e.g. Japan trip, new laptop"} value={name} onChange={e => setName(e.target.value)} />
+              </div>
+              <div>
+                <label htmlFor="goal-target" className="text-sm font-medium mb-1 block">
+                  {language === "th" ? "จำนวนเงินเป้าหมาย (บาท)" : "Target amount"}<RequiredMark />
+                </label>
+                <Input id="goal-target" type="number" placeholder="0" value={targetAmount} onChange={e => setTargetAmount(e.target.value)} min="1" />
+              </div>
+              <div>
+                <label htmlFor="goal-deadline" className="text-sm font-medium mb-1 block">
+                  {language === "th" ? "วันที่ต้องการบรรลุ (ไม่บังคับ)" : "Target date (optional)"}
+                </label>
+                <Input id="goal-deadline" type="date" value={deadline} onChange={e => setDeadline(e.target.value)} />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {language === "th" ? "ถ้าระบุ ระบบจะคำนวณยอดที่ต้องออมต่อวันให้" : "If set, we'll show how much to save per day"}
+                </p>
+              </div>
               <Button onClick={handleCreate} disabled={submitting || !name.trim() || !targetAmount} className="w-full bg-gradient-primary">
                 {submitting ? (language === "th" ? "กำลังสร้าง..." : "Creating...") : (language === "th" ? "สร้างเป้าหมาย" : "Create Goal")}
               </Button>
@@ -196,7 +231,12 @@ export function SavingsGoals() {
                   <DialogTitle>{goal.icon} {goal.name}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <Input type="number" placeholder={language === "th" ? "จำนวนเงินที่ออม" : "Amount"} value={depositAmount} onChange={e => setDepositAmount(e.target.value)} min="1" />
+                  <div>
+                    <label htmlFor="deposit-amount" className="text-sm font-medium mb-1 block">
+                      {language === "th" ? "จำนวนเงินที่ฝากเพิ่ม (บาท)" : "Deposit amount"}<RequiredMark />
+                    </label>
+                    <Input id="deposit-amount" type="number" placeholder="0" value={depositAmount} onChange={e => setDepositAmount(e.target.value)} min="1" />
+                  </div>
                   <Button onClick={handleDeposit} disabled={submitting || !depositAmount} className="w-full bg-gradient-primary">
                     {submitting ? "..." : (language === "th" ? "บันทึก" : "Save")}
                   </Button>

@@ -114,6 +114,7 @@ function AppContent() {
       amount: transaction.amount,
       category_id: category?.id || null,
       description: transaction.description,
+      priority: transaction.priority ?? 3,
       date: transaction.date,
       time: transaction.time || null,
       account_id: currentAccount.id,
@@ -132,6 +133,7 @@ function AppContent() {
       amount: transaction.amount,
       category_id: category?.id || null,
       description: transaction.description,
+      priority: transaction.priority ?? 3,
       frequency: transaction.frequency,
       start_date: transaction.nextDate,
       next_execution: transaction.nextDate,
@@ -140,13 +142,15 @@ function AppContent() {
     });
   };
 
-  // แปลงข้อมูลแก้ไขจาก UI (category เป็นชื่อ, มี priority ที่ไม่มีคอลัมน์ใน DB) เป็น DB shape
+  // แปลงข้อมูลแก้ไขจาก UI (category เป็นชื่อหมวด) เป็น DB shape (category_id)
   const updateLegacyTransaction = async (id: string, updates: Partial<Transaction>) => {
     const dbUpdates: Record<string, unknown> = {};
     if (updates.type !== undefined) dbUpdates.type = updates.type;
     if (updates.amount !== undefined) dbUpdates.amount = updates.amount;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
     if (updates.date !== undefined) dbUpdates.date = updates.date;
+    if (updates.time !== undefined) dbUpdates.time = updates.time || null;
     if (updates.category !== undefined) {
       const category = updates.category
         ? await findOrCreateCategory(updates.category, updates.type || 'expense')
@@ -167,7 +171,7 @@ function AppContent() {
     description: t.description || '',
     date: t.date,
     time: t.time || undefined,
-    priority: 3 as PriorityLevel,
+    priority: (t.priority ?? 3) as PriorityLevel,
     isRecurring: false
   }));
 
@@ -177,7 +181,7 @@ function AppContent() {
     amount: rt.amount,
     category: (rt.category_id && categoryNameById.get(rt.category_id)) || '',
     description: rt.description || '',
-    priority: 3 as PriorityLevel,
+    priority: (rt.priority ?? 3) as PriorityLevel,
     frequency: rt.frequency as "monthly" | "weekly" | "daily",
     nextDate: rt.next_execution || rt.start_date,
     isActive: rt.is_active ?? true

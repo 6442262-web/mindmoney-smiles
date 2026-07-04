@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCategories, Category } from '@/hooks/useCategories';
+import { RequiredMark } from '@/components/ui/required-mark';
 
 const iconOptions = [
   { value: 'utensils', icon: Utensils, label: 'อาหาร' },
@@ -154,7 +155,7 @@ export function CategoryManagement() {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">ชื่อหมวดหมู่</Label>
+                <Label htmlFor="name">ชื่อหมวดหมู่<RequiredMark /></Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -190,14 +191,16 @@ export function CategoryManagement() {
                       <button
                         key={option.value}
                         type="button"
-                        className={`p-3 rounded-lg border transition-colors ${
-                          formData.icon === option.value 
-                            ? 'border-primary bg-primary/10' 
+                        title={option.label}
+                        className={`p-2 rounded-lg border transition-colors ${
+                          formData.icon === option.value
+                            ? 'border-primary bg-primary/10'
                             : 'border-muted hover:border-primary/50'
                         }`}
                         onClick={() => setFormData(prev => ({ ...prev, icon: option.value }))}
                       >
                         <IconComponent className="h-5 w-5 mx-auto" />
+                        <span className="block text-[10px] text-muted-foreground mt-1 truncate">{option.label}</span>
                       </button>
                     );
                   })}

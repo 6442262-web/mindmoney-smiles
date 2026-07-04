@@ -11,6 +11,7 @@ export interface Transaction {
   amount: number;
   description?: string | null;
   note?: string | null;
+  priority?: number | null;
   date: string;
   time?: string | null;
   is_business?: boolean;

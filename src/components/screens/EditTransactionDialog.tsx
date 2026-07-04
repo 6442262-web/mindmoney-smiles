@@ -16,6 +16,7 @@ import { th, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { parseLocalDate } from "@/lib/dateUtils";
 import { sanitizeText, getAmountError } from "@/lib/validation";
+import { RequiredMark } from "@/components/ui/required-mark";
 
 interface EditTransactionDialogProps {
   transaction: Transaction | null;
@@ -44,6 +45,7 @@ export function EditTransactionDialog({
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<PriorityLevel>(3);
+  const [time, setTime] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [saving, setSaving] = useState(false);
   const { t, language } = useLanguage();
@@ -56,6 +58,7 @@ export function EditTransactionDialog({
       setCategory(transaction.category);
       setDescription(transaction.description || "");
       setPriority(transaction.priority || 3);
+      setTime(transaction.time || "");
       setDate(parseLocalDate(transaction.date));
     }
   }, [transaction]);
@@ -84,6 +87,7 @@ export function EditTransactionDialog({
         category,
         description: sanitizedDesc,
         priority,
+        time: time || undefined,
         date: format(date, 'yyyy-MM-dd'),
       });
       onOpenChange(false);
@@ -157,7 +161,7 @@ export function EditTransactionDialog({
           {/* Amount */}
           <div className="space-y-2">
             <Label htmlFor="edit-amount" className="text-sm font-medium">
-              {t('transaction.amount')}
+              {t('transaction.amount')}<RequiredMark />
             </Label>
             <Input
               id="edit-amount"
@@ -179,7 +183,7 @@ export function EditTransactionDialog({
 
           {/* Category */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{t('transaction.category')}</Label>
+            <Label className="text-sm font-medium">{t('transaction.category')}<RequiredMark /></Label>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger>
                 <SelectValue placeholder={t('category.select')} />
@@ -192,6 +196,19 @@ export function EditTransactionDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Time */}
+          <div className="space-y-2">
+            <Label htmlFor="edit-time" className="text-sm font-medium">
+              {language === 'th' ? 'เวลา (ไม่บังคับ)' : 'Time (optional)'}
+            </Label>
+            <Input
+              id="edit-time"
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+            />
           </div>
 
           {/* Priority Level */}

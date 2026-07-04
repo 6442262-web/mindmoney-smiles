@@ -10,6 +10,7 @@ export interface RecurringTransaction {
   type: string;
   amount: number;
   description?: string | null;
+  priority?: number | null;
   frequency: string;
   start_date: string;
   end_date?: string | null;

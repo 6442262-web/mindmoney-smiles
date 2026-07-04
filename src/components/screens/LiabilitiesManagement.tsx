@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { getLocalDateString, formatDateSafe } from "@/lib/dateUtils";
 import { Textarea } from "@/components/ui/textarea";
 import { sanitizeText, getAmountError } from "@/lib/validation";
+import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const liabilityTypeLabels: Record<string, string> = {
@@ -28,6 +29,7 @@ const liabilityTypeLabels: Record<string, string> = {
 
 export function LiabilitiesManagement() {
   const { liabilities, loading, createLiability, updateLiability, deleteLiability } = useLiabilities();
+  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLiability, setEditingLiability] = useState<Liability | null>(null);
   const [formData, setFormData] = useState({
@@ -90,13 +92,31 @@ export function LiabilitiesManagement() {
     : 0;
 
   const handleSubmit = async () => {
-    if (!formData.name.trim() || !formData.principal_amount || !formData.current_balance) {
+    // แจ้งช่องที่ขาดผ่าน toast — เดิม return เงียบ ผู้ใช้กดบันทึกแล้วไม่รู้ว่าทำไมไม่เกิดอะไร
+    const missing = [
+      !formData.name.trim() && 'ชื่อหนี้สิน',
+      !formData.principal_amount && 'จำนวนเงินต้น',
+      !formData.current_balance && 'ยอดคงเหลือ',
+    ].filter(Boolean);
+    if (missing.length > 0) {
+      toast({
+        title: 'กรอกข้อมูลไม่ครบ',
+        description: `กรุณากรอก: ${missing.join(', ')}`,
+        variant: 'destructive',
+      });
       return;
     }
 
     const principalErr = getAmountError(formData.principal_amount, 'จำนวนเงินต้น');
     const balanceErr = getAmountError(formData.current_balance, 'ยอดคงเหลือ');
-    if (principalErr || balanceErr) return;
+    if (principalErr || balanceErr) {
+      toast({
+        title: 'ข้อมูลไม่ถูกต้อง',
+        description: principalErr || balanceErr,
+        variant: 'destructive',
+      });
+      return;
+    }
 
     const liabilityData = {
       name: sanitizeText(formData.name),
@@ -211,7 +231,7 @@ export function LiabilitiesManagement() {
                   </div>
                   <div className="space-y-2">
                     <Label>ยอดคงเหลือ (บาท) *</Label>
-                    <Input 
+                    <Input
                       type="number"
                       placeholder="0"
                       min="0"
@@ -221,6 +241,9 @@ export function LiabilitiesManagement() {
                     />
                   </div>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  เงินต้น = ยอดกู้ตอนเริ่มต้น · ยอดคงเหลือ = หนี้ที่ยังค้างอยู่ตอนนี้ (ใช้คำนวณ % ที่ชำระแล้ว)
+                </p>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">

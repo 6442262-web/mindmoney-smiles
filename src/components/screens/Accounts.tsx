@@ -11,6 +11,7 @@ import { Wallet, Plus, Settings, Trash2, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAccounts, Account } from '@/hooks/useAccounts';
 import { useLanguage } from '@/hooks/useLanguage';
+import { RequiredMark } from '@/components/ui/required-mark';
 
 const ACCOUNT_COLORS = [
   '#4CAF50', '#2196F3', '#FF9800', '#E91E63', 
@@ -35,7 +36,7 @@ export function Accounts() {
   const [formData, setFormData] = useState({
     name: '',
     color: '#4CAF50',
-    budget_limit: 0,
+    budget_limit: '',
     is_default: false,
   });
 
@@ -43,7 +44,7 @@ export function Accounts() {
     setFormData({
       name: '',
       color: '#4CAF50',
-      budget_limit: 0,
+      budget_limit: '',
       is_default: false,
     });
   };
@@ -51,7 +52,7 @@ export function Accounts() {
   const handleCreateAccount = async () => {
     if (!formData.name.trim()) return;
 
-    const result = await createAccount(formData);
+    const result = await createAccount({ ...formData, budget_limit: formData.budget_limit ? Number(formData.budget_limit) : 0 });
     if (result) {
       setIsCreateDialogOpen(false);
       resetForm();
@@ -63,7 +64,7 @@ export function Accounts() {
     setFormData({
       name: account.name,
       color: account.color || '#4CAF50',
-      budget_limit: account.budget_limit || 0,
+      budget_limit: account.budget_limit ? String(account.budget_limit) : '',
       is_default: account.is_default || false,
     });
   };
@@ -71,7 +72,7 @@ export function Accounts() {
   const handleUpdateAccount = async () => {
     if (!editingAccount || !formData.name.trim()) return;
 
-    await updateAccount(editingAccount.id, formData);
+    await updateAccount(editingAccount.id, { ...formData, budget_limit: formData.budget_limit ? Number(formData.budget_limit) : 0 });
     setEditingAccount(null);
     resetForm();
   };
@@ -129,7 +130,7 @@ export function Accounts() {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>{t('accounts.name')}</Label>
+                <Label>{t('accounts.name')}<RequiredMark /></Label>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
@@ -159,9 +160,10 @@ export function Accounts() {
                 <Input
                   type="number"
                   value={formData.budget_limit}
-                  onChange={(e) => setFormData(prev => ({ ...prev, budget_limit: Number(e.target.value) }))}
-                  placeholder="0"
+                  onChange={(e) => setFormData(prev => ({ ...prev, budget_limit: e.target.value }))}
+                  placeholder="เช่น 10000"
                 />
+                <p className="text-xs text-muted-foreground mt-1">เว้นว่าง = ไม่จำกัดงบรายเดือนของบัญชีนี้</p>
               </div>
 
               <div className="flex items-center justify-between">
@@ -303,7 +305,7 @@ export function Accounts() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>{t('accounts.name')}</Label>
+              <Label>{t('accounts.name')}<RequiredMark /></Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
@@ -333,7 +335,7 @@ export function Accounts() {
               <Input
                 type="number"
                 value={formData.budget_limit}
-                onChange={(e) => setFormData(prev => ({ ...prev, budget_limit: Number(e.target.value) }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, budget_limit: e.target.value }))}
                 placeholder="0"
               />
             </div>

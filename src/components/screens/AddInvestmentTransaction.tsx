@@ -8,10 +8,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { useInvestments } from '@/hooks/useInvestments';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, DollarSign, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export function AddInvestmentTransaction() {
   const { investments, loading, createInvestmentTransaction } = useInvestments();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [form, setForm] = useState({
     investment_id: '',
@@ -30,8 +32,22 @@ export function AddInvestmentTransaction() {
   const handleSubmit = async () => {
     const qty = Number(form.quantity);
     const price = Number(form.price_per_unit);
-    if (!form.investment_id || !form.quantity || !form.price_per_unit) return;
-    if (qty <= 0 || price <= 0 || qty > 999999999 || price > 999999999) return;
+    if (!form.investment_id || !form.quantity || !form.price_per_unit) {
+      toast({
+        title: 'กรอกข้อมูลไม่ครบ',
+        description: 'กรุณาเลือกสินทรัพย์และกรอกจำนวนกับราคาให้ครบ',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (qty <= 0 || price <= 0 || qty > 999999999 || price > 999999999) {
+      toast({
+        title: 'ข้อมูลไม่ถูกต้อง',
+        description: 'จำนวนและราคาต้องมากกว่า 0',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     await createInvestmentTransaction({
       investment_id: form.investment_id,
@@ -176,7 +192,7 @@ export function AddInvestmentTransaction() {
           </Card>
         )}
 
-        <Button className="w-full" onClick={handleSubmit} disabled={!form.investment_id}>
+        <Button className="w-full" onClick={handleSubmit} disabled={!form.investment_id || !form.quantity || !form.price_per_unit}>
           บันทึกรายการ
         </Button>
       </Card>

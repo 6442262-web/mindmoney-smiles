@@ -8,7 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft, Camera, Receipt, CalendarIcon, Clock, Zap, Settings2, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Camera, CalendarIcon, Clock, Zap, Settings2, ChevronDown, ChevronUp } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { RequiredMark } from "@/components/ui/required-mark";
 import { Link } from "react-router-dom";
 import { Transaction, RecurringTransaction, TransactionType, PriorityLevel } from "../MoneyMindApp";
 import { useToast } from "@/hooks/use-toast";
@@ -60,6 +62,7 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
   const grouped = useGroupedFrequentExpenses(transactions, expenseGroups);
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
   const [manageGroupsOpen, setManageGroupsOpen] = useState(false);
+  const [moreOptionsOpen, setMoreOptionsOpen] = useState(false);
 
   // Handle selection from transaction search
   const handleTransactionSelect = (selected: SearchableTransaction) => {
@@ -254,6 +257,48 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
           </RadioGroup>
         </Card>
 
+        {/* Amount */}
+        <Card className="p-4">
+          <Label htmlFor="amount" className="text-base font-semibold">
+            {t('transaction.amount')}<RequiredMark />
+          </Label>
+          <Input
+            id="amount"
+            type="number"
+            placeholder="0.00"
+            min="0"
+            max="999999999"
+            step="0.01"
+            value={amount}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '' || (Number(val) >= 0 && Number(val) <= 999999999)) {
+                setAmount(val);
+              }
+            }}
+            className="mt-2 text-lg"
+          />
+        </Card>
+
+        {/* Category */}
+        <Card className="p-4">
+          <Label className="text-base font-semibold">
+            {t('transaction.category')}<RequiredMark />
+          </Label>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="mt-2">
+              <SelectValue placeholder={t('category.select')} />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Card>
+
         {/* Frequent Expense Tags */}
         {type === "expense" && (grouped.groups.length > 0 || grouped.ungrouped.length > 0 || expenseGroups.length > 0) && (
           <Card className="p-4">
@@ -349,145 +394,6 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
           </Card>
         )}
 
-        {/* Recurring Option */}
-        <Card className="p-4">
-          <div className="flex items-center space-x-2 mb-3">
-            <input
-              type="checkbox"
-              id="recurring"
-              checked={isRecurring}
-              onChange={(e) => setIsRecurring(e.target.checked)}
-              className="rounded border-border"
-            />
-            <Label htmlFor="recurring" className="text-base font-medium">
-              {t('transaction.recurring')}
-            </Label>
-          </div>
-          
-          {isRecurring && (
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium mb-2 block">{t('transaction.frequency')}</Label>
-                <Select value={frequency} onValueChange={(value) => setFrequency(value as "monthly" | "weekly" | "daily")}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">{t('frequency.daily')}</SelectItem>
-                    <SelectItem value="weekly">{t('frequency.weekly')}</SelectItem>
-                    <SelectItem value="monthly">{t('frequency.monthly')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label className="text-sm font-medium mb-2 block">{t('transaction.startDate')}</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !startDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "dd MMM yyyy", { locale: dateLocale }) : <span>{t('transaction.selectDate')}</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={(date) => date && setStartDate(date)}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                      locale={dateLocale}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-          )}
-        </Card>
-
-        {/* Amount */}
-        <Card className="p-4">
-          <Label htmlFor="amount" className="text-base font-semibold">
-            {t('transaction.amount')}
-          </Label>
-          <Input
-            id="amount"
-            type="number"
-            placeholder="0.00"
-            min="0"
-            max="999999999"
-            step="0.01"
-            value={amount}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val === '' || (Number(val) >= 0 && Number(val) <= 999999999)) {
-                setAmount(val);
-              }
-            }}
-            className="mt-2 text-lg"
-          />
-        </Card>
-
-        {/* Time */}
-        <Card className="p-4">
-          <Label htmlFor="time" className="text-base font-semibold">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              {language === 'th' ? 'เวลา' : 'Time'}
-            </div>
-          </Label>
-          <Input
-            id="time"
-            type="time"
-            value={transactionTime}
-            onChange={(e) => setTransactionTime(e.target.value)}
-            className="mt-2"
-          />
-        </Card>
-
-        {/* Category */}
-        <Card className="p-4">
-          <Label className="text-base font-semibold">{t('transaction.category')}</Label>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="mt-2">
-              <SelectValue placeholder={t('category.select')} />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Card>
-
-        {/* Priority Level */}
-        <Card className="p-4">
-          <Label className="text-base font-semibold">{t('transaction.priority')}</Label>
-          <Select value={priority.toString()} onValueChange={(value) => setPriority(parseInt(value) as PriorityLevel)}>
-            <SelectTrigger className="mt-2">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(priorityLabels).map(([level, label]) => (
-                <SelectItem key={level} value={level}>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full bg-priority-${level}`} />
-                    {label}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Card>
-
         {/* Description */}
         <Card className="p-4">
           <Label htmlFor="description" className="text-base font-semibold">
@@ -502,22 +408,135 @@ export function AddTransaction({ onAddTransaction, onAddRecurring }: AddTransact
           />
         </Card>
 
-        {/* Scan Options */}
-        <div className="grid grid-cols-2 gap-4">
-          <Button 
-            type="button" 
-            variant="outline" 
-            className="h-12"
-            onClick={() => setShowScanner(true)}
-          >
-            <Camera className="mr-2 h-5 w-5" />
-            {t('transaction.scanSlip')}
-          </Button>
-          <Button type="button" variant="outline" className="h-12">
-            <Receipt className="mr-2 h-5 w-5" />
-            {t('transaction.attachSlip')}
-          </Button>
-        </div>
+        {/* More Options (Time, Priority, Recurring) */}
+        <Collapsible open={moreOptionsOpen} onOpenChange={setMoreOptionsOpen}>
+          <Card className="p-4">
+            <CollapsibleTrigger asChild>
+              <button type="button" className="w-full flex items-center justify-between text-left">
+                <span className="text-base font-semibold">
+                  {language === 'th' ? 'ตัวเลือกเพิ่มเติม' : 'More options'}
+                  <span className="ml-2 text-xs font-normal text-muted-foreground">
+                    {language === 'th' ? 'เวลา · ความสำคัญ · รายการประจำ' : 'Time · Priority · Recurring'}
+                  </span>
+                </span>
+                {moreOptionsOpen
+                  ? <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 pt-4">
+              {/* Time */}
+              <div>
+                <Label htmlFor="time" className="text-sm font-medium">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    {language === 'th' ? 'เวลา (ไม่บังคับ)' : 'Time (optional)'}
+                  </div>
+                </Label>
+                <Input
+                  id="time"
+                  type="time"
+                  value={transactionTime}
+                  onChange={(e) => setTransactionTime(e.target.value)}
+                  className="mt-2"
+                />
+              </div>
+
+              {/* Priority Level */}
+              <div>
+                <Label className="text-sm font-medium">{t('transaction.priority')}</Label>
+                <Select value={priority.toString()} onValueChange={(value) => setPriority(parseInt(value) as PriorityLevel)}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(priorityLabels).map(([level, label]) => (
+                      <SelectItem key={level} value={level}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 rounded-full bg-priority-${level}`} />
+                          {label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Recurring Option */}
+              <div className="border-t pt-4">
+                <div className="flex items-center space-x-2 mb-3">
+                  <input
+                    type="checkbox"
+                    id="recurring"
+                    checked={isRecurring}
+                    onChange={(e) => setIsRecurring(e.target.checked)}
+                    className="rounded border-border"
+                  />
+                  <Label htmlFor="recurring" className="text-base font-medium">
+                    {t('transaction.recurring')}
+                  </Label>
+                </div>
+
+                {isRecurring && (
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">{t('transaction.frequency')}</Label>
+                      <Select value={frequency} onValueChange={(value) => setFrequency(value as "monthly" | "weekly" | "daily")}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="daily">{t('frequency.daily')}</SelectItem>
+                          <SelectItem value="weekly">{t('frequency.weekly')}</SelectItem>
+                          <SelectItem value="monthly">{t('frequency.monthly')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">{t('transaction.startDate')}</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !startDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {startDate ? format(startDate, "dd MMM yyyy", { locale: dateLocale }) : <span>{t('transaction.selectDate')}</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={startDate}
+                            onSelect={(date) => date && setStartDate(date)}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                            locale={dateLocale}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
+        {/* Scan Slip */}
+        <Button
+          type="button"
+          variant="outline"
+          className="h-12 w-full"
+          onClick={() => setShowScanner(true)}
+        >
+          <Camera className="mr-2 h-5 w-5" />
+          {t('transaction.scanSlip')}
+        </Button>
 
         {/* Submit */}
         <Button type="submit" className="w-full h-12 text-lg bg-gradient-primary" disabled={submitting}>

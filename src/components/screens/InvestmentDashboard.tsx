@@ -251,7 +251,8 @@ export function InvestmentDashboard() {
               <DialogHeader><DialogTitle>เพิ่มสินทรัพย์ใหม่</DialogTitle></DialogHeader>
               <div className="space-y-4">
                 <div className="relative">
-                  <Label>สัญลักษณ์ (Symbol) *</Label>
+                  <Label>สัญลักษณ์ (Symbol)</Label>
+                  <p className="text-xs text-muted-foreground mb-1">ค้นหาจากตลาดหุ้น/คริปโต หรือข้ามไปกรอกชื่อสินทรัพย์เองด้านล่างก็ได้</p>
                   <div className="relative">
                     <Input 
                       value={form.symbol} 
@@ -281,9 +282,12 @@ export function InvestmentDashboard() {
                 </div>
                 <div>
                   <Label>ชื่อสินทรัพย์</Label>
-                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="ชื่อจะกรอกอัตโนมัติ" />
+                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="กรอกอัตโนมัติเมื่อเลือก Symbol หรือพิมพ์เอง" />
+                </div>
+                <div>
+                  <Label>ประเภทสินทรัพย์</Label>
                   <Select value={form.asset_type} onValueChange={v => setForm(f => ({ ...f, asset_type: v }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {ASSET_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                     </SelectContent>
@@ -311,6 +315,9 @@ export function InvestmentDashboard() {
                     <Input type="number" value={form.buy_price} onChange={e => setForm(f => ({ ...f, buy_price: e.target.value }))} placeholder="0.00" />
                   </div>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  ถ้ากรอกทั้งจำนวนและราคาซื้อ ระบบจะบันทึกรายการซื้อแรกให้อัตโนมัติ
+                </p>
                 {Number(form.quantity) > 0 && Number(form.buy_price) > 0 && (
                   <p className="text-xs text-muted-foreground">
                     มูลค่ารวม: ฿{(Number(form.quantity) * Number(form.buy_price)).toLocaleString('th-TH', { minimumFractionDigits: 2 })}

@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useBusinessTransactions } from "@/hooks/useBusinessTransactions";
 import { useCategories } from "@/hooks/useCategories";
+import { RequiredMark } from "@/components/ui/required-mark";
 
 const businessTransactionSchema = z.object({
   type: z.enum(["income", "expense"], {
@@ -126,7 +127,7 @@ export function BusinessAddTransaction() {
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold">ประเภทรายการ</FormLabel>
+                  <FormLabel className="text-lg font-semibold">ประเภทรายการ<RequiredMark /></FormLabel>
                   <div className="grid grid-cols-2 gap-4 mt-3">
                     <Button
                       type="button"
@@ -168,7 +169,7 @@ export function BusinessAddTransaction() {
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>จำนวนเงิน (บาท)</FormLabel>
+                  <FormLabel>จำนวนเงิน (บาท)<RequiredMark /></FormLabel>
                   <FormControl>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
@@ -213,7 +214,7 @@ export function BusinessAddTransaction() {
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>หมวดหมู่</FormLabel>
+                  <FormLabel>หมวดหมู่<RequiredMark /></FormLabel>
                   <Select onValueChange={field.onChange} value={field.value} disabled={!selectedType}>
                     <FormControl>
                       <SelectTrigger>
