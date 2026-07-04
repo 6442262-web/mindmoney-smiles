@@ -1,10 +1,10 @@
-# คู่มือย้ายไป Supabase โปรเจกต์ใหม่ (nlishvnsbunxuakfhryh)
+# คู่มือย้ายไป Supabase โปรเจกต์ใหม่ (xhhtkrfcjhgnwatuetqc)
 
 โค้ดในโปรเจกต์นี้ชี้ไปที่โปรเจกต์ใหม่แล้ว เหลือขั้นตอนที่ต้องทำใน Supabase Dashboard เอง 5 ขั้น
 
 ## 1. ใส่ Anon Key
 
-1. เข้า https://supabase.com/dashboard/project/nlishvnsbunxuakfhryh/settings/api-keys
+1. เข้า https://supabase.com/dashboard/project/xhhtkrfcjhgnwatuetqc/settings/api-keys
 2. copy ค่า **anon / publishable key** (ขึ้นต้น `eyJ...` หรือ `sb_publishable_...`)
    — key นี้เป็น public key สำหรับฝั่ง client เปิดเผยได้ ไม่ใช่ secret
 3. เปิดไฟล์ `.env` ที่ root ของโปรเจกต์ แล้ววางแทน `PASTE_YOUR_ANON_KEY_HERE`:
@@ -14,11 +14,11 @@
 
 ## 2. สร้าง schema (ตาราง + RLS + triggers)
 
-1. เข้า SQL Editor: https://supabase.com/dashboard/project/nlishvnsbunxuakfhryh/sql/new
+1. เข้า SQL Editor: https://supabase.com/dashboard/project/xhhtkrfcjhgnwatuetqc/sql/new
 2. เปิดไฟล์ `supabase/setup-new-project.sql` — copy **ทั้งไฟล์** ไปวางแล้วกด **Run**
 3. ถ้ามี error ซ้ำซ้อน (เช่น "already exists") จากการรันซ้ำ ให้ข้ามได้ แต่รอบแรกบน DB ว่างควรผ่านหมด
 
-ทางเลือกถ้ามี Supabase CLI: `supabase link --project-ref nlishvnsbunxuakfhryh && supabase db push`
+ทางเลือกถ้ามี Supabase CLI: `supabase link --project-ref xhhtkrfcjhgnwatuetqc && supabase db push`
 
 ## 3. เปิด Auth providers
 
@@ -34,7 +34,7 @@
 1. ขอ key ฟรีที่ https://aistudio.google.com/apikey
 2. ติดตั้ง Supabase CLI แล้วล็อกอิน จากนั้น:
    ```sh
-   supabase link --project-ref nlishvnsbunxuakfhryh
+   supabase link --project-ref xhhtkrfcjhgnwatuetqc
    supabase secrets set GEMINI_API_KEY=ค่า_key_ของคุณ
    supabase functions deploy admin-stats
    supabase functions deploy analyze-expense
@@ -63,7 +63,7 @@ select cron.schedule(
   '0 1 * * *', -- 01:00 UTC = 08:00 เวลาไทย
   $$
   select net.http_post(
-    url := 'https://nlishvnsbunxuakfhryh.supabase.co/functions/v1/process-recurring-transactions',
+    url := 'https://xhhtkrfcjhgnwatuetqc.supabase.co/functions/v1/process-recurring-transactions',
     headers := '{"Content-Type": "application/json"}'::jsonb
   );
   $$
