@@ -29,7 +29,13 @@ export function useAuth() {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // กันแอปหมุนค้างตลอดกาลถ้าเซิร์ฟเวอร์ auth ไม่ตอบ (เช่น DB ถูก pause) — เกิน 8 วิให้แสดงหน้า login
+    const failsafe = setTimeout(() => setLoading(false), 8000);
+
+    return () => {
+      clearTimeout(failsafe);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
