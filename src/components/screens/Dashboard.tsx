@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Bell, Wallet, MessageCircle, Star, ArrowUpRight, ArrowDownRight, BarChart3, Target, LineChart } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Bell, Wallet, MessageCircle, Star, ArrowUpRight, ArrowDownRight, BarChart3, Target, LineChart, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction, RecurringTransaction } from "../MoneyMindApp";
 import { AccountSelector } from "@/components/ui/AccountSelector";
@@ -339,7 +339,7 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
           </Link>
         )}
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         <Link to="/financial-analysis">
           <Button variant="outline" className="w-full h-14 text-xs flex-col gap-1 border-primary/30 text-primary hover:bg-primary/10 transition-colors">
             <BarChart3 className="h-4 w-4" />
@@ -350,6 +350,12 @@ export function Dashboard({ transactions, recurringTransactions }: DashboardProp
           <Button variant="outline" className="w-full h-14 text-xs flex-col gap-1 border-primary/30 text-primary hover:bg-primary/10 transition-colors">
             <Target className="h-4 w-4" />
             {language === 'th' ? 'ออม' : 'Save'}
+          </Button>
+        </Link>
+        <Link to="/business/liabilities">
+          <Button variant="outline" className="w-full h-14 text-xs flex-col gap-1 border-primary/30 text-primary hover:bg-primary/10 transition-colors">
+            <CreditCard className="h-4 w-4" />
+            {language === 'th' ? 'หนี้สิน' : 'Debts'}
           </Button>
         </Link>
         <Link to="/recurring">
