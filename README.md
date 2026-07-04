@@ -1,73 +1,48 @@
-# Welcome to your Lovable project
+# MoneyMind - จัดการการเงินอัจฉริยะ
 
-## Project info
+แอปจัดการรายรับรายจ่ายส่วนตัวและธุรกิจ ติดตามการออม หนี้สิน การลงทุน พร้อมผู้ช่วย AI
 
-**URL**: https://lovable.dev/projects/b29b98ad-e2df-40cf-9d83-87beea8210b5
+## เทคโนโลยี
 
-## How can I edit this code?
+- React 18 + TypeScript + Vite
+- Tailwind CSS + shadcn/ui
+- Supabase (Database, Auth, Edge Functions)
+- Google Gemini API (ฟีเจอร์แชทบันทึกรายการ, วิเคราะห์ค่าใช้จ่าย, สแกนสลิป)
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/b29b98ad-e2df-40cf-9d83-87beea8210b5) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## เริ่มต้นพัฒนา
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# ติดตั้ง dependencies
+npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# ตั้งค่าการเชื่อมต่อ Supabase ใน .env (ดู supabase/SWITCH-PROJECT.md)
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# รัน dev server (http://localhost:8080)
 npm run dev
+
+# ตรวจ type + รันเทสต์
+npx tsc --noEmit
+npx vitest run
+
+# build สำหรับ production
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+## ตั้งค่า Supabase โปรเจกต์ใหม่
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+ดูขั้นตอนละเอียดใน [`supabase/SWITCH-PROJECT.md`](supabase/SWITCH-PROJECT.md) — สรุปคือ:
 
-**Use GitHub Codespaces**
+1. ใส่ URL + anon key ของโปรเจกต์ใน `.env`
+2. รัน `supabase/setup-new-project.sql` ใน SQL Editor เพื่อสร้าง schema
+3. เปิด Auth providers ที่ใช้ (Email / Anonymous / Google)
+4. Deploy edge functions + ตั้ง secret `GEMINI_API_KEY`
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Deploy
 
-## What technologies are used for this project?
+โปรเจกต์นี้เป็น Vite static site ธรรมดา deploy ได้ทุกที่ เช่น Vercel, Netlify, Cloudflare Pages:
 
-This project is built with:
+```sh
+npm run build   # ได้ไฟล์ใน dist/
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/b29b98ad-e2df-40cf-9d83-87beea8210b5) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+ตั้ง environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`) ในระบบ hosting ให้ตรงกับ `.env`
