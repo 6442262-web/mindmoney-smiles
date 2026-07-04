@@ -16,7 +16,7 @@ export function PinGuard({ children }: PinGuardProps) {
   const [showReset, setShowReset] = useState(false);
   const [loading, setLoading] = useState(true);
   const { verifyUserPin, isPinEnabled, hasPin } = usePin();
-  const { settings } = useUserSettings();
+  const { settings, loading: settingsLoading } = useUserSettings();
 
   useEffect(() => {
     const checkPinStatus = () => {
@@ -45,10 +45,23 @@ export function PinGuard({ children }: PinGuardProps) {
       setLoading(false);
     };
 
-    if (settings) {
+    // เดิมรอ `settings` ซึ่งเป็น null ตลอดถ้าโหลด user_settings พลาด → จอหมุนค้างตลอดกาล
+    // เปลี่ยนเป็นรอแค่ "โหลดเสร็จ" — โหลดพลาด (settings null) ถือว่า PIN ปิด ปล่อยเข้าแอป
+    if (!settingsLoading) {
       checkPinStatus();
     }
-  }, [settings, isPinEnabled, hasPin]);
+  }, [settings, settingsLoading, isPinEnabled, hasPin]);
+
+  // failsafe: ไม่ว่าอะไรจะเกิดขึ้น อย่าหมุนค้างเกิน 7 วินาที
+  useEffect(() => {
+    const failsafe = setTimeout(() => {
+      setLoading(prev => {
+        if (prev && !isPinEnabled) setPinVerified(true);
+        return false;
+      });
+    }, 7000);
+    return () => clearTimeout(failsafe);
+  }, [isPinEnabled]);
 
   // Listen for app visibility change to re-check PIN session
   useEffect(() => {
