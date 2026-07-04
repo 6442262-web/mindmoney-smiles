@@ -54,9 +54,9 @@ export function useBusinessTransactions() {
   };
 
   // Create transaction
-  const createTransaction = async (transaction: Omit<BusinessTransaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    if (!user) return;
-    
+  const createTransaction = async (transaction: Omit<BusinessTransaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<boolean> => {
+    if (!user) return false;
+
     try {
       const { error } = await supabase
         .from('transactions')
@@ -73,6 +73,7 @@ export function useBusinessTransactions() {
       });
 
       await fetchTransactions();
+      return true;
     } catch (error) {
       console.error('Error creating transaction:', error);
       toast({
@@ -80,6 +81,7 @@ export function useBusinessTransactions() {
         description: "ไม่สามารถบันทึกรายการได้",
         variant: "destructive",
       });
+      return false;
     }
   };
 

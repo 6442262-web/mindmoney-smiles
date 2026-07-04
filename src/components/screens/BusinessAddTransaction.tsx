@@ -15,7 +15,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { useBusinessTransactions } from "@/hooks/useBusinessTransactions";
+import { useCategories } from "@/hooks/useCategories";
 
 const businessTransactionSchema = z.object({
   type: z.enum(["income", "expense"], {
@@ -63,8 +64,10 @@ const expenseCategories = [
 ];
 
 export function BusinessAddTransaction() {
-  const { toast } = useToast();
   const [selectedType, setSelectedType] = useState<"income" | "expense" | "">("");
+  const [submitting, setSubmitting] = useState(false);
+  const { createTransaction } = useBusinessTransactions();
+  const { findOrCreateCategory } = useCategories();
 
   const form = useForm<BusinessTransactionFormData>({
     resolver: zodResolver(businessTransactionSchema),
@@ -73,17 +76,32 @@ export function BusinessAddTransaction() {
     },
   });
 
-  const onSubmit = (data: BusinessTransactionFormData) => {
-    console.log("Business transaction data:", data);
-    // Here you would typically send the data to your backend
-    toast({
-      title: "บันทึกสำเร็จ",
-      description: `บันทึก${data.type === "income" ? "รายรับ" : "รายจ่าย"}เรียบร้อยแล้ว`,
-    });
-    form.reset({
-      date: new Date(),
-    });
-    setSelectedType("");
+  const onSubmit = async (data: BusinessTransactionFormData) => {
+    setSubmitting(true);
+    try {
+      const categoryList = data.type === "income" ? incomeCategories : expenseCategories;
+      const categoryLabel = categoryList.find(c => c.value === data.category)?.label || data.category;
+      const category = await findOrCreateCategory(categoryLabel, data.type);
+
+      const success = await createTransaction({
+        type: data.type,
+        amount: parseFloat(data.amount),
+        category_id: category?.id || null,
+        description: data.description || null,
+        note: data.note || null,
+        date: format(data.date, "yyyy-MM-dd"),
+        is_business: true,
+      });
+
+      if (success) {
+        form.reset({
+          date: new Date(),
+        });
+        setSelectedType("");
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const currentCategories = selectedType === "income" ? incomeCategories : expenseCategories;
@@ -288,8 +306,8 @@ export function BusinessAddTransaction() {
 
           {/* Submit Button */}
           <Card className="p-4">
-            <Button type="submit" className="w-full" size="lg">
-              บันทึกรายการ
+            <Button type="submit" className="w-full" size="lg" disabled={submitting}>
+              {submitting ? "กำลังบันทึก..." : "บันทึกรายการ"}
             </Button>
           </Card>
         </form>

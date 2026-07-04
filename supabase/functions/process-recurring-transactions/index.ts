@@ -5,18 +5,38 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-function calculateNextDate(currentDate: string, frequency: string): string {
-  const date = new Date(currentDate)
-  switch (frequency) {
-    case 'daily': date.setDate(date.getDate() + 1); break
-    case 'weekly': date.setDate(date.getDate() + 7); break
-    case 'biweekly': date.setDate(date.getDate() + 14); break
-    case 'monthly': date.setMonth(date.getMonth() + 1); break
-    case 'quarterly': date.setMonth(date.getMonth() + 3); break
-    case 'yearly': date.setFullYear(date.getFullYear() + 1); break
-    default: date.setMonth(date.getMonth() + 1)
+function daysInMonth(year: number, monthIndex: number): number {
+  return new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate()
+}
+
+// preferredDay: วันที่ตั้งใจให้ยิงประจำเดือน (จาก day_of_month) — clamp ไม่ให้เกินวันสุดท้ายของเดือนเป้าหมาย
+// เดิมใช้ date.setMonth(+1) ตรง ๆ ทำให้ 31 ม.ค. กลายเป็น 3 มี.ค. (ข้าม ก.พ. ถาวร)
+function calculateNextDate(currentDate: string, frequency: string, preferredDay?: number | null): string {
+  const [y, m, d] = currentDate.split('-').map(Number)
+
+  const addDays = (days: number): string => {
+    const dt = new Date(Date.UTC(y, m - 1, d))
+    dt.setUTCDate(dt.getUTCDate() + days)
+    return dt.toISOString().split('T')[0]
   }
-  return date.toISOString().split('T')[0]
+
+  const addMonths = (months: number): string => {
+    const totalMonth = (m - 1) + months
+    const year = y + Math.floor(totalMonth / 12)
+    const monthIndex = totalMonth % 12
+    const day = Math.min(preferredDay || d, daysInMonth(year, monthIndex))
+    return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  }
+
+  switch (frequency) {
+    case 'daily': return addDays(1)
+    case 'weekly': return addDays(7)
+    case 'biweekly': return addDays(14)
+    case 'monthly': return addMonths(1)
+    case 'quarterly': return addMonths(3)
+    case 'yearly': return addMonths(12)
+    default: return addMonths(1)
+  }
 }
 
 Deno.serve(async (req) => {
@@ -67,6 +87,36 @@ Deno.serve(async (req) => {
       try {
         console.log(`Processing recurring transaction ${recurring.id} for user ${recurring.user_id}`)
 
+        // หมดอายุตาม end_date แล้ว → ปิดการใช้งานและข้าม (เดิมไม่เช็ค ทำให้ยิงต่อไปเรื่อย ๆ)
+        if (recurring.end_date && recurring.end_date < today) {
+          console.log(`Recurring ${recurring.id} passed end_date ${recurring.end_date}, deactivating`)
+          await supabaseClient
+            .from('recurring_transactions')
+            .update({ is_active: false })
+            .eq('id', recurring.id)
+          continue
+        }
+
+        // กันยิงซ้ำ: ถ้าวันนี้มี execution สำเร็จแล้ว (เช่นรอบก่อน insert ผ่านแต่ update next_execution ล้ม)
+        // ให้ข้ามการสร้างธุรกรรม แต่ยังเลื่อน next_execution ให้ถูกต้อง (self-healing)
+        const { data: existingExec } = await supabaseClient
+          .from('recurring_executions')
+          .select('id')
+          .eq('recurring_id', recurring.id)
+          .eq('execution_date', today)
+          .eq('status', 'success')
+          .limit(1)
+
+        if (existingExec && existingExec.length > 0) {
+          console.log(`Recurring ${recurring.id} already executed today, advancing next_execution only`)
+          const healedNext = calculateNextDate(recurring.next_execution, recurring.frequency, recurring.day_of_month)
+          await supabaseClient
+            .from('recurring_transactions')
+            .update({ next_execution: healedNext, last_execution: today })
+            .eq('id', recurring.id)
+          continue
+        }
+
         const { data: transaction, error: transactionError } = await supabaseClient
           .from('transactions')
           .insert({
@@ -109,7 +159,7 @@ Deno.serve(async (req) => {
             status: 'success',
           })
 
-        const nextDate = calculateNextDate(recurring.next_execution, recurring.frequency)
+        const nextDate = calculateNextDate(recurring.next_execution, recurring.frequency, recurring.day_of_month)
 
         const { error: updateError } = await supabaseClient
           .from('recurring_transactions')

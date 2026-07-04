@@ -61,12 +61,16 @@ export function useAccountTransfers() {
     if (!user) return;
     
     try {
-      const convertedAmount = transfer.amount * transfer.exchange_rate;
-      
+      // ถ้าไม่ระบุอัตราแลกเปลี่ยน (โอนสกุลเดียวกัน) ใช้ 1 และกัน NaN จากค่าที่ผิดปกติ
+      const rate = transfer.exchange_rate ?? 1;
+      const computed = transfer.amount * rate;
+      const convertedAmount = Number.isFinite(computed) && computed > 0 ? computed : transfer.amount;
+
       const { error } = await supabase
         .from('account_transfers')
         .insert({
           ...transfer,
+          exchange_rate: rate,
           converted_amount: convertedAmount,
           user_id: user.id,
         });

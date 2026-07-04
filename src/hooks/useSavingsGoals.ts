@@ -66,7 +66,7 @@ export function useSavingsGoals() {
     }
   };
 
-  const updateGoal = async (id: string, updates: Partial<SavingsGoal>) => {
+  const updateGoal = async (id: string, updates: Partial<SavingsGoal>): Promise<boolean> => {
     try {
       const { data, error } = await supabase
         .from('savings_goals' as any)
@@ -77,21 +77,35 @@ export function useSavingsGoals() {
 
       if (error) {
         toast({ title: "เกิดข้อผิดพลาด", description: "ไม่สามารถอัพเดทเป้าหมายได้", variant: "destructive" });
-        return;
+        return false;
       }
       setGoals(prev => prev.map(g => g.id === id ? (data as any) : g));
+      return true;
     } catch (error) {
       console.error('Error updating goal:', error);
+      return false;
     }
   };
 
   const addAmount = async (id: string, amount: number) => {
     const goal = goals.find(g => g.id === id);
     if (!goal) return;
-    const newAmount = goal.current_amount + amount;
+
+    // อ่านยอดล่าสุดจาก DB ก่อนบวก กันกดซ้ำเร็ว ๆ แล้วยอดหาย (lost update จาก state เก่า)
+    let baseAmount = goal.current_amount;
+    const { data: fresh } = await supabase
+      .from('savings_goals' as any)
+      .select('current_amount')
+      .eq('id', id)
+      .single();
+    if (fresh && typeof (fresh as any).current_amount === 'number') {
+      baseAmount = (fresh as any).current_amount;
+    }
+
+    const newAmount = baseAmount + amount;
     const isCompleted = newAmount >= goal.target_amount;
-    await updateGoal(id, { current_amount: newAmount, is_completed: isCompleted });
-    if (isCompleted) {
+    const success = await updateGoal(id, { current_amount: newAmount, is_completed: isCompleted });
+    if (success && isCompleted) {
       toast({ title: "🎉 ยินดีด้วย!", description: `คุณบรรลุเป้าหมาย "${goal.name}" แล้ว!` });
     }
   };
