@@ -52,12 +52,8 @@ export function useLiabilities() {
       if (error) throw error;
       setLiabilities((data || []) as Liability[]);
     } catch (error) {
+      // โหลดพื้นหลังพลาดไม่ต้องเด้ง toast แดงใส่ผู้ใช้ — log พอ (toast เฉพาะ action ที่ผู้ใช้กดเอง)
       console.error('Error fetching liabilities:', error);
-      toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถโหลดข้อมูลหนี้สินได้",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
@@ -83,11 +79,6 @@ export function useLiabilities() {
       setPayments(data || []);
     } catch (error) {
       console.error('Error fetching payments:', error);
-      toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถโหลดประวัติการจ่ายได้",
-        variant: "destructive",
-      });
     }
   };
 
