@@ -7,10 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Camera, Upload, X, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { Camera, Upload, X, Loader2, CheckCircle, AlertCircle, ShieldCheck, ShieldQuestion } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { decodeSlipQr, SlipQrInfo } from "@/lib/slipQr";
 
 export interface SlipScanResult {
   success: boolean;
@@ -22,6 +23,7 @@ export interface SlipScanResult {
   suggestedCategory?: string;
   confidence?: number;
   error?: string;
+  qr?: SlipQrInfo;
 }
 
 interface SlipScannerProps {
@@ -80,17 +82,30 @@ export function SlipScanner({ open, onOpenChange, onScanComplete, onQuickSave }:
     setResult(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke("scan-slip", {
-        body: { imageBase64 },
-      });
+      // ชั้นที่ 1: ถอด QR มาตรฐานสลิปธนาคารในเครื่อง (ฟรี/เป๊ะ) ขนานกับชั้นที่ 2: AI อ่านรายละเอียด
+      const [qr, aiRes] = await Promise.all([
+        decodeSlipQr(imageBase64),
+        supabase.functions.invoke("scan-slip", { body: { imageBase64 } }),
+      ]);
 
-      if (error) {
-        console.error("Scan error:", error);
+      if (aiRes.error) {
+        console.error("Scan error:", aiRes.error);
         setResult({
           success: false,
           error: "ไม่สามารถเชื่อมต่อกับระบบสแกนได้",
+          qr,
         });
         return;
+      }
+
+      const data: SlipScanResult = { ...aiRes.data, qr };
+
+      // แนบเลขอ้างอิงจาก QR ต่อท้ายรายละเอียด เพื่อเก็บหลักฐานที่ตรวจสอบย้อนได้
+      if (data.success && qr.found && qr.transRef) {
+        const refShort = qr.transRef.slice(-10);
+        data.description = data.description
+          ? `${data.description} (อ้างอิง ${refShort})`
+          : `อ้างอิงสลิป ${refShort}`;
       }
 
       setResult(data);
@@ -98,7 +113,7 @@ export function SlipScanner({ open, onOpenChange, onScanComplete, onQuickSave }:
       if (data.success) {
         toast({
           title: "สแกนสำเร็จ",
-          description: `พบยอดเงิน ฿${data.amount?.toLocaleString("th-TH")}`,
+          description: `พบยอดเงิน ฿${data.amount?.toLocaleString("th-TH")}${qr.found ? " · ตรวจพบ QR สลิปธนาคาร ✓" : ""}`,
         });
       }
     } catch (error) {
@@ -249,6 +264,22 @@ export function SlipScanner({ open, onOpenChange, onScanComplete, onQuickSave }:
                         )}
                       </div>
 
+                      {/* ผลตรวจสอบ QR สลิปธนาคาร (ชั้นความน่าเชื่อถือ) */}
+                      {result.qr?.found ? (
+                        <div className="flex items-center gap-2 rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 px-3 py-2 text-xs text-green-700 dark:text-green-400">
+                          <ShieldCheck className="h-4 w-4 shrink-0" />
+                          <span>
+                            พบ QR มาตรฐานสลิปธนาคาร{result.qr.sendingBankName ? ` (ธ.${result.qr.sendingBankName})` : ""}
+                            {result.qr.transRef ? ` · อ้างอิง ...${result.qr.transRef.slice(-8)}` : ""}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+                          <ShieldQuestion className="h-4 w-4 shrink-0" />
+                          <span>ไม่พบ QR บนรูป (อาจเป็นรูปครอป/ใบเสร็จร้านค้า) — ตรวจยอดเงินก่อนบันทึก</span>
+                        </div>
+                      )}
+
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">จำนวนเงิน:</span>
@@ -287,9 +318,19 @@ export function SlipScanner({ open, onOpenChange, onScanComplete, onQuickSave }:
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-destructive">
-                      <AlertCircle className="h-5 w-5" />
-                      <span>{result.error || "ไม่สามารถอ่านข้อมูลจากสลิปได้"}</span>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-destructive">
+                        <AlertCircle className="h-5 w-5" />
+                        <span>{result.error || "ไม่สามารถอ่านข้อมูลจากสลิปได้"}</span>
+                      </div>
+                      {result.qr?.found && (
+                        <div className="flex items-center gap-2 rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 px-3 py-2 text-xs text-green-700 dark:text-green-400">
+                          <ShieldCheck className="h-4 w-4 shrink-0" />
+                          <span>
+                            แต่ตรวจพบ QR สลิปธนาคารจริง{result.qr.sendingBankName ? ` (ธ.${result.qr.sendingBankName})` : ""} — ลองสแกนใหม่หรือกรอกยอดเองได้
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </Card>
