@@ -169,7 +169,11 @@ function parseAmount(input: string): number | null {
  * Category/account columns are returned as names for later id resolution.
  */
 export function parseTransactionsCsv(text: string): ParseResult {
-  const rows = parseCsvRows(text);
+  return parseTransactionsFromRows(parseCsvRows(text));
+}
+
+/** แกนกลางของการนำเข้า — รับ rows ตรง ๆ เพื่อให้ใช้ร่วมกับแหล่งอื่นได้ (เช่น Excel) */
+export function parseTransactionsFromRows(rows: string[][]): ParseResult {
   if (rows.length === 0) return { valid: [], errors: [], headerError: "ไฟล์ว่างเปล่า" };
 
   const header = rows[0];

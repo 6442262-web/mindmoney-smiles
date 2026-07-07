@@ -9,6 +9,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useToast } from "@/hooks/use-toast";
 import { parseTransactionsCsv, type ParseResult, type ParsedTransaction } from "@/lib/importCsv";
+import { parseTransactionsXlsx, isExcelFile } from "@/lib/importXlsx";
 import { cn } from "@/lib/utils";
 
 const fmt = (n: number) =>
@@ -77,8 +78,13 @@ export function ImportTransactions() {
     setDone(null);
     setFileName(file.name);
     try {
-      const text = await file.text();
-      setResult(parseTransactionsCsv(text));
+      if (isExcelFile(file.name)) {
+        const buffer = await file.arrayBuffer();
+        setResult(await parseTransactionsXlsx(buffer));
+      } else {
+        const text = await file.text();
+        setResult(parseTransactionsCsv(text));
+      }
     } catch {
       toast({ title: "อ่านไฟล์ไม่สำเร็จ", description: "กรุณาตรวจสอบไฟล์แล้วลองใหม่", variant: "destructive" });
       setResult(null);
@@ -161,12 +167,12 @@ export function ImportTransactions() {
           onDrop={onDrop}
         >
           <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-          <p className="text-sm font-medium">ลากไฟล์ CSV มาวางที่นี่</p>
+          <p className="text-sm font-medium">ลากไฟล์ Excel (.xlsx) หรือ CSV มาวางที่นี่</p>
           <p className="text-xs text-muted-foreground mt-1">หรือคลิกเพื่อเลือกไฟล์</p>
           <input
             ref={inputRef}
             type="file"
-            accept=".csv,text/csv"
+            accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];

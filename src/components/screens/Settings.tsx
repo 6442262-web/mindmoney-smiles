@@ -367,7 +367,7 @@ export function Settings() {
             <Link to="/import-csv" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <Upload className="h-4 w-4 mr-2" />
-                นำเข้าข้อมูลจาก CSV
+                นำเข้าข้อมูลจาก Excel/CSV
               </Button>
             </Link>
 
