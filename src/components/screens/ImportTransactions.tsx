@@ -146,8 +146,8 @@ export function ImportTransactions() {
           <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
         </Link>
         <div>
-          <h1 className="text-xl font-bold">📥 นำเข้าข้อมูลจาก CSV</h1>
-          <p className="text-xs text-muted-foreground">ลากไฟล์ CSV รายรับ-รายจ่ายมาวาง แล้วระบบจะแปลงเป็นรายการให้อัตโนมัติ</p>
+          <h1 className="text-xl font-bold">📥 นำเข้าข้อมูลจาก Excel/CSV</h1>
+          <p className="text-xs text-muted-foreground">ลากไฟล์ Excel (.xlsx) หรือ CSV รายรับ-รายจ่ายมาวาง แล้วระบบจะแปลงเป็นรายการให้อัตโนมัติ</p>
         </div>
       </div>
 
