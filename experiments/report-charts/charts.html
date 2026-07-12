@@ -1,0 +1,177 @@
+<meta charset="utf-8">
+<style>
+  .viz-root {
+    --surface-1: #fcfcfb;
+    --ink-1: #0b0b0b;
+    --ink-2: #52514e;
+    --ink-muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --series-1: #2a78d6;
+    --ring: rgba(11,11,11,0.10);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink-1);
+  }
+  body { margin: 0; background: #f9f9f7; }
+  figure.chart {
+    margin: 24px; padding: 20px 24px; width: 760px; box-sizing: border-box;
+    background: var(--surface-1); border: 1px solid var(--ring); border-radius: 12px;
+  }
+  .title { font-size: 16px; font-weight: 600; margin: 0 0 2px; }
+  .subtitle { font-size: 12.5px; color: var(--ink-2); margin: 0 0 16px; }
+  .footnote { font-size: 11px; color: var(--ink-muted); margin-top: 12px; }
+  text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .tick { font-size: 11px; fill: var(--ink-muted); }
+  .cat { font-size: 12.5px; fill: var(--ink-1); }
+  .cat2 { font-size: 11px; fill: var(--ink-muted); }
+  .val { font-size: 12px; font-weight: 600; fill: var(--ink-1); }
+  .val-in { font-size: 12px; font-weight: 600; fill: #ffffff; }
+
+  .tiles { display: flex; gap: 12px; }
+  .tile {
+    flex: 1; padding: 14px 16px; border: 1px solid var(--ring); border-radius: 10px;
+    background: var(--surface-1);
+  }
+  .tile .label { font-size: 12px; color: var(--ink-2); margin-bottom: 6px; min-height: 32px; }
+  .tile .value { font-size: 28px; font-weight: 600; line-height: 1.1; }
+  .tile .sub { font-size: 11.5px; color: #006300; margin-top: 4px; font-weight: 500; }
+</style>
+
+<div class="viz-root">
+
+<!-- ═══ กราฟ 1: การทดลองที่ 7 — FCP ตามโปรไฟล์เครือข่าย (แนวนอน) ═══ -->
+<figure class="chart" id="fig-net">
+  <p class="title">เวลาแสดงผลหน้าแรก (FCP) ตามความเร็วเครือข่าย</p>
+  <p class="subtitle">การทดลองที่ 7 — จำลองเครือข่ายด้วย Chrome DevTools Protocol, ค่าเฉลี่ย 5 รอบ/โปรไฟล์, ไม่มี cache · น้อย = ดี</p>
+  <svg width="712" height="220" viewBox="0 0 712 220">
+    <!-- แกน x: 0–5,000 ms, พื้นที่ plot x=110..670 (560px), y=8..180 -->
+    <g>
+      <line x1="110" y1="8" x2="110" y2="180" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="222" y1="8" x2="222" y2="180" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="334" y1="8" x2="334" y2="180" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="446" y1="8" x2="446" y2="180" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="558" y1="8" x2="558" y2="180" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="670" y1="8" x2="670" y2="180" stroke="var(--grid)" stroke-width="1"/>
+      <text class="tick" x="110" y="198" text-anchor="middle">0</text>
+      <text class="tick" x="222" y="198" text-anchor="middle">1,000</text>
+      <text class="tick" x="334" y="198" text-anchor="middle">2,000</text>
+      <text class="tick" x="446" y="198" text-anchor="middle">3,000</text>
+      <text class="tick" x="558" y="198" text-anchor="middle">4,000</text>
+      <text class="tick" x="670" y="198" text-anchor="middle">5,000 ms</text>
+    </g>
+    <!-- แท่ง: สูง 20px, ปลายมน 4px เฉพาะฝั่งค่า (path), ฐานเหลี่ยม -->
+    <!-- Slow 3G: 4956/5000*560 = 555.1 -->
+    <g>
+      <text class="cat" x="100" y="36" text-anchor="end">Slow 3G</text>
+      <text class="cat2" x="100" y="49" text-anchor="end">400 kbps</text>
+      <path d="M110 26 H661.1 a4 4 0 0 1 4 4 v12 a4 4 0 0 1 -4 4 H110 Z" fill="var(--series-1)"/>
+      <text class="val-in" x="655" y="40" text-anchor="end">4,956 ms</text>
+    </g>
+    <!-- 3G: 1386/5000*560 = 155.2 -->
+    <g>
+      <text class="cat" x="100" y="78" text-anchor="end">3G</text>
+      <text class="cat2" x="100" y="91" text-anchor="end">1.6 Mbps</text>
+      <path d="M110 68 H261.2 a4 4 0 0 1 4 4 v12 a4 4 0 0 1 -4 4 H110 Z" fill="var(--series-1)"/>
+      <text class="val" x="273" y="82">1,386 ms</text>
+    </g>
+    <!-- 4G: 365/5000*560 = 40.9 -->
+    <g>
+      <text class="cat" x="100" y="120" text-anchor="end">4G</text>
+      <text class="cat2" x="100" y="133" text-anchor="end">9 Mbps</text>
+      <path d="M110 110 H146.9 a4 4 0 0 1 4 4 v12 a4 4 0 0 1 -4 4 H110 Z" fill="var(--series-1)"/>
+      <text class="val" x="159" y="124">365 ms</text>
+    </g>
+    <!-- WiFi: 132/5000*560 = 14.8 -->
+    <g>
+      <text class="cat" x="100" y="162" text-anchor="end">WiFi</text>
+      <text class="cat2" x="100" y="175" text-anchor="end">30 Mbps</text>
+      <path d="M110 152 H120.8 a4 4 0 0 1 4 4 v12 a4 4 0 0 1 -4 4 H110 Z" fill="var(--series-1)"/>
+      <text class="val" x="133" y="166">132 ms</text>
+    </g>
+  </svg>
+  <p class="footnote">แอป MoneyMind (production build, หน้าแรก ~209 KB) · วัดจริง 12 ก.ค. 2026 · ข้อมูลดิบ: experiments/e2e/net-perf-results.csv</p>
+</figure>
+
+<!-- ═══ กราฟ 2: การทดลองที่ 8 — เวลาแปลงไฟล์ Excel ตามจำนวนแถว (คอลัมน์) ═══ -->
+<figure class="chart" id="fig-scale">
+  <p class="title">เวลานำเข้าไฟล์ Excel ตั้งแต่เลือกไฟล์จนพรีวิวพร้อม</p>
+  <p class="subtitle">การทดลองที่ 8 — ไฟล์ .xlsx จริง 4 ขนาด อัปโหลดผ่านหน้าเว็บจริง · ทุกขนาดข้อมูลถูกต้องครบ 100%</p>
+  <svg width="712" height="270" viewBox="0 0 712 270">
+    <!-- plot: x=70..690, y=16..216 (200px), แกน y 0–500 ms -->
+    <g>
+      <line x1="70" y1="216" x2="690" y2="216" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="70" y1="176" x2="690" y2="176" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="70" y1="136" x2="690" y2="136" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="70" y1="96"  x2="690" y2="96"  stroke="var(--grid)" stroke-width="1"/>
+      <line x1="70" y1="56"  x2="690" y2="56"  stroke="var(--grid)" stroke-width="1"/>
+      <line x1="70" y1="16"  x2="690" y2="16"  stroke="var(--grid)" stroke-width="1"/>
+      <text class="tick" x="62" y="220" text-anchor="end">0</text>
+      <text class="tick" x="62" y="180" text-anchor="end">100</text>
+      <text class="tick" x="62" y="140" text-anchor="end">200</text>
+      <text class="tick" x="62" y="100" text-anchor="end">300</text>
+      <text class="tick" x="62" y="60"  text-anchor="end">400</text>
+      <text class="tick" x="62" y="20"  text-anchor="end">500 ms</text>
+    </g>
+    <!-- คอลัมน์กว้าง 24px กลางแบนด์ (แบนด์กว้าง 155px เริ่ม x=70) -->
+    <!-- 100 แถว: 184ms → สูง 73.6 → y=142.4 -->
+    <g>
+      <path d="M135.5 146.4 a4 4 0 0 1 4 -4 h16 a4 4 0 0 1 4 4 V216 h-24 Z" fill="var(--series-1)"/>
+      <text class="val" x="147.5" y="134" text-anchor="middle">184</text>
+      <text class="cat" x="147.5" y="238" text-anchor="middle">100 แถว</text>
+      <text class="cat2" x="147.5" y="253" text-anchor="middle">41 KB</text>
+    </g>
+    <!-- 1,000 แถว: 185ms → y=142 -->
+    <g>
+      <path d="M290.5 146 a4 4 0 0 1 4 -4 h16 a4 4 0 0 1 4 4 V216 h-24 Z" fill="var(--series-1)"/>
+      <text class="val" x="302.5" y="133.6" text-anchor="middle">185</text>
+      <text class="cat" x="302.5" y="238" text-anchor="middle">1,000 แถว</text>
+      <text class="cat2" x="302.5" y="253" text-anchor="middle">274 KB</text>
+    </g>
+    <!-- 5,000 แถว: 388ms → สูง 155.2 → y=60.8 -->
+    <g>
+      <path d="M445.5 64.8 a4 4 0 0 1 4 -4 h16 a4 4 0 0 1 4 4 V216 h-24 Z" fill="var(--series-1)"/>
+      <text class="val" x="457.5" y="52.4" text-anchor="middle">388</text>
+      <text class="cat" x="457.5" y="238" text-anchor="middle">5,000 แถว</text>
+      <text class="cat2" x="457.5" y="253" text-anchor="middle">1.3 MB</text>
+    </g>
+    <!-- 10,000 แถว: 456ms → สูง 182.4 → y=33.6 -->
+    <g>
+      <path d="M600.5 37.6 a4 4 0 0 1 4 -4 h16 a4 4 0 0 1 4 4 V216 h-24 Z" fill="var(--series-1)"/>
+      <text class="val" x="612.5" y="25.2" text-anchor="middle">456</text>
+      <text class="cat" x="612.5" y="238" text-anchor="middle">10,000 แถว</text>
+      <text class="cat2" x="612.5" y="253" text-anchor="middle">2.7 MB</text>
+    </g>
+  </svg>
+  <p class="footnote">10,000 แถว ≈ บันทึกวันละ 27 รายการ ต่อเนื่อง 1 ปี · วัดจริง 12 ก.ค. 2026 · ข้อมูลดิบ: experiments/e2e/xlsx-scale-results.csv</p>
+</figure>
+
+<!-- ═══ รูป 3: สรุปการทดสอบอัตโนมัติ (stat tiles) ═══ -->
+<figure class="chart" id="fig-tests">
+  <p class="title">ผลการทดสอบระบบอัตโนมัติทั้งหมด</p>
+  <p class="subtitle">การทดลองที่ 3, 4 และ 8 — รันบนโค้ดเวอร์ชันเดียวกับที่ใช้งานจริง (10–12 ก.ค. 2026)</p>
+  <div class="tiles">
+    <div class="tile">
+      <div class="label">รวมทุกชุดทดสอบ</div>
+      <div class="value">164/164</div>
+      <div class="sub">ผ่าน 100%</div>
+    </div>
+    <div class="tile">
+      <div class="label">Unit tests (ตรรกะโปรแกรม)</div>
+      <div class="value">133/133</div>
+      <div class="sub">ผ่าน 100%</div>
+    </div>
+    <div class="tile">
+      <div class="label">E2E บนเบราว์เซอร์จริง</div>
+      <div class="value">27/27</div>
+      <div class="sub">ผ่าน 100%</div>
+    </div>
+    <div class="tile">
+      <div class="label">นำเข้าไฟล์ Excel ขนาดใหญ่</div>
+      <div class="value">4/4</div>
+      <div class="sub">ครบทุกแถว 100%</div>
+    </div>
+  </div>
+  <p class="footnote">รายละเอียดทุกรายการ: experiments/e2e/RESULTS.md</p>
+</figure>
+
+</div>
