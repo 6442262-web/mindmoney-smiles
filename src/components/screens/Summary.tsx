@@ -397,8 +397,8 @@ export function Summary({ transactions, recurringTransactions }: SummaryProps) {
 
   return (
     <div className="pb-20 px-4 pt-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6">
+        <div className="flex items-center gap-2 min-w-0">
           <Link to="/">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-5 w-5" />

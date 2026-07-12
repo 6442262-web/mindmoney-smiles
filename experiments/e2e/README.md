@@ -27,9 +27,13 @@ npx vite preview --host 127.0.0.1 --port 8080
 
 # เทอร์มินัล 3 — รันการทดสอบ
 node experiments/e2e/drive.mjs      # E2E ฟีเจอร์หลัก 16 ขั้น
+node experiments/e2e/drive2.mjs     # E2E ภาค 2: หนี้สิน/เป้าหมายออม/CSV/API ล่ม/จอแคบ 13 ขั้น
 node experiments/e2e/xlsx-e2e.mjs   # E2E นำเข้า Excel ครบวงจร 11 ขั้น
 node experiments/e2e/perf-test.mjs  # วัดความเร็วโหลด 5 รอบ
 ```
+
+> ⚠️ `drive.mjs` มีเช็ค "วิดเจ็ตซ่อนเมื่อไม่มีข้อมูล" — ต้องรันบน mock ที่เพิ่งเปิดใหม่ (DB ว่าง)
+> ถ้ารันสลับชุด ให้รีสตาร์ต `mock-supabase.mjs` ก่อนแต่ละชุด
 
 > ⚠️ สำคัญ: อย่าลืม build ใหม่แบบปกติ (`npm run build` เฉย ๆ) ก่อน deploy จริง
 > เพราะ build ข้างบนชี้ฐานข้อมูลจำลอง

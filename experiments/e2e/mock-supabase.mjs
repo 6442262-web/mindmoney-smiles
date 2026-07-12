@@ -5,6 +5,16 @@ import crypto from 'node:crypto';
 const tables = new Map(); // name -> rows[]
 const getTable = (n) => { if (!tables.has(n)) tables.set(n, []); return tables.get(n); };
 
+// ค่า DEFAULT ของคอลัมน์ตาม schema จริง (setup-fix.sql) — PostgREST คืนค่าเหล่านี้ตอน insert
+// ถ้า mock ไม่เติมให้ UI ที่พึ่ง default (เช่น current_amount.toLocaleString) จะพังทั้งที่ของจริงไม่พัง
+const COLUMN_DEFAULTS = {
+  savings_goals: { current_amount: 0, icon: '🎯', color: '#6366f1', is_completed: false, deadline: null },
+  liabilities: { is_active: true, interest_rate: null, monthly_payment: null, due_date: null, notes: null },
+  liability_payments: { notes: null },
+  categories: { is_default: false },
+  transactions: { description: null, note: null, time: null, category_id: null, priority: 3 },
+};
+
 const USER_ID = '11111111-1111-4111-8111-111111111111';
 const now = () => new Date().toISOString();
 
@@ -97,8 +107,9 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'POST') {
       const items = Array.isArray(body) ? body : [body];
+      const defaults = COLUMN_DEFAULTS[m[1]] ?? {};
       const created = items.map(item => ({
-        id: crypto.randomUUID(), created_at: now(), updated_at: now(), ...item,
+        id: crypto.randomUUID(), created_at: now(), updated_at: now(), ...defaults, ...item,
       }));
       table.push(...created);
       const single = (req.headers.accept || '').includes('vnd.pgrst.object');
