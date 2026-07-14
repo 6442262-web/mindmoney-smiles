@@ -1,0 +1,182 @@
+<meta charset="utf-8">
+<style>
+  :root {
+    --ink: #0b0b0b; --ink2: #52514e; --line: #52514e;
+    --term-fill: #e8f5ee; --term-stroke: #1baf7a;
+    --proc-fill: #e8eef7; --proc-stroke: #2a78d6;
+    --dec-fill: #fdf3e0; --dec-stroke: #eda100;
+    --side-fill: #f4f4f2; --side-stroke: #898781;
+  }
+  body { margin: 0; background: #f9f9f7; font-family: system-ui, -apple-system, "Segoe UI", "Sarabun", sans-serif; }
+  figure { margin: 24px; padding: 20px 24px; background: #fcfcfb; border: 1px solid rgba(11,11,11,.1); border-radius: 12px; width: max-content; }
+  .title { font-size: 16px; font-weight: 700; margin: 0 0 4px; color: var(--ink); }
+  .sub { font-size: 12px; color: var(--ink2); margin: 0 0 14px; }
+  text { fill: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", "Sarabun", sans-serif; }
+  .lbl { fill: var(--ink2); font-size: 12px; font-weight: 600; }
+  .node { font-size: 13px; }
+  .nodeb { font-size: 13px; font-weight: 600; }
+</style>
+
+<!-- ══════════ Flowchart 1: การบันทึกด้วย AI ══════════ -->
+<figure id="fc-ai">
+  <p class="title">แผนภาพการทำงาน: การบันทึกรายรับ-รายจ่ายด้วย AI</p>
+  <p class="sub">ผังงาน (Flowchart) แสดงลำดับการทำงานของระบบตั้งแต่ผู้ใช้พิมพ์ข้อความจนบันทึกลงฐานข้อมูล</p>
+  <svg width="760" height="770" viewBox="0 0 760 770">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--line)"/>
+      </marker>
+    </defs>
+    <g stroke="var(--line)" stroke-width="1.5" fill="none">
+      <line x1="230" y1="72"  x2="230" y2="90"  marker-end="url(#arr)"/>
+      <line x1="230" y1="146" x2="230" y2="153" marker-end="url(#arr)"/>
+      <line x1="360" y1="210" x2="458" y2="210" marker-end="url(#arr)"/>
+      <line x1="230" y1="267" x2="230" y2="283" marker-end="url(#arr)"/>
+      <line x1="360" y1="340" x2="458" y2="340" marker-end="url(#arr)"/>
+      <line x1="230" y1="397" x2="230" y2="413" marker-end="url(#arr)"/>
+      <line x1="230" y1="479" x2="230" y2="497" marker-end="url(#arr)"/>
+      <line x1="360" y1="556" x2="458" y2="556" marker-end="url(#arr)"/>
+      <line x1="230" y1="613" x2="230" y2="631" marker-end="url(#arr)"/>
+      <line x1="230" y1="681" x2="230" y2="699" marker-end="url(#arr)"/>
+    </g>
+
+    <!-- N1 terminal -->
+    <rect x="100" y="24" width="260" height="48" rx="24" fill="var(--term-fill)" stroke="var(--term-stroke)" stroke-width="1.5"/>
+    <text class="nodeb" x="230" y="53" text-anchor="middle">ผู้ใช้พิมพ์ข้อความ เช่น “กินข้าว 50 บาท”</text>
+
+    <!-- N2 process -->
+    <rect x="100" y="90" width="260" height="56" rx="6" fill="var(--proc-fill)" stroke="var(--proc-stroke)" stroke-width="1.5"/>
+    <text class="node" x="230" y="113" text-anchor="middle">ส่งข้อความให้ AI (Gemini)</text>
+    <text class="node" x="230" y="131" text-anchor="middle">วิเคราะห์</text>
+
+    <!-- N3 decision -->
+    <polygon points="230,153 360,210 230,267 100,210" fill="var(--dec-fill)" stroke="var(--dec-stroke)" stroke-width="1.5"/>
+    <text class="node" x="230" y="205" text-anchor="middle">เป็นการบันทึก</text>
+    <text class="node" x="230" y="222" text-anchor="middle">รายการหรือไม่?</text>
+    <text class="lbl" x="405" y="203" text-anchor="middle">ไม่ใช่ (คำถาม)</text>
+    <text class="lbl" x="245" y="282">ใช่</text>
+    <rect x="458" y="186" width="252" height="48" rx="24" fill="var(--side-fill)" stroke="var(--side-stroke)" stroke-width="1.5"/>
+    <text class="node" x="584" y="215" text-anchor="middle">ตอบกลับว่าเป็นคำถาม (ไม่บันทึก)</text>
+
+    <!-- N4 decision -->
+    <polygon points="230,283 360,340 230,397 100,340" fill="var(--dec-fill)" stroke="var(--dec-stroke)" stroke-width="1.5"/>
+    <text class="node" x="230" y="335" text-anchor="middle">มีจำนวนเงิน</text>
+    <text class="node" x="230" y="352" text-anchor="middle">ครบหรือไม่?</text>
+    <text class="lbl" x="400" y="333" text-anchor="middle">ไม่มี</text>
+    <text class="lbl" x="245" y="412">มี</text>
+    <rect x="458" y="316" width="252" height="48" rx="24" fill="var(--side-fill)" stroke="var(--side-stroke)" stroke-width="1.5"/>
+    <text class="node" x="584" y="345" text-anchor="middle">ถามจำนวนเงินเพิ่มเติม</text>
+
+    <!-- N5 process -->
+    <rect x="100" y="413" width="260" height="66" rx="6" fill="var(--proc-fill)" stroke="var(--proc-stroke)" stroke-width="1.5"/>
+    <text class="node" x="230" y="438" text-anchor="middle">แยกประเภท / จำนวนเงิน / หมวดหมู่</text>
+    <text class="node" x="230" y="458" text-anchor="middle">แล้วแสดงการ์ดให้ผู้ใช้ยืนยัน</text>
+
+    <!-- N6 decision -->
+    <polygon points="230,497 360,556 230,613 100,556" fill="var(--dec-fill)" stroke="var(--dec-stroke)" stroke-width="1.5"/>
+    <text class="node" x="230" y="561" text-anchor="middle">ผู้ใช้กดยืนยัน?</text>
+    <text class="lbl" x="400" y="549" text-anchor="middle">ไม่</text>
+    <text class="lbl" x="245" y="628">ใช่</text>
+    <rect x="458" y="532" width="252" height="48" rx="24" fill="var(--side-fill)" stroke="var(--side-stroke)" stroke-width="1.5"/>
+    <text class="node" x="584" y="561" text-anchor="middle">ยกเลิก ไม่บันทึกรายการ</text>
+
+    <!-- N7 process -->
+    <rect x="100" y="631" width="260" height="50" rx="6" fill="var(--proc-fill)" stroke="var(--proc-stroke)" stroke-width="1.5"/>
+    <text class="nodeb" x="230" y="661" text-anchor="middle">บันทึกรายการลงฐานข้อมูล</text>
+
+    <!-- N8 terminal -->
+    <rect x="100" y="699" width="260" height="48" rx="24" fill="var(--term-fill)" stroke="var(--term-stroke)" stroke-width="1.5"/>
+    <text class="nodeb" x="230" y="728" text-anchor="middle">แสดงรายการในบัญชีของผู้ใช้</text>
+  </svg>
+</figure>
+
+<!-- ══════════ Flowchart 2: ขั้นตอนการดำเนินงานวิจัย ══════════ -->
+<figure id="fc-method">
+  <p class="title">แผนภาพขั้นตอนการดำเนินงานวิจัย (R&amp;D)</p>
+  <p class="sub">สำหรับบทที่ 3 — งานวิจัยและพัฒนา 6 ขั้นตอนหลัก</p>
+  <svg width="520" height="520" viewBox="0 0 520 520">
+    <defs>
+      <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--line)"/>
+      </marker>
+    </defs>
+    <g stroke="var(--line)" stroke-width="1.5" fill="none">
+      <line x1="260" y1="70"  x2="260" y2="86"  marker-end="url(#arr2)"/>
+      <line x1="260" y1="150" x2="260" y2="166" marker-end="url(#arr2)"/>
+      <line x1="260" y1="230" x2="260" y2="246" marker-end="url(#arr2)"/>
+      <line x1="260" y1="310" x2="260" y2="326" marker-end="url(#arr2)"/>
+      <line x1="260" y1="390" x2="260" y2="406" marker-end="url(#arr2)"/>
+    </g>
+    <!-- 1 terminal -->
+    <rect x="120" y="24" width="280" height="46" rx="23" fill="var(--term-fill)" stroke="var(--term-stroke)" stroke-width="1.5"/>
+    <text class="nodeb" x="260" y="52" text-anchor="middle">1. ศึกษาปัญหาและทบทวนวรรณกรรม</text>
+    <!-- 2 -->
+    <rect x="120" y="86" width="280" height="64" rx="6" fill="var(--proc-fill)" stroke="var(--proc-stroke)" stroke-width="1.5"/>
+    <text class="node" x="260" y="112" text-anchor="middle">2. ออกแบบและพัฒนาเว็บแอปพลิเคชัน</text>
+    <text class="node" x="260" y="130" text-anchor="middle">โดยใช้ AI ช่วยเขียนโค้ด</text>
+    <!-- 3 -->
+    <rect x="120" y="166" width="280" height="64" rx="6" fill="var(--proc-fill)" stroke="var(--proc-stroke)" stroke-width="1.5"/>
+    <text class="node" x="260" y="192" text-anchor="middle">3. ตรวจสอบคุณภาพระบบ (ผู้เชี่ยวชาญ</text>
+    <text class="node" x="260" y="210" text-anchor="middle">+ การทดสอบอัตโนมัติ)</text>
+    <!-- 4 -->
+    <rect x="120" y="246" width="280" height="64" rx="6" fill="var(--proc-fill)" stroke="var(--proc-stroke)" stroke-width="1.5"/>
+    <text class="node" x="260" y="272" text-anchor="middle">4. ทดลองใช้งานกับกลุ่มตัวอย่าง</text>
+    <text class="node" x="260" y="290" text-anchor="middle">และเก็บแบบสอบถามความพึงพอใจ</text>
+    <!-- 5 -->
+    <rect x="120" y="326" width="280" height="64" rx="6" fill="var(--proc-fill)" stroke="var(--proc-stroke)" stroke-width="1.5"/>
+    <text class="node" x="260" y="352" text-anchor="middle">5. วิเคราะห์ข้อมูลด้วยสถิติ</text>
+    <text class="node" x="260" y="370" text-anchor="middle">(ค่าเฉลี่ย, ส่วนเบี่ยงเบนมาตรฐาน, t-test)</text>
+    <!-- 6 terminal -->
+    <rect x="120" y="406" width="280" height="46" rx="23" fill="var(--term-fill)" stroke="var(--term-stroke)" stroke-width="1.5"/>
+    <text class="nodeb" x="260" y="434" text-anchor="middle">6. สรุปผลและจัดทำรายงาน</text>
+  </svg>
+</figure>
+
+<!-- ══════════ Flowchart 3: ขั้นตอนการทดลองความแม่น AI ══════════ -->
+<figure id="fc-exp">
+  <p class="title">แผนภาพขั้นตอนการทดลองความแม่นยำของ AI (ก่อน–หลังปรับ prompt)</p>
+  <p class="sub">สำหรับการทดลองที่ 1 — เปรียบเทียบความถูกต้องก่อนและหลังการปรับปรุงชุดคำสั่ง</p>
+  <svg width="700" height="440" viewBox="0 0 700 440">
+    <defs>
+      <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--line)"/>
+      </marker>
+    </defs>
+    <g stroke="var(--line)" stroke-width="1.5" fill="none">
+      <line x1="350" y1="68"  x2="350" y2="84"  marker-end="url(#arr3)"/>
+      <!-- แตกเป็นสองสาย -->
+      <path d="M350 138 L350 152 L180 152 L180 176" marker-end="url(#arr3)"/>
+      <path d="M350 138 L350 152 L520 152 L520 176" marker-end="url(#arr3)"/>
+      <line x1="180" y1="252" x2="180" y2="268" marker-end="url(#arr3)"/>
+      <line x1="520" y1="252" x2="520" y2="268" marker-end="url(#arr3)"/>
+      <!-- รวมกลับ -->
+      <path d="M180 320 L180 344 L350 344 L350 360" marker-end="url(#arr3)"/>
+      <path d="M520 320 L520 344 L350 344" />
+    </g>
+    <!-- start -->
+    <rect x="210" y="22" width="280" height="46" rx="23" fill="var(--term-fill)" stroke="var(--term-stroke)" stroke-width="1.5"/>
+    <text class="nodeb" x="350" y="50" text-anchor="middle">เตรียมชุดทดสอบ 100 ประโยค (9 กลุ่ม)</text>
+    <!-- split note -->
+    <rect x="250" y="84" width="200" height="54" rx="6" fill="var(--proc-fill)" stroke="var(--proc-stroke)" stroke-width="1.5"/>
+    <text class="node" x="350" y="107" text-anchor="middle">ยิงประโยคชุดเดียวกัน</text>
+    <text class="node" x="350" y="125" text-anchor="middle">ให้ AI ทั้งสองเวอร์ชัน</text>
+    <!-- left branch -->
+    <rect x="60" y="176" width="240" height="56" rx="6" fill="#fdf3e0" stroke="#eda100" stroke-width="1.5"/>
+    <text class="node" x="180" y="199" text-anchor="middle">เวอร์ชัน A: prompt เดิม</text>
+    <text class="node" x="180" y="217" text-anchor="middle">(ก่อนปรับปรุง)</text>
+    <rect x="60" y="268" width="240" height="52" rx="6" fill="var(--proc-fill)" stroke="var(--proc-stroke)" stroke-width="1.5"/>
+    <text class="node" x="180" y="291" text-anchor="middle">ตรวจคะแนน 4 ด้านอัตโนมัติ</text>
+    <text class="node" x="180" y="309" text-anchor="middle">→ ได้ค่าความถูกต้อง (ก่อน)</text>
+    <!-- right branch -->
+    <rect x="400" y="176" width="240" height="56" rx="6" fill="#fdf3e0" stroke="#eda100" stroke-width="1.5"/>
+    <text class="node" x="520" y="199" text-anchor="middle">เวอร์ชัน B: prompt ใหม่</text>
+    <text class="node" x="520" y="217" text-anchor="middle">(หลังปรับปรุง)</text>
+    <rect x="400" y="268" width="240" height="52" rx="6" fill="var(--proc-fill)" stroke="var(--proc-stroke)" stroke-width="1.5"/>
+    <text class="node" x="520" y="291" text-anchor="middle">ตรวจคะแนน 4 ด้านอัตโนมัติ</text>
+    <text class="node" x="520" y="309" text-anchor="middle">→ ได้ค่าความถูกต้อง (หลัง)</text>
+    <!-- end -->
+    <rect x="210" y="360" width="280" height="56" rx="28" fill="var(--term-fill)" stroke="var(--term-stroke)" stroke-width="1.5"/>
+    <text class="node" x="350" y="383" text-anchor="middle">เปรียบเทียบผลก่อน–หลัง</text>
+    <text class="node" x="350" y="401" text-anchor="middle">สรุปว่าปรับ prompt ช่วยได้จริงหรือไม่</text>
+  </svg>
+</figure>
