@@ -81,10 +81,10 @@ node experiments/e2e/perf-test.mjs                             #    วัดค
 
 | # | การทดลอง | สถานะ |
 |---|---|---|
-| 1 | ความแม่น AI 100 ประโยค ก่อน/หลัง prompt (`experiments/README.md`) | รอผู้ใช้ deploy function แล้วรันเอง (มี baseline ไว้ให้แล้ว) |
+| 1 | ความแม่น AI 100 ประโยค ก่อน/หลัง prompt (`experiments/README.md`) | มีหน้า /ai-experiment ในแอปให้ผู้ใช้กดรันจากมือถือ (ไม่ต้องมี terminal) — รอ deploy function ก่อน |
 | 2 | ผู้ใช้จริง ≥15 คน เวลา/error/SUS (`experiments/app-usability/`) | รอผู้ใช้เก็บข้อมูลจริง — สคริปต์ `analyze.mjs` (paired t-test) พร้อม |
 | 3 | unit tests | ✅ รันแล้ว 133/133 — ผลใน `experiments/e2e/RESULTS.md` |
-| 4 | E2E เบราว์เซอร์จริง | ✅ รันแล้ว 16/16 + 11/11 |
+| 4 | E2E เบราว์เซอร์จริง | ✅ รันแล้ว 16/16 + 11/11 + 13/13 + 12/12 (AI) |
 | 5 | ความเร็วโหลด | ✅ รันแล้ว FCP เฉลี่ย 119ms / ~209KB |
 | 6 | สลิป 3 วิธี QR/AI/ไฮบริด (`experiments/slip-scan/`) | รอผู้ใช้ deploy `scan-slip` + เก็บสลิป ≥30 ใบ — สคริปต์ selftest 10/10 แล้ว |
 | 7 | ความเร็วบนเน็ตจำลอง Slow3G/3G/4G/WiFi | ✅ รันแล้ว — FCP 4G=365ms, 3G=1.4s (ผลใน `experiments/e2e/RESULTS.md`) |

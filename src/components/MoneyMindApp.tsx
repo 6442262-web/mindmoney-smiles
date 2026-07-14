@@ -46,6 +46,7 @@ const SavingsGoals = lazy(() => import("./screens/SavingsGoals").then(m => ({ de
 const DebtAnalyzer = lazy(() => import("./screens/DebtAnalyzer").then(m => ({ default: m.DebtAnalyzer })));
 const ExpenseForecast = lazy(() => import("./screens/ExpenseForecast").then(m => ({ default: m.ExpenseForecast })));
 const ImportTransactions = lazy(() => import("./screens/ImportTransactions").then(m => ({ default: m.ImportTransactions })));
+const AiExperiment = lazy(() => import("./screens/AiExperiment").then(m => ({ default: m.AiExperiment })));
 
 export type TransactionType = "income" | "expense";
 export type PriorityLevel = 1 | 2 | 3 | 4 | 5;
@@ -276,6 +277,7 @@ function AppContent() {
             <Route path="/debt-analyzer" element={<DebtAnalyzer />} />
             <Route path="/expense-forecast" element={<ExpenseForecast />} />
             <Route path="/import-csv" element={<ImportTransactions />} />
+            <Route path="/ai-experiment" element={<AiExperiment />} />
           </Routes>
         </Suspense>
         <BottomNavigation />

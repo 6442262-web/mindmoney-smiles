@@ -43,7 +43,7 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useInvestmentMode } from '@/hooks/useInvestmentMode';
 import { useColorTheme } from '@/hooks/useColorTheme';
-import { Palette } from 'lucide-react';
+import { Palette, FlaskConical } from 'lucide-react';
 
 function ColorThemePicker() {
   const { activeThemeId, setTheme, themes } = useColorTheme();
@@ -368,6 +368,13 @@ export function Settings() {
               <Button variant="outline" className="w-full justify-start">
                 <Upload className="h-4 w-4 mr-2" />
                 นำเข้าข้อมูลจาก Excel/CSV
+              </Button>
+            </Link>
+
+            <Link to="/ai-experiment" className="block">
+              <Button variant="outline" className="w-full justify-start">
+                <FlaskConical className="h-4 w-4 mr-2" />
+                การทดลองความแม่นยำ AI (โครงงาน)
               </Button>
             </Link>
 

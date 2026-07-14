@@ -29,6 +29,7 @@ npx vite preview --host 127.0.0.1 --port 8080
 node experiments/e2e/drive.mjs      # E2E ฟีเจอร์หลัก 16 ขั้น
 node experiments/e2e/drive2.mjs     # E2E ภาค 2: หนี้สิน/เป้าหมายออม/CSV/API ล่ม/จอแคบ 13 ขั้น
 node experiments/e2e/xlsx-e2e.mjs   # E2E นำเข้า Excel ครบวงจร 11 ขั้น
+node experiments/e2e/ai-chat-e2e.mjs # E2E บันทึกด้วย AI + หน้าการทดลอง 12 ขั้น
 node experiments/e2e/perf-test.mjs  # วัดความเร็วโหลด 5 รอบ
 ```
 
