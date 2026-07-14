@@ -77,7 +77,7 @@ node experiments/e2e/perf-test.mjs                             #    วัดค
 2. **Redeploy edge functions ผ่าน Dashboard Editor**: `chat-transaction` (prompt ใหม่) และ `scan-slip` (prompt ใหม่ + ฟิลด์ `sendingBank`)
    วิธี: Dashboard → Edge Functions → เลือกฟังก์ชัน → Editor → วางโค้ดจากไฟล์ใน repo → Deploy (ไฟล์ต้องชื่อ `index.ts`)
 
-### การทดลองโครงงาน 8 อัน
+### การทดลองโครงงาน 9 อัน
 
 | # | การทดลอง | สถานะ |
 |---|---|---|
@@ -89,6 +89,7 @@ node experiments/e2e/perf-test.mjs                             #    วัดค
 | 6 | สลิป 3 วิธี QR/AI/ไฮบริด (`experiments/slip-scan/`) | รอผู้ใช้ deploy `scan-slip` + เก็บสลิป ≥30 ใบ — สคริปต์ selftest 10/10 แล้ว |
 | 7 | ความเร็วบนเน็ตจำลอง Slow3G/3G/4G/WiFi | ✅ รันแล้ว — FCP 4G=365ms, 3G=1.4s (ผลใน `experiments/e2e/RESULTS.md`) |
 | 8 | Excel ไฟล์ใหญ่ 100–10,000 แถว | ✅ รันแล้ว — หมื่นแถว 456ms ครบทุกแถว |
+| 9 | Code splitting มี/ไม่มี (`experiments/code-splitting/`) | ✅ รันแล้ว — เร็วขึ้น ~3 เท่า ลดโหลด 74% (การทดลองแท้ ไม่ใช้คน) |
 
 ถ้าผู้ใช้เอาผลการทดลอง 1/2/6 มาให้ → ช่วยวิเคราะห์/ทำกราฟ/เขียนสรุปภาษาไทยสำหรับรูปเล่มได้เลย
 

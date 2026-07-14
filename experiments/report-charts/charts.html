@@ -145,6 +145,62 @@
   <p class="footnote">10,000 แถว ≈ บันทึกวันละ 27 รายการ ต่อเนื่อง 1 ปี · วัดจริง 12 ก.ค. 2026 · ข้อมูลดิบ: experiments/e2e/xlsx-scale-results.csv</p>
 </figure>
 
+<!-- ═══ กราฟ 4: การทดลองที่ 9 — ผลของ code splitting (กลุ่มคอลัมน์ 2 series) ═══ -->
+<figure class="chart" id="fig-codesplit">
+  <p class="title">ผลของเทคนิค Code Splitting ต่อเวลาแสดงผลหน้าแรก (FCP)</p>
+  <p class="subtitle">การทดลองที่ 9 — แอปเดียวกัน 2 เวอร์ชัน ต่างกันเฉพาะการใช้เทคนิค · ค่าเฉลี่ย 5 รอบ/เงื่อนไข · น้อย = ดี</p>
+  <svg width="712" height="300" viewBox="0 0 712 300">
+    <!-- plot: x=80..690, y=16..216 (200px), แกน y 0–5,000 ms -->
+    <g>
+      <line x1="80" y1="216" x2="690" y2="216" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="80" y1="176" x2="690" y2="176" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="80" y1="136" x2="690" y2="136" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="80" y1="96"  x2="690" y2="96"  stroke="var(--grid)" stroke-width="1"/>
+      <line x1="80" y1="56"  x2="690" y2="56"  stroke="var(--grid)" stroke-width="1"/>
+      <line x1="80" y1="16"  x2="690" y2="16"  stroke="var(--grid)" stroke-width="1"/>
+      <text class="tick" x="72" y="220" text-anchor="end">0</text>
+      <text class="tick" x="72" y="180" text-anchor="end">1,000</text>
+      <text class="tick" x="72" y="140" text-anchor="end">2,000</text>
+      <text class="tick" x="72" y="100" text-anchor="end">3,000</text>
+      <text class="tick" x="72" y="60"  text-anchor="end">4,000</text>
+      <text class="tick" x="72" y="20"  text-anchor="end">5,000 ms</text>
+    </g>
+    <!-- กลุ่มละ 2 คอลัมน์กว้าง 24px เว้น 2px; กลุ่มกว้าง ~203px เริ่ม x=80 -->
+    <!-- 3G: A 1442→57.7px (y=158.3), B 4543→181.7px (y=34.3) -->
+    <g>
+      <path d="M156.5 162.3 a4 4 0 0 1 4 -4 h16 a4 4 0 0 1 4 4 V216 h-24 Z" fill="var(--series-1)"/>
+      <text class="val" x="180" y="149.9" text-anchor="end">1,442</text>
+      <path d="M182.5 38.3 a4 4 0 0 1 4 -4 h16 a4 4 0 0 1 4 4 V216 h-24 Z" fill="#1baf7a"/>
+      <text class="val" x="194.5" y="25.9" text-anchor="middle">4,543</text>
+      <text class="cat" x="181.5" y="238" text-anchor="middle">3G</text>
+    </g>
+    <!-- 4G: A 399→16px (y=200), B 1145→45.8px (y=170.2) -->
+    <g>
+      <path d="M359.5 204 a4 4 0 0 1 4 -4 h16 a4 4 0 0 1 4 4 V216 h-24 Z" fill="var(--series-1)"/>
+      <text class="val" x="371.5" y="191.6" text-anchor="middle">399</text>
+      <path d="M385.5 174.2 a4 4 0 0 1 4 -4 h16 a4 4 0 0 1 4 4 V216 h-24 Z" fill="#1baf7a"/>
+      <text class="val" x="397.5" y="161.8" text-anchor="middle">1,145</text>
+      <text class="cat" x="384.5" y="238" text-anchor="middle">4G</text>
+    </g>
+    <!-- WiFi: A 151→6px (y=210), B 568→22.7px (y=193.3) -->
+    <g>
+      <path d="M562.5 212 a2 2 0 0 1 2 -2 h20 a2 2 0 0 1 2 2 V216 h-24 Z" fill="var(--series-1)"/>
+      <text class="val" x="574.5" y="199.6" text-anchor="middle">151</text>
+      <path d="M588.5 197.3 a4 4 0 0 1 4 -4 h16 a4 4 0 0 1 4 4 V216 h-24 Z" fill="#1baf7a"/>
+      <text class="val" x="600.5" y="184.9" text-anchor="middle">568</text>
+      <text class="cat" x="587.5" y="238" text-anchor="middle">WiFi</text>
+    </g>
+    <!-- legend -->
+    <g>
+      <rect x="80" y="258" width="14" height="14" rx="3" fill="var(--series-1)"/>
+      <text class="cat" x="100" y="269">มี code splitting (เวอร์ชันจริง ~209 KB)</text>
+      <rect x="360" y="258" width="14" height="14" rx="3" fill="#1baf7a"/>
+      <text class="cat" x="380" y="269">ไม่มี code splitting (~800 KB)</text>
+    </g>
+  </svg>
+  <p class="footnote">เวอร์ชัน B ปิดเทคนิค 3 ชั้น: React.lazy 32 หน้าจอ · dynamic import ไลบรารีหนัก · vendor chunks — โค้ดส่วนอื่นเหมือนกันทุกบรรทัด · วัดจริง 12 ก.ค. 2026 · ข้อมูลดิบ: experiments/code-splitting/codesplit-results.csv</p>
+</figure>
+
 <!-- ═══ รูป 3: สรุปการทดสอบอัตโนมัติ (stat tiles) ═══ -->
 <figure class="chart" id="fig-tests">
   <p class="title">ผลการทดสอบระบบอัตโนมัติทั้งหมด</p>
