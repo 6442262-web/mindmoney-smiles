@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, FlaskConical, Play, Square, Download, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { describeFunctionError } from "@/lib/functionError";
 import testSet from "../../../experiments/chat-test-set.json";
 
 // หน้าการทดลองสำหรับโครงงาน: วัดความแม่นยำ AI แยกรายการจากประโยคภาษาไทย 100 ประโยค
@@ -87,7 +88,7 @@ export function AiExperiment() {
         if (error) throw error;
         ai = data;
       } catch (e) {
-        errMsg = String((e as Error)?.message || e).slice(0, 60);
+        errMsg = (await describeFunctionError(e)).slice(0, 80);
       }
 
       const txn = ai?.transaction ?? null;

@@ -315,9 +315,12 @@ ${categoryList}
     });
   } catch (error) {
     console.error('Chat transaction error:', error);
+    const msg = error instanceof Error ? error.message : String(error);
     return new Response(JSON.stringify({
       reply: 'ขออภัย เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
       transaction: null,
+      // ส่งสาเหตุจริงกลับไปให้แอปแสดง (ช่วยดีบัก เช่น "not configured" = ยังไม่ได้ตั้งคีย์)
+      error: msg,
     }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { describeFunctionError } from "@/lib/functionError";
 import { ArrowLeft, Send, Check, X, Bot, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,12 +105,13 @@ export function ChatTransaction() {
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
       console.error("Chat error:", err);
+      const detail = await describeFunctionError(err);
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: "ขออภัย เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+          content: `ขออภัย ใช้ AI ไม่สำเร็จ: ${detail}`,
         },
       ]);
     } finally {
