@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { describeFunctionError } from "@/lib/functionError";
+import { invokeChatTransaction } from "@/lib/aiChat";
 import { ArrowLeft, Send, Check, X, Bot, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useCategories } from "@/hooks/useCategories";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -86,12 +86,10 @@ export function ChatTransaction() {
         .slice(-10)
         .map((m) => ({ role: m.role, content: m.content }));
 
-      const { data, error } = await supabase.functions.invoke("chat-transaction", {
-        body: {
-          message: text,
-          categories: categories.map((c) => ({ id: c.id, name: c.name, type: c.type })),
-          history,
-        },
+      const { data, error } = await invokeChatTransaction({
+        message: text,
+        categories: categories.map((c) => ({ id: c.id, name: c.name, type: c.type })),
+        history,
       });
 
       if (error) throw error;

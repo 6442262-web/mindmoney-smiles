@@ -86,31 +86,36 @@ const server = http.createServer(async (req, res) => {
   }
   if (url.pathname.startsWith('/auth/v1/')) return json(res, 200, {});
 
-  // ---- Edge Functions ----
+  // AI จำลองแบบ rule-based — พอสำหรับทดสอบ "วงจร" ของแอป/หน้าการทดลอง
+  // (ความแม่นของ AI จริงต้องวัดกับ Gemini ผ่านฟังก์ชันจริงเท่านั้น)
+  const mockChatTransaction = () => {
+    const msg = String(body?.message ?? '');
+    if (/\?|เท่าไหร่|เท่าไร|กี่บาท|ยังไง/.test(msg)) {
+      return json(res, 200, { reply: 'นี่คือคำถาม ไม่ได้บันทึกรายการนะ', transaction: null });
+    }
+    const m = msg.match(/(\d+(?:\.\d+)?)/);
+    if (!m) return json(res, 200, { reply: 'ขอจำนวนเงินด้วยนะ', transaction: null });
+    const amount = Number(m[1]);
+    const income = /ได้|ขาย|เงินเดือน|โอที|แม่ให้|รับ/.test(msg);
+    const category_name =
+      /ข้าว|กิน|กาแฟ|ชา|อาหาร|ก๋วยเตี๋ยว/.test(msg) ? 'อาหาร'
+      : /รถ|วิน|แท็กซี่|เดินทาง/.test(msg) ? 'ค่าเดินทาง'
+      : /เกม|หนัง|บันเทิง/.test(msg) ? 'บันเทิง'
+      : income ? 'รายรับ' : 'อื่นๆ';
+    return json(res, 200, {
+      reply: `บันทึก${income ? 'รายรับ' : 'รายจ่าย'} ${amount} บาท (${category_name}) ให้แล้ว`,
+      transaction: { type: income ? 'income' : 'expense', amount, category_name, description: msg.slice(0, 40), category_id: null },
+    });
+  };
+
+  // ---- Vercel Edge Function (proxied ผ่าน vite) ----
+  if (url.pathname === '/api/chat-transaction') return mockChatTransaction();
+
+  // ---- Supabase Edge Functions (เผื่อของเดิม) ----
   if (url.pathname.startsWith('/functions/v1/')) {
     const fn = url.pathname.split('/')[3];
     if (fn === 'yahoo-finance') return json(res, 200, { price: 0.0275, currency: 'USD', quotes: [] });
-    if (fn === 'chat-transaction') {
-      // AI จำลองแบบ rule-based — พอสำหรับทดสอบ "วงจร" ของแอป/หน้าการทดลอง
-      // (ความแม่นของ AI จริงต้องวัดกับ Gemini ผ่านฟังก์ชันจริงเท่านั้น)
-      const msg = String(body?.message ?? '');
-      if (/\?|เท่าไหร่|เท่าไร|กี่บาท|ยังไง/.test(msg)) {
-        return json(res, 200, { reply: 'นี่คือคำถาม ไม่ได้บันทึกรายการนะ', transaction: null });
-      }
-      const m = msg.match(/(\d+(?:\.\d+)?)/);
-      if (!m) return json(res, 200, { reply: 'ขอจำนวนเงินด้วยนะ', transaction: null });
-      const amount = Number(m[1]);
-      const income = /ได้|ขาย|เงินเดือน|โอที|แม่ให้|รับ/.test(msg);
-      const category_name =
-        /ข้าว|กิน|กาแฟ|ชา|อาหาร|ก๋วยเตี๋ยว/.test(msg) ? 'อาหาร'
-        : /รถ|วิน|แท็กซี่|เดินทาง/.test(msg) ? 'ค่าเดินทาง'
-        : /เกม|หนัง|บันเทิง/.test(msg) ? 'บันเทิง'
-        : income ? 'รายรับ' : 'อื่นๆ';
-      return json(res, 200, {
-        reply: `บันทึก${income ? 'รายรับ' : 'รายจ่าย'} ${amount} บาท (${category_name}) ให้แล้ว`,
-        transaction: { type: income ? 'income' : 'expense', amount, category_name, description: msg.slice(0, 40), category_id: null },
-      });
-    }
+    if (fn === 'chat-transaction') return mockChatTransaction();
     return json(res, 200, { reply: 'mock', transaction: null });
   }
 

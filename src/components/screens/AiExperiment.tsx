@@ -4,8 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, FlaskConical, Play, Square, Download, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { describeFunctionError } from "@/lib/functionError";
+import { invokeChatTransaction } from "@/lib/aiChat";
 import testSet from "../../../experiments/chat-test-set.json";
 
 // หน้าการทดลองสำหรับโครงงาน: วัดความแม่นยำ AI แยกรายการจากประโยคภาษาไทย 100 ประโยค
@@ -82,11 +82,9 @@ export function AiExperiment() {
       let ai: { transaction?: { type?: string; amount?: number; category_name?: string } | null } | null = null;
       let errMsg = "";
       try {
-        const { data, error } = await supabase.functions.invoke("chat-transaction", {
-          body: { message: item.text, categories: [], history: [] },
-        });
+        const { data, error } = await invokeChatTransaction({ message: item.text, categories: [], history: [] });
         if (error) throw error;
-        ai = data;
+        ai = data as typeof ai;
       } catch (e) {
         errMsg = (await describeFunctionError(e)).slice(0, 80);
       }
