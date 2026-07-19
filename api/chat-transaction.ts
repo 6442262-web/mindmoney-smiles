@@ -125,8 +125,8 @@ export default async function handler(req: Request): Promise<Response> {
     );
 
     let response: Response | null = null;
-    let lastStatus = 0;
-    let lastErrText = "";
+    // เก็บ error ที่ "มีความหมายที่สุด" — 404 (รุ่นไม่พบ) มีความหมายน้อยสุด จึงให้ error อื่นทับได้
+    let best: { status: number; text: string; model: string } | null = null;
     for (const model of models) {
       const r = await fetch(
         "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
@@ -144,27 +144,29 @@ export default async function handler(req: Request): Promise<Response> {
         response = r;
         break;
       }
-      lastStatus = r.status;
-      lastErrText = await r.text();
-      console.error(`AI API error (${model}):`, r.status, lastErrText);
+      const text = await r.text();
+      console.error(`AI API error (${model}):`, r.status, text);
+      // เก็บอันแรก หรืออัปเกรดจาก 404 ไปเป็น error ที่มีความหมายกว่า (เช่น 429 quota จริง)
+      if (!best || (best.status === 404 && r.status !== 404)) best = { status: r.status, text, model };
       // ลองรุ่นถัดไปเมื่อ 404 (รุ่นไม่พบ) หรือ 429 (โควตารุ่นนี้ตัน — รุ่นอื่นอาจยังเหลือ)
       if (r.status !== 404 && r.status !== 429) break;
     }
 
     if (!response) {
+      const b = best ?? { status: 0, text: "", model: "-" };
       let reason = "";
       try {
-        reason = JSON.parse(lastErrText)?.error?.message ?? "";
+        reason = JSON.parse(b.text)?.error?.message ?? "";
       } catch {
-        reason = lastErrText.slice(0, 200);
+        reason = b.text.slice(0, 200);
       }
-      // คงรหัสสถานะจริงไว้ (429/402 มีข้อความเฉพาะในแอป) แต่แนบเหตุผลจาก Gemini มาด้วย
-      const status = lastStatus === 429 || lastStatus === 402 ? lastStatus : 500;
+      // คงรหัสสถานะจริงไว้ (429/402 มีข้อความเฉพาะในแอป) แต่แนบเหตุผล+ชื่อรุ่นจาก Gemini มาด้วย
+      const status = b.status === 429 || b.status === 402 ? b.status : 500;
       return json(
         {
           reply: "ขออภัย เรียก AI ไม่สำเร็จ",
           transaction: null,
-          error: `AI API error: ${lastStatus}${reason ? ` — ${reason}` : ""}`,
+          error: `AI API error: ${b.status} [${b.model}]${reason ? ` — ${reason}` : ""}`,
         },
         status
       );
