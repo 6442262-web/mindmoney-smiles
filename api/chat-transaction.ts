@@ -117,36 +117,54 @@ export default async function handler(req: Request): Promise<Response> {
     }
     chatMessages.push({ role: "user", content: message });
 
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-      {
-        method: "POST",
-        headers: { Authorization: `Bearer ${geminiApiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "gemini-2.5-flash",
-          messages: chatMessages,
-          response_format: { type: "json_object" },
-        }),
-      }
+    const envModel = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process
+      ?.env?.GEMINI_MODEL;
+    // ลองหลายรุ่นตามลำดับ — ถ้ารุ่นไหน 404 (key เข้าถึงไม่ได้) จะลองรุ่นถัดไปอัตโนมัติ
+    const models = [envModel, "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"].filter(
+      (m, i, arr): m is string => !!m && arr.indexOf(m) === i
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI API error:", response.status, errorText);
-      if (response.status === 429) return json({ error: "Rate limit exceeded" }, 429);
-      if (response.status === 402) return json({ error: "Payment required" }, 402);
-      // ดึงข้อความจริงจาก Gemini (เช่น "API key not valid") มาโชว์ให้ดีบักง่าย
+    let response: Response | null = null;
+    let lastStatus = 0;
+    let lastErrText = "";
+    for (const model of models) {
+      const r = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${geminiApiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model,
+            messages: chatMessages,
+            response_format: { type: "json_object" },
+          }),
+        }
+      );
+      if (r.ok) {
+        response = r;
+        break;
+      }
+      lastStatus = r.status;
+      lastErrText = await r.text();
+      console.error(`AI API error (${model}):`, r.status, lastErrText);
+      // ลองรุ่นถัดไปเฉพาะกรณี 404 (รุ่นไม่พบ) — error อื่น เช่น key ผิด/rate limit ไม่ต้องลองต่อ
+      if (r.status !== 404) break;
+    }
+
+    if (!response) {
+      if (lastStatus === 429) return json({ error: "Rate limit exceeded" }, 429);
+      if (lastStatus === 402) return json({ error: "Payment required" }, 402);
       let reason = "";
       try {
-        reason = JSON.parse(errorText)?.error?.message ?? "";
+        reason = JSON.parse(lastErrText)?.error?.message ?? "";
       } catch {
-        reason = errorText.slice(0, 200);
+        reason = lastErrText.slice(0, 200);
       }
       return json(
         {
           reply: "ขออภัย เรียก AI ไม่สำเร็จ",
           transaction: null,
-          error: `AI API error: ${response.status}${reason ? ` — ${reason}` : ""}`,
+          error: `AI API error: ${lastStatus}${reason ? ` — ${reason}` : ""}`,
         },
         500
       );
