@@ -36,7 +36,7 @@ export async function describeFunctionError(error: unknown): Promise<string> {
       return "เซสชันหมดอายุหรือไม่มีสิทธิ์ กรุณาออกจากระบบแล้วเข้าใหม่";
     }
     if (status === 429) {
-      return "เรียก AI บ่อยเกินไป (rate limit) รอสักครู่แล้วลองใหม่";
+      return "เรียก AI บ่อยเกินไป/โควตาเต็ม (rate limit) รอสักครู่แล้วลองใหม่" + (bodyErr ? ` — ${bodyErr}` : "");
     }
     if (status === 402) {
       return "โควตา AI หมด กรุณาตรวจสอบบัญชี Gemini/Google AI";

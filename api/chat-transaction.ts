@@ -147,26 +147,26 @@ export default async function handler(req: Request): Promise<Response> {
       lastStatus = r.status;
       lastErrText = await r.text();
       console.error(`AI API error (${model}):`, r.status, lastErrText);
-      // ลองรุ่นถัดไปเฉพาะกรณี 404 (รุ่นไม่พบ) — error อื่น เช่น key ผิด/rate limit ไม่ต้องลองต่อ
-      if (r.status !== 404) break;
+      // ลองรุ่นถัดไปเมื่อ 404 (รุ่นไม่พบ) หรือ 429 (โควตารุ่นนี้ตัน — รุ่นอื่นอาจยังเหลือ)
+      if (r.status !== 404 && r.status !== 429) break;
     }
 
     if (!response) {
-      if (lastStatus === 429) return json({ error: "Rate limit exceeded" }, 429);
-      if (lastStatus === 402) return json({ error: "Payment required" }, 402);
       let reason = "";
       try {
         reason = JSON.parse(lastErrText)?.error?.message ?? "";
       } catch {
         reason = lastErrText.slice(0, 200);
       }
+      // คงรหัสสถานะจริงไว้ (429/402 มีข้อความเฉพาะในแอป) แต่แนบเหตุผลจาก Gemini มาด้วย
+      const status = lastStatus === 429 || lastStatus === 402 ? lastStatus : 500;
       return json(
         {
           reply: "ขออภัย เรียก AI ไม่สำเร็จ",
           transaction: null,
           error: `AI API error: ${lastStatus}${reason ? ` — ${reason}` : ""}`,
         },
-        500
+        status
       );
     }
 
