@@ -27,10 +27,10 @@ export async function describeFunctionError(error: unknown): Promise<string> {
     const bodyErr = await readBodyError(ctx);
 
     if (/not configured|GEMINI|GOOGLE_AI/i.test(bodyErr)) {
-      return "ยังไม่ได้ตั้งค่าคีย์ AI (GEMINI_API_KEY) ใน Supabase → Edge Functions → Secrets";
+      return "ยังไม่ได้ตั้งค่าคีย์ AI (GEMINI_API_KEY) ที่ Vercel → Settings → Environment Variables แล้วกด Redeploy";
     }
     if (status === 404) {
-      return "ไม่พบฟังก์ชัน AI บนเซิร์ฟเวอร์ — ยังไม่ได้ deploy หรือชื่อฟังก์ชันไม่ตรงกับ “chat-transaction”";
+      return "ไม่พบฟังก์ชัน AI (/api/chat-transaction) — รอ Vercel deploy ให้เสร็จแล้วลองใหม่";
     }
     if (status === 401 || status === 403) {
       return "เซสชันหมดอายุหรือไม่มีสิทธิ์ กรุณาออกจากระบบแล้วเข้าใหม่";

@@ -1,2 +1,2 @@
 // ตัวเลขเวอร์ชันที่แสดงบนหน้า login — อัปเดตทุกครั้งที่อยากพิสูจน์ว่า deploy ใหม่ถึงผู้ใช้แล้ว
-export const APP_VERSION = "12 ก.ค. 2026-d";
+export const APP_VERSION = "12 ก.ค. 2026-e";

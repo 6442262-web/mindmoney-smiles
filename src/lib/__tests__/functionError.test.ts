@@ -17,10 +17,10 @@ describe("describeFunctionError", () => {
     expect(msg).toContain("chat-transaction");
   });
 
-  it("500 + error ไม่มีคีย์ → บอกให้ตั้ง GEMINI_API_KEY", async () => {
+  it("500 + error ไม่มีคีย์ → บอกให้ตั้ง GEMINI_API_KEY ที่ Vercel", async () => {
     const msg = await describeFunctionError(httpError(500, { error: "GEMINI_API_KEY (or GOOGLE_AI_KEY) not configured" }));
     expect(msg).toContain("GEMINI_API_KEY");
-    expect(msg).toContain("Secrets");
+    expect(msg).toContain("Environment Variables");
   });
 
   it("401 → เซสชันหมดอายุ", async () => {
