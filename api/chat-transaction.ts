@@ -135,9 +135,19 @@ export default async function handler(req: Request): Promise<Response> {
       console.error("AI API error:", response.status, errorText);
       if (response.status === 429) return json({ error: "Rate limit exceeded" }, 429);
       if (response.status === 402) return json({ error: "Payment required" }, 402);
-      // 400 จาก Gemini มักแปลว่า key ผิด
+      // ดึงข้อความจริงจาก Gemini (เช่น "API key not valid") มาโชว์ให้ดีบักง่าย
+      let reason = "";
+      try {
+        reason = JSON.parse(errorText)?.error?.message ?? "";
+      } catch {
+        reason = errorText.slice(0, 200);
+      }
       return json(
-        { reply: "ขออภัย เรียก AI ไม่สำเร็จ", transaction: null, error: `AI API error: ${response.status}` },
+        {
+          reply: "ขออภัย เรียก AI ไม่สำเร็จ",
+          transaction: null,
+          error: `AI API error: ${response.status}${reason ? ` — ${reason}` : ""}`,
+        },
         500
       );
     }
